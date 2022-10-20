@@ -3,91 +3,90 @@
 #include "WBMSWSensor.h"
 #include "Debug.h"
 
-// Здесь определяются глобальные макросы для всего проекта.
-//  С помощью системных макросов тонко настраивается работа протокола
+//  Project global macros definitions for accurate protocol configuration
 ZUNO_ENABLE(
-		/* Поддержка классов команд. Указывается здесь так как каналы устройства создаются динамически */
-		WITH_CC_MULTICHANNEL 
+		/* Commands class support. Defined here since device channels being created dynamically */
+		WITH_CC_MULTICHANNEL
 		WITH_CC_CONFIGURATION
 		WITH_CC_SENSOR_MULTILEVEL
 		WITH_CC_NOTIFICATION
 		// SKETCH_FLAGS=(HEADER_FLAGS_NOSKETCH_OTA)
 		ZUNO_CUSTOM_OTA_OFFSET=0x10000 // 64 кБ
-		/* Количество дополнительных прошивок OTA */
+		/* Additional OTA firmwares count*/
 		ZUNO_EXT_FIRMWARES_COUNT=1
-		/* Указатель на дескриптор прошивки */
+		/* Firmware descriptor pointer */
 		ZUNO_EXT_FIRMWARES_DESCR_PTR=&g_OtaDesriptor
-		LOGGING_DBG // Закоментировать если не нужна отладочная информация. 
-					// По умолчанию отладочная информация печатается вместе с выводом системной консоли RTOS в UART0 (TX0)
+		LOGGING_DBG // Comment out if debugging information is not needed
+					// Debugging information being printed with RTOS system console output to UART0 (TX0) by default
 		//LOGGING_UART=Serial
-		
+
 	);
-	// 
-// Отладочная печать значений
+	//
+// Debug output of values
 // DBG
 #ifdef LOGGING_DBG
 #define LOG_INT_VALUE(TEXT, VALUE) LOGGING_UART.print(TEXT); LOGGING_UART.print(VALUE); LOGGING_UART.print("\n");
 #define LOG_FIXEDPOINT_VALUE(TEXT, VALUE, PREC) LOGGING_UART.print(TEXT); LOGGING_UART.fixPrint(VALUE, PREC); LOGGING_UART.print("\n");
 #else
 #define LOG_INT_VALUE(TEXT, VALUE)
-#define LOG_FIXEDPOINT_VALUE(TEXT, VALUE, PREC) 
+#define LOG_FIXEDPOINT_VALUE(TEXT, VALUE, PREC)
 #endif
-/* ZUNO_DECLARE - определяет глобальные для всего проекта EXTERN, дескриптор должен быть виден во всех файлах проекта, чтобы правильно все собралось.*/
+/* ZUNO_DECLARE defines global EXTERN for whole project, descriptor must be visible in all project files to make build right*/
 ZUNO_DECLARE(ZUNOOTAFWDescr_t g_OtaDesriptor);
 
-/* Значения дескриптора прошивки чипа WB */
+/* WB chip firmware descriptor*/
 // ZUNOOTAFWDescr_t g_OtaDesriptor = {0x010A, 0x0103};
 ZUNOOTAFWDescr_t g_OtaDesriptor = {0x0101, 0x0103};
 WBMSWSensor wb_msw(&Serial1, WB_MSW_TIMEOUT, WB_MSW_ADDRES);
 static WbMswChannel_t _channel[WB_MSW_CHANNEL_MAX];
 static int32_t _config_parameter[WB_MSW_MAX_CONFIG_PARAM];
 static uint8_t _c02_auto = false;
-// Сюда сохраняются значения образа новой прошивки
+// New firmware image values
 static WbMswFw_t_t _fw = {
 	.size = 0,
 	.bUpdate = false
 };
-// Описание всех доступных в устройстве параметров. 
-// Каналы в устройстве создаются динамически, поэтому и параметры описываются в "динамическом" стиле
+// Available device parameters description
+// Channels in the device are created dynamically, so parameters are described in "dynamic" style
 static const ZunoCFGParameter_t config_parameter_init[WB_MSW_MAX_CONFIG_PARAM] = {
-	// Настройки канала температуры
-	ZUNO_CONFIG_PARAMETER_INFO("Temperature hysteresis",  // Название параметра
-							  "If 0 reports are not sent.Value in 0.01*C",   // Детальное описание параметра
-							  0,                          // Минимальное допустимое значение
-							  2000,                         // Максимальное допустимое значение
-							  100),                         // Значение по умолчанию
+	// Temperature channel settings
+	ZUNO_CONFIG_PARAMETER_INFO("Temperature hysteresis",  // Parameter name
+							  "If 0 reports are not sent.Value in 0.01*C",   // Parameter description
+							  0,                          // Minimum allowed value
+							  2000,                         // Maximum allowed value
+							  100),                         // Default value
 	ZUNO_CONFIG_PARAMETER_INFO("Temperature invert", "If set device sends Basic.off instead of Basic.on", false, true, false),
 	ZUNO_CONFIG_PARAMETER_INFO_SIGN("Temperature threshold", ".Value in 0.01*C", -4000, 8000, 4000),
-	// Настройки датчика влажности
+	// Humidity sensor settings
 	ZUNO_CONFIG_PARAMETER_INFO("Humidity hysteresis", "If 0 reports are not sent.Value in 0.01%", 0, 2000, 100),
 	ZUNO_CONFIG_PARAMETER_INFO("Humidity invert", "If set device sends Basic.off instead of Basic.on", false, true, false),
 	ZUNO_CONFIG_PARAMETER_INFO("Humidity threshold", "Value in 0.01%", 0, 10000, 5000),
-    // Настройки датчика освещенности
+    // Lumen sensor settings
 	ZUNO_CONFIG_PARAMETER_INFO("Lumen hysteresis", "Value in 0.01Lux.", 0, 1000000, 200),
 	ZUNO_CONFIG_PARAMETER_INFO("Lumen invert", "If set device sends Basic.off instead of Basic.on", false, true, false),
 	ZUNO_CONFIG_PARAMETER_INFO("Lumen threshold", "Value in 0.01Lux.", 0, 10000000, 20000),
-	// Настройки датчика CO2
+	// CO2 sensor settings
 	ZUNO_CONFIG_PARAMETER_INFO("C02 hysteresis", "C02 hysteresis", 0, 200, 5),
 	ZUNO_CONFIG_PARAMETER_INFO("C02 invert", "If set device sends Basic.off instead of Basic.on", false, true, false),
 	ZUNO_CONFIG_PARAMETER_INFO("C02 threshold", "C02 threshold", 400, 5000, 600),
 	ZUNO_CONFIG_PARAMETER_INFO("C02 auto", "C02 auto", false, true, true),
-	// Настройки датчика VOC
+	// VOC sensor settings
 	ZUNO_CONFIG_PARAMETER_INFO("VOC hysteresis", "VOC hysteresis", 0, 200, 1),
 	ZUNO_CONFIG_PARAMETER_INFO("VOC invert", "If set device sends Basic.off instead of Basic.on", false, true, false),
 	ZUNO_CONFIG_PARAMETER_INFO("VOC threshold", "VOC threshold", 0, 60000, 660),
-    // Настройки датчика измерения шума
+    // Noise level sensor settings
 	ZUNO_CONFIG_PARAMETER_INFO("Noise level hysteresis", "Noise level hysteresis", 0, 2000, 100),
 	ZUNO_CONFIG_PARAMETER_INFO("Noise level invert", "If set device sends Basic.off instead of Basic.on", false, true, false),
 	ZUNO_CONFIG_PARAMETER_INFO("Noise level threshold", "Noise level threshold", 3800, 10500, 5000),
-	// Настройки датчика движения 
+	// Motion sensor settings
 	ZUNO_CONFIG_PARAMETER_INFO("Motion time", "Motion time", 0, 300, 20),
 	ZUNO_CONFIG_PARAMETER_INFO("Motion invert", "If set device sends Basic.off instead of Basic.on", false, true, false),
 	ZUNO_CONFIG_PARAMETER_INFO("Motion threshold", "Motion threshold", 0, 1000, 200),
 };
-// Функция возвращает названия групп. Также используется "динамический" подход. 
-// В устройстве создаются ТОЛЬКО те группы для которых есть соответсвующие каналы
+// Function return group names. "Dynamic" style is used also
+// Only those groups for which there are corresponding channels are created in the device
 const char *zunoAssociationGroupName(uint8_t groupIndex) {
-	for (uint8_t channel = 0; channel < ZUNO_CFG_CHANNEL_COUNT; channel++) 
+	for (uint8_t channel = 0; channel < ZUNO_CFG_CHANNEL_COUNT; channel++)
 		if (_channel[channel].groupIndex == groupIndex) {
 			switch (_channel[channel].type) {
 				case WB_MSW_CHANNEL_TYPE_TEMPERATURE:
@@ -110,14 +109,14 @@ const char *zunoAssociationGroupName(uint8_t groupIndex) {
 		}
 	return NULL;
 }
-// Находим канал нужного типа.
+// Finds hannel of needed type
 static WbMswChannel_t *_channelFindType(size_t type) {
-	for (size_t channel = 0;channel < ZUNO_CFG_CHANNEL_COUNT; channel++) 
+	for (size_t channel = 0;channel < ZUNO_CFG_CHANNEL_COUNT; channel++)
 		if (_channel[channel].type == type)
 			return (&_channel[channel]);
 	return 0;
 }
-// Функция проверяющаю есть ли у устройства заданный конфигурационный параметр
+//  Function checks whether the device has a specified configuration parameter
 const ZunoCFGParameter_t *zunoCFGParameter(size_t param) {
 	switch (param) {
 		case WB_MSW_CONFIG_PARAMETER_TEMPERATURE_HYSTERESIS:
@@ -169,21 +168,21 @@ const ZunoCFGParameter_t *zunoCFGParameter(size_t param) {
 	}
 	return (&config_parameter_init[param - WB_MSW_CONFIG_PARAMETER_FIRST]);
 }
-// Обработчик вызывается при обновлении значения кофигурационного параметра с контроллера Z-Wave
+// The handler is called when a configuration parameter value updated from Z-Wave controller
 static void _configParameterChanged(size_t param, int32_t value) {
 	if (param < WB_MSW_CONFIG_PARAMETER_FIRST || param > WB_MSW_CONFIG_PARAMETER_LAST)
 		return;
 	_config_parameter[param - WB_MSW_CONFIG_PARAMETER_FIRST] = value;
 }
-// Инициализация конфигурационных параметров устройства
+// Device configuration parameters initialization
 static void _configParameterInit(void) {
-	// Загружаем кофигурационные параметры из FLASH-памяти
-	for (size_t i =0; i < WB_MSW_MAX_CONFIG_PARAM; i++) 
+	// Load configuration parameters from FLASH memory
+	for (size_t i =0; i < WB_MSW_MAX_CONFIG_PARAM; i++)
 		_config_parameter[i] = zunoLoadCFGParam(i + WB_MSW_CONFIG_PARAMETER_FIRST);
-	// Устанавливаем обработчик
+	// Handler installing
 	zunoAttachSysHandler(ZUNO_HANDLER_ZW_CFG, 0, (void*) _configParameterChanged);
 }
-// Функция инициализирует определяется количество доступных Z-Wave-каналов(EndPoints) устройства и заполняет структуры по типу каналов
+// Function determines number of available Z-Wave device channels (EndPoints) and fills in the structures by channel type
 static size_t _channelInit(void) {
 	size_t							channel;
 	size_t							groupIndex;
@@ -194,18 +193,18 @@ static size_t _channelInit(void) {
 	groupIndex = CTRL_GROUP_1;
 	_channel[channel].triggered = false;
 	_channel[channel].reported_value = 0;
-	// Канал температуры
+	// Temperature channel
 	if (wb_msw.getTemperature(_channel[channel].temperature)) {
-		// Такой канал существует
+		// Such channel exists
 		if (_channel[channel].temperature != WB_MSW_INPUT_REG_TEMPERATURE_VALUE_ERROR) {
-			// Значение валидно
+			// Value is valid
 			_channel[channel].type = WB_MSW_CHANNEL_TYPE_TEMPERATURE;
 			_channel[channel].groupIndex = groupIndex;
 			channel++;
 			groupIndex++;
 		}
 	}
-	// Канал влажности
+	// Humidity channel
 	if (wb_msw.getHumidity(_channel[channel].humidity)) {
 		if (_channel[channel].humidity != WB_MSW_INPUT_REG_HUMIDITY_VALUE_ERROR) {
 			_channel[channel].type = WB_MSW_CHANNEL_TYPE_HUMIDITY;
@@ -214,7 +213,7 @@ static size_t _channelInit(void) {
 			groupIndex++;
 		}
 	}
-	// Канал освещенности
+	// Lumen channel
 	if (wb_msw.getLumminance(_channel[channel].lumen)) {
 		if (_channel[channel].lumen != WB_MSW_INPUT_REG_LUMEN_VALUE_ERROR) {
 			_channel[channel].type = WB_MSW_CHANNEL_TYPE_LUMEN;
@@ -260,9 +259,9 @@ static size_t _channelInit(void) {
 	}
 	return channel;
 }
-// Настраиваем каналы Z-Wave, задаем индексы Multichannel
+// Setting up Z-Wave channels, setting Multichannel indexes
 static void _channelSet(size_t channel_max) {
-	for (size_t channel = 0; channel < channel_max; channel++) 
+	for (size_t channel = 0; channel < channel_max; channel++)
 		switch (_channel[channel].type) {
 			case WB_MSW_CHANNEL_TYPE_TEMPERATURE:
 				zunoAddChannel(ZUNO_SENSOR_MULTILEVEL_CHANNEL_NUMBER, ZUNO_SENSOR_MULTILEVEL_TYPE_TEMPERATURE, (SENSOR_MULTILEVEL_PROPERTIES_COMBINER(SENSOR_MULTILEVEL_SCALE_CELSIUS,
@@ -309,9 +308,9 @@ static void _channelSet(size_t channel_max) {
 	if (ZUNO_CFG_CHANNEL_COUNT > 1)
 		zunoSetZWChannel(0, 1 | ZWAVE_CHANNEL_MAPPED_BIT);
 }
-// Устанавливает хэндлеры для всех каналов датчиков. Хэндлер используется при запросе данных канала с контроллера
+// Setting up handlers for all sensor cannels. Handler is used when requesting channel data from controller
 void _channelSetHandler(uint8_t channel_max) {
-	for (size_t channel = 0; channel < channel_max; channel++) 
+	for (size_t channel = 0; channel < channel_max; channel++)
 		switch (_channel[channel].type) {
 			case WB_MSW_CHANNEL_TYPE_TEMPERATURE:
 				zunoAppendChannelHandler(channel, WB_MSW_INPUT_REG_TEMPERATURE_VALUE_SIZE, CHANNEL_HANDLER_SINGLE_VALUEMAPPER, (void*)&_channel[channel].temperature);
@@ -339,49 +338,49 @@ void _channelSetHandler(uint8_t channel_max) {
 		}
 }
 
-// Статическая функция, куда приходят системные события
+// Static function where system events arrive
 static void _systemEvent(ZUNOSysEvent_t *ev) {
 	switch(ev->event){
-		// Пришел новый образ прошивки для второго чипа от контроллера Z-Wave
+		// A new firmware image for the second chip from the Z-Wave controller has arrived
 		case ZUNO_SYS_EVENT_OTA_IMAGE_READY:
 			if (ev->params[0] == 0) {
 				_fw.size =  ev->params[1];
 				_fw.bUpdate = true;
 			}
-			break; 
+			break;
 	}
 }
 
 void processAnalogSensorValue(int32_t current_value, uint8_t chi){
 	uint8_t hyst_param  	= WB_TYPE2PARAM_MAPPER[_channel[chi].type];
 
-	// Параметры ВСЕГДА должны идти в порядке "гистерезис", "инвертированная логика", "порог"
+	// The parameters should ALWAYS go in the order "hysteresis", "inverted logic", "threshold"
 	int32_t hyst 	= WB_MSW_CONFIG_PARAMETER_GET(hyst_param);
 	bool 	inv 	= WB_MSW_CONFIG_PARAMETER_GET(hyst_param+1);
 	int32_t thres 	= WB_MSW_CONFIG_PARAMETER_GET(hyst_param+2);
 	if((hyst != 0) && (abs(current_value - _channel[chi].reported_value) > hyst)){
-		_channel[chi].reported_value = current_value; // Запоминаем последнее отправленное значение
-		zunoSendReport(chi + 1); // Каналы устройства отсчитываются от 1-цы
+		_channel[chi].reported_value = current_value; // Remember last sent value
+		zunoSendReport(chi + 1); // Device channels are counted from 1
 	}
-	// Было уже превышение порога ?
+	// Has the threshold been exceeded already?
 	if(_channel[chi].triggered) {
 		if((current_value + hyst) < thres){
-			_channel[chi].triggered = false; // Нет превышения
-			// Отправляем в группу Basic.Off (On при инвертированной логики)
+			_channel[chi].triggered = false; // No exceed
+			// Sent to the Basic.Off group (On with inverted logic)
 			zunoSendToGroupSetValueCommand(_channel[chi].groupIndex, (!inv) ? WB_MSW_OFF: WB_MSW_ON);
 		}
 	} else {
 		if((current_value - hyst) > thres){
-			_channel[chi].triggered = true; // Сработало превышение 
-			// Отправляем в группу Basic.On (Off при инвертированной логики)
+			_channel[chi].triggered = true; // Exceed
+			// Sent to the Basic.On group (Off with inverted logic)
 			zunoSendToGroupSetValueCommand(_channel[chi].groupIndex, (!inv) ? WB_MSW_ON: WB_MSW_OFF);
 		}
 	}
 }
-// Обработка различных типов сенсоров
+// Processing of various types of sensors
 void processTemperature(size_t channel) {
 	int16_t	 currentTemperature;
-	if (!wb_msw.getTemperature(currentTemperature)) 
+	if (!wb_msw.getTemperature(currentTemperature))
 		return;
 	if(currentTemperature == WB_MSW_INPUT_REG_TEMPERATURE_VALUE_ERROR)
 		return;
@@ -391,7 +390,7 @@ void processTemperature(size_t channel) {
 }
 void processHumidity(size_t channel) {
 	uint16_t	currentHumidity;
-	if (!wb_msw.getHumidity(currentHumidity)) 
+	if (!wb_msw.getHumidity(currentHumidity))
 		return;
 	if (currentHumidity == WB_MSW_INPUT_REG_HUMIDITY_VALUE_ERROR)
 		return;
@@ -412,15 +411,15 @@ void processLumen(size_t channel) {
 void processC02(size_t channel) {
 	uint16_t	currentC02;
 	uint8_t		c02_auto;
-	// Проверяем нужна ли автоматичнская калибрация
+	// Check if automatic calibration is needed
 	c02_auto = WB_MSW_CONFIG_PARAMETER_GET(WB_MSW_CONFIG_PARAMETER_C02_AUTO);
 	if (_c02_auto != c02_auto) {
 		_c02_auto = c02_auto;
 		wb_msw.setC02Autocalibration(c02_auto);
 	}
-	if (!wb_msw.getC02(currentC02)) 
+	if (!wb_msw.getC02(currentC02))
 		return;
-	if (currentC02 == WB_MSW_INPUT_REG_C02_VALUE_ERROR) 
+	if (currentC02 == WB_MSW_INPUT_REG_C02_VALUE_ERROR)
 		return;
 	LOG_INT_VALUE("C02:                ", currentC02);
 	_channel[channel].c02 = currentC02;
@@ -429,7 +428,7 @@ void processC02(size_t channel) {
 void processVOC(size_t channel) {
 	uint16_t currentVoc;
 
-	if (!wb_msw.getVoc(currentVoc)) 
+	if (!wb_msw.getVoc(currentVoc))
 		return;
 	if (currentVoc == WB_MSW_INPUT_REG_VOC_VALUE_ERROR)
 		return;
@@ -472,7 +471,7 @@ void processMotion(size_t channel) {
 	}
 }
 
-// Для обновления верии прошивки
+// For update firmware version
 static void updateOtaDesriptor(void) {
 	uint32_t					version;
 
@@ -489,12 +488,12 @@ static void updateOtaDesriptor(void) {
 	#endif
 }
 
-// Управление каналами устройства и передача данных прошивки
+// Device channel management and firmware data transfer
 static void processChannels(void) {
 	#ifdef LOGGING_DBG
 	//LOGGING_UART.println("--------------------Measurements-----------------------");
 	#endif
-	// Проход по всем каналам доступных сенсоров
+	// Check all channels of available sensors
 	for (size_t channel=0; channel < ZUNO_CFG_CHANNEL_COUNT; channel++)
 		switch (_channel[channel].type) {
 			case WB_MSW_CHANNEL_TYPE_TEMPERATURE:
@@ -521,8 +520,8 @@ static void processChannels(void) {
 			default:
 				break ;
 		}
-	// Если пришла по радио новая прошивка - отправляем ее в бутлодер чипа WB
-	// ВАЖНО: Делаем это здесь, а не в хэдлере системных событий!
+	// If a new firmware came on the radio, send it to the bootloder of the WB chip
+	// IMPORTANT: We do it here, not in the system event handler!
 	if (_fw.bUpdate) {
 		wb_msw.fwUpdate((void *)WB_MSW_UPDATE_ADDRESS, _fw.size);
 		_fw.bUpdate = false;
@@ -530,10 +529,10 @@ static void processChannels(void) {
 	}
 }
 
-// Функция вызывается при старте скетча
+// The function is called at the start of the sketch
 void setup() {
 	size_t channel_count;
-	// Подключаемся к датчику WB 
+	// Connecting to the WB sensor
 	if (!wb_msw.begin(WB_MSW_UART_BAUD, WB_MSW_UART_MODE, WB_MSW_UART_RX, WB_MSW_UART_TX)) {
 		while (1) {
 			#ifdef LOGGING_DBG
@@ -543,27 +542,27 @@ void setup() {
 		}
 	}
 	updateOtaDesriptor();
-	// Инициализируем каналы
+	// Initializing channels
 	channel_count = _channelInit();
 	if (channel_count == 0){
 		#ifdef LOGGING_DBG
 		LOGGING_UART.print("*** (!!!) WB chip doesn't support any kind of sensors!\n");
 		#endif
 	}
-	// Инициализируем конфигурационные параметры (зависят от количества каналов)
+	// Initialize the configuration parameters (depending on the number of channels)
 	_configParameterInit();
 	if(zunoStartDeviceConfiguration()) {
-		// Если устройство не в сети - устанавливаем конфигурацию каналов
+		// If the device is offline, set the channel configuration
 		_channelSet(channel_count);
 		zunoSetS2Keys((SKETCH_FLAG_S2_AUTHENTICATED_BIT | SKETCH_FLAG_S2_UNAUTHENTICATED_BIT | SKETCH_FLAG_S0_BIT));
-		zunoCommitCfg(); // Передаем полученную конфигурацию системе
+		zunoCommitCfg(); // Transfer the received configuration to the system
 	}
-	// Устанавливаем обработчики ZWave для каналов
+	// Install Z Wave handlers for channels
 	_channelSetHandler(channel_count);
-	// Устанавливаем обработчик системных осбытий - нужен для обновления прошивки
+	// Install a system event handler (needed for firmware updates)
 	zunoAttachSysHandler(ZUNO_HANDLER_SYSEVENT, 0, (void*) &_systemEvent);
 }
-// Основной цикл программы
+// Main loop
 void loop() {
 	processChannels();
 	delay(50);

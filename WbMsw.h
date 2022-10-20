@@ -14,8 +14,8 @@
 
 
 enum{
-	WB_MSW_CHANNEL_TYPE_TEMPERATURE,					
-	WB_MSW_CHANNEL_TYPE_HUMIDITY,	
+	WB_MSW_CHANNEL_TYPE_TEMPERATURE,
+	WB_MSW_CHANNEL_TYPE_HUMIDITY,
  	WB_MSW_CHANNEL_TYPE_LUMEN,
 	WB_MSW_CHANNEL_TYPE_C02,
 	WB_MSW_CHANNEL_TYPE_VOC,
@@ -53,9 +53,10 @@ enum{
 #define WB_MSW_CONFIG_PARAMETER_GET(param)									(_config_parameter[param - WB_MSW_CONFIG_PARAMETER_FIRST])
 #define WB_MSW_CONFIG_PARAMETER_FIRST										64
 
-#define WB_MSW_CONFIG_PARAMETER_TEMPERATURE_HYSTERESIS						64//Температура. Гистерезис (в десятых градуса) (0 - отчеты выключены) - * 0.1
-#define WB_MSW_CONFIG_PARAMETER_TEMPERATURE_INVERT							65//Температура. Инвертирование логики (При превышении отправлять Basic.Off, при норм
-#define WB_MSW_CONFIG_PARAMETER_TEMPERATURE_THRESHOLD						66//Температура. Порог для отправки Basic.On
+#define WB_MSW_CONFIG_PARAMETER_TEMPERATURE_HYSTERESIS						64//Temperature. Hysteresis (degree tenths). Set 0 to disable report publishing. 
+												  // Otherwise, the value will be multiplied by 0.1 to calculate the hysteresis
+#define WB_MSW_CONFIG_PARAMETER_TEMPERATURE_INVERT							65//Temperature. Logic inverting (In case of threshold exceeding Basic.Off will be sent)
+#define WB_MSW_CONFIG_PARAMETER_TEMPERATURE_THRESHOLD						66//Temperature. Threshold for Basic.On sending
 
 #define WB_MSW_CONFIG_PARAMETER_HUMIDITY_HYSTERESIS							67//Humidity---
 #define WB_MSW_CONFIG_PARAMETER_HUMIDITY_INVERT								68//Humidity---
@@ -78,14 +79,14 @@ enum{
 #define WB_MSW_CONFIG_PARAMETER_NOISE_LEVEL_INVERT							81//Noise level---
 #define WB_MSW_CONFIG_PARAMETER_NOISE_LEVEL_THRESHOLD						82//Noise level---
 
-#define WB_MSW_CONFIG_PARAMETER_MOTION_TIME									83//Датчик движения. Временной интервал после которого отправляется Basic.Off
-#define WB_MSW_CONFIG_PARAMETER_MOTION_INVERT								84//Датчик движения. Инвертирование уровня
+#define WB_MSW_CONFIG_PARAMETER_MOTION_TIME									83//Motion sensor. Basic.Off sendind time interval
+#define WB_MSW_CONFIG_PARAMETER_MOTION_INVERT								84//Motion sensor. Level inverting
 #define WB_MSW_CONFIG_PARAMETER_MOTION_THRESHOLD							85
 
 #define WB_MSW_CONFIG_PARAMETER_LAST										86
 #define WB_MSW_MAX_CONFIG_PARAM 											((WB_MSW_CONFIG_PARAMETER_LAST - WB_MSW_CONFIG_PARAMETER_FIRST) + 1)
 
-const uint8_t WB_TYPE2PARAM_MAPPER[] = { WB_MSW_CONFIG_PARAMETER_TEMPERATURE_HYSTERESIS, 
+const uint8_t WB_TYPE2PARAM_MAPPER[] = { WB_MSW_CONFIG_PARAMETER_TEMPERATURE_HYSTERESIS,
 										 WB_MSW_CONFIG_PARAMETER_HUMIDITY_HYSTERESIS,
 										 WB_MSW_CONFIG_PARAMETER_LUMEN_HYSTERESIS,
 										 WB_MSW_CONFIG_PARAMETER_C02_HYSTERESIS,
@@ -96,8 +97,8 @@ const uint8_t WB_TYPE2PARAM_MAPPER[] = { WB_MSW_CONFIG_PARAMETER_TEMPERATURE_HYS
 
 #define WB_MSW_UART_BAUD	9600
 #define WB_MSW_UART_MODE	SERIAL_8N2
-#define WB_MSW_UART_RX      8           // Пин приемника Z-Uno
-#define WB_MSW_UART_TX      7           // Пин передатчика Z-uno
+#define WB_MSW_UART_RX      8           // Z-Uno receiver pin
+#define WB_MSW_UART_TX      7           // Z-uno transmitter pin
 
 
 typedef struct								WbMswFw_t_s
@@ -121,8 +122,8 @@ typedef struct	WbMswChannel_s
 	};
 	uint8_t									type;
 	uint8_t									groupIndex;
-	int32_t									reported_value; // Значение отправленное на контроллер
-	bool                                    triggered;      // Сработало превышение порога
+	int32_t									reported_value; // A value that had sent to the controller
+	bool                                    triggered;      // Threshold exceeding trigger flag
 
 } WbMswChannel_t;
 
