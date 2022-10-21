@@ -11,7 +11,7 @@ ZUNO_ENABLE(
 		WITH_CC_SENSOR_MULTILEVEL
 		WITH_CC_NOTIFICATION
 		// SKETCH_FLAGS=(HEADER_FLAGS_NOSKETCH_OTA)
-		ZUNO_CUSTOM_OTA_OFFSET=0x10000 // 64 кБ
+		ZUNO_CUSTOM_OTA_OFFSET=0x10000 // 64 kB
 		/* Additional OTA firmwares count*/
 		ZUNO_EXT_FIRMWARES_COUNT=1
 		/* Firmware descriptor pointer */
@@ -109,7 +109,7 @@ const char *zunoAssociationGroupName(uint8_t groupIndex) {
 		}
 	return NULL;
 }
-// Finds hannel of needed type
+// Finds channel of needed type
 static WbMswChannel_t *_channelFindType(size_t type) {
 	for (size_t channel = 0;channel < ZUNO_CFG_CHANNEL_COUNT; channel++)
 		if (_channel[channel].type == type)
@@ -362,7 +362,7 @@ void processAnalogSensorValue(int32_t current_value, uint8_t chi){
 		_channel[chi].reported_value = current_value; // Remember last sent value
 		zunoSendReport(chi + 1); // Device channels are counted from 1
 	}
-	// Has the threshold been exceeded already?
+	// Is the threshold exceeded?
 	if(_channel[chi].triggered) {
 		if((current_value + hyst) < thres){
 			_channel[chi].triggered = false; // No exceed

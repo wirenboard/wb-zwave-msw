@@ -122,7 +122,7 @@ typedef struct	WbMswChannel_s
 	};
 	uint8_t									type;
 	uint8_t									groupIndex;
-	int32_t									reported_value; // A value that had sent to the controller
+	int32_t									reported_value; // A value sent to the controller
 	bool                                    triggered;      // Threshold exceeding trigger flag
 
 } WbMswChannel_t;
