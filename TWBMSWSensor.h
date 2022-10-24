@@ -4,26 +4,26 @@
 #include "ModBusRtu.h"
 
 
-class WBMSWSensor: private ModBusRtuClass {
+class TWBMSWSensor: private ModBusRtuClass {
 	public:
-		WBMSWSensor(HardwareSerial *hardwareSerial, uint16_t timeoutMs);
-		bool	OpenPort(size_t speed, uint32_t config, uint8_t rx, uint8_t tx);
+		TWBMSWSensor(HardwareSerial *HardwareSerial, uint16_t TimeoutMs);
+		bool	OpenPort(size_t Speed, uint32_t Config, uint8_t Rx, uint8_t Tx);
 		void	SetModbusAddress(uint16_t Address);
-		bool	getFwVersion(uint32_t *version);
-		bool	getTemperature(int16_t & temperature);
-		bool	getHumidity(uint16_t & humidity);
-		bool	getLumminance(uint32_t & lumminance);
-		bool	getC02(uint16_t & c02);
-		bool	getC02Status(bool & status);
-		bool	setC02Status(bool status);
-		bool	setC02Autocalibration(bool status);
-		bool	getVoc(uint16_t & voc);
-		bool	getNoiseLevel(uint16_t & noise_level);
-		bool	getMotion(uint16_t & motion);
-		bool	fwMode(void);
-		bool	fwWriteInfo(uint8_t * info);
-		bool	fwWriteData(uint8_t * info);
-		bool	fwUpdate(const void *buffer, size_t len, uint16_t timout_ms=2000);
+		bool	GetFwVersion(uint32_t *Version);
+		bool	GetTemperature(int16_t & Temperature);
+		bool	GetHumidity(uint16_t & Humidity);
+		bool	GetLumminance(uint32_t & Iumminance);
+		bool	GetC02(uint16_t & C02);
+		bool	GetC02Status(bool & Status);
+		bool	SetC02Status(bool Status);
+		bool	SetC02Autocalibration(bool Status);
+		bool	GetVoc(uint16_t & Voc);
+		bool	GetNoiseLevel(uint16_t & NoiseLevel);
+		bool	GetMotion(uint16_t & Motion);
+		bool	FwMode(void);
+		bool	FwWriteInfo(uint8_t * Info);
+		bool	FwWriteData(uint8_t * Info);
+		bool	FwUpdate(const void *Buffer, size_t Len, uint16_t TimeoutMs=2000);
 
 	private:
 		uint16_t Address;
