@@ -46,6 +46,16 @@ static WbMswFw_t_t _fw = {
 	.size = 0,
 	.bUpdate = false
 };
+
+enum TZUnoState{
+	ZUNO_OK = 0,
+	ZUNO_OPEN_PORT_ERROR = -1,
+	ZUNO_WB_SENSOR_NOT_FOUND = -2,
+	ZUNO_WB_SENSOR_NO_CHANNELS = -3
+};
+
+enum TZUnoState ZUnoState;
+
 // Available device parameters description
 // Channels in the device are created dynamically, so parameters are described in "dynamic" style
 static const ZunoCFGParameter_t config_parameter_init[WB_MSW_MAX_CONFIG_PARAM] = {
@@ -472,20 +482,21 @@ void processMotion(WBMSWSensor* wb_msw, size_t channel) {
 }
 
 // For update firmware version
-static void updateOtaDesriptor(WBMSWSensor* wb_msw) {
-	uint32_t					version;
+static bool updateOtaDesriptor(WBMSWSensor* wb_msw) {
+	uint32_t version;
 
 	if (!wb_msw->getFwVersion(&version)){
 		#ifdef LOGGING_DBG
 		LOGGING_UART.print("*** (!!!) Can't connect to WB chip. It doesn't answer to version request!\n");
 		#endif
-		return ;
+		return false;
 	}
 	g_OtaDesriptor.version = version;
 	#ifdef LOGGING_DBG
 	LOGGING_UART.print("FW:                 ");
 	LOGGING_UART.println(version, 0x10);
 	#endif
+	return true;
 }
 
 // Device channel management and firmware data transfer
@@ -531,25 +542,38 @@ static void processChannels(WBMSWSensor* wb_msw) {
 
 // The function is called at the start of the sketch
 void setup() {
-	wb_msw = new WBMSWSensor(&Serial1, WB_MSW_TIMEOUT, WB_MSW_ADDRES);
-	size_t channel_count;
+	ZUnoState = TZUnoState::ZUNO_OK;
+
+	wb_msw = new WBMSWSensor(&Serial1, WB_MSW_TIMEOUT);
+	
 	// Connecting to the WB sensor
-	if (!wb_msw->begin(WB_MSW_UART_BAUD, WB_MSW_UART_MODE, WB_MSW_UART_RX, WB_MSW_UART_TX)) {
-		while (1) {
-			#ifdef LOGGING_DBG
-			LOGGING_UART.print("*** Fatal ERROR! Can't connect to WB!\n");
-			#endif
-			delay(500);
+	if (!wb_msw->OpenPort(WB_MSW_UART_BAUD, WB_MSW_UART_MODE, WB_MSW_UART_RX, WB_MSW_UART_TX)) {
+		ZUnoState = TZUnoState::ZUNO_OPEN_PORT_ERROR;
+		return;
+	}
+
+	uint16_t Address = 0;
+	bool Success = false;
+
+	while ((Address <= 247) && !Success){
+		wb_msw->SetModbusAddress(Address);
+		if (updateOtaDesriptor(wb_msw)){
+			Success = true;
 		}
 	}
-	updateOtaDesriptor(wb_msw);
-	// Initializing channels
-	channel_count = _channelInit(wb_msw);
-	if (channel_count == 0){
-		#ifdef LOGGING_DBG
-		LOGGING_UART.print("*** (!!!) WB chip doesn't support any kind of sensors!\n");
-		#endif
+
+	if (!Success){
+		ZUnoState = TZUnoState::ZUNO_WB_SENSOR_NOT_FOUND;
+		return;
 	}
+	
+	// Initializing channels
+	size_t channel_count = _channelInit(wb_msw);
+	if (!channel_count){
+		ZUnoState = TZUnoState::ZUNO_WB_SENSOR_NO_CHANNELS;
+		return;
+	}
+
 	// Initialize the configuration parameters (depending on the number of channels)
 	_configParameterInit();
 	if(zunoStartDeviceConfiguration()) {
@@ -565,6 +589,31 @@ void setup() {
 }
 // Main loop
 void loop() {
-	processChannels(wb_msw);
-	delay(50);
+	switch (ZUnoState) {
+  		case ZUNO_OK:
+    		processChannels(wb_msw);
+			delay(50);
+    		break;
+  		case ZUNO_OPEN_PORT_ERROR:
+    		#ifdef LOGGING_DBG
+			LOGGING_UART.print("*** Fatal ERROR! Can't open port!\n");
+			#endif
+			delay(1000);
+    		break;
+		case ZUNO_WB_SENSOR_NOT_FOUND:
+			#ifdef LOGGING_DBG
+			LOGGING_UART.print("*** Fatal ERROR! WB sensor not found!\n");
+			#endif
+			delay(1000);
+    		break;
+		case ZUNO_WB_SENSOR_NO_CHANNELS:
+			#ifdef LOGGING_DBG
+			LOGGING_UART.print("*** (!!!) WB chip doesn't support any kind of sensors!\n");
+			#endif
+			delay(1000);
+    		break;
+  		default:
+    		break;
+}
+	
 }
