@@ -37,7 +37,7 @@ ZUNO_DECLARE(ZUNOOTAFWDescr_t g_OtaDesriptor);
 /* WB chip firmware descriptor*/
 // ZUNOOTAFWDescr_t g_OtaDesriptor = {0x010A, 0x0103};
 ZUNOOTAFWDescr_t g_OtaDesriptor = {0x0101, 0x0103};
-WBMSWSensor wb_msw(&Serial1, WB_MSW_TIMEOUT, WB_MSW_ADDRES);
+WBMSWSensor* wb_msw;
 static WbMswChannel_t _channel[WB_MSW_CHANNEL_MAX];
 static int32_t _config_parameter[WB_MSW_MAX_CONFIG_PARAM];
 static uint8_t _c02_auto = false;
@@ -183,7 +183,7 @@ static void _configParameterInit(void) {
 	zunoAttachSysHandler(ZUNO_HANDLER_ZW_CFG, 0, (void*) _configParameterChanged);
 }
 // Function determines number of available Z-Wave device channels (EndPoints) and fills in the structures by channel type
-static size_t _channelInit(void) {
+static size_t _channelInit(WBMSWSensor* wb_msw) {
 	size_t							channel;
 	size_t							groupIndex;
 	bool							C02_enable;
@@ -194,7 +194,7 @@ static size_t _channelInit(void) {
 	_channel[channel].triggered = false;
 	_channel[channel].reported_value = 0;
 	// Temperature channel
-	if (wb_msw.getTemperature(_channel[channel].temperature)) {
+	if (wb_msw->getTemperature(_channel[channel].temperature)) {
 		// Such channel exists
 		if (_channel[channel].temperature != WB_MSW_INPUT_REG_TEMPERATURE_VALUE_ERROR) {
 			// Value is valid
@@ -205,7 +205,7 @@ static size_t _channelInit(void) {
 		}
 	}
 	// Humidity channel
-	if (wb_msw.getHumidity(_channel[channel].humidity)) {
+	if (wb_msw->getHumidity(_channel[channel].humidity)) {
 		if (_channel[channel].humidity != WB_MSW_INPUT_REG_HUMIDITY_VALUE_ERROR) {
 			_channel[channel].type = WB_MSW_CHANNEL_TYPE_HUMIDITY;
 			_channel[channel].groupIndex = groupIndex;
@@ -214,7 +214,7 @@ static size_t _channelInit(void) {
 		}
 	}
 	// Lumen channel
-	if (wb_msw.getLumminance(_channel[channel].lumen)) {
+	if (wb_msw->getLumminance(_channel[channel].lumen)) {
 		if (_channel[channel].lumen != WB_MSW_INPUT_REG_LUMEN_VALUE_ERROR) {
 			_channel[channel].type = WB_MSW_CHANNEL_TYPE_LUMEN;
 			_channel[channel].groupIndex = groupIndex;
@@ -222,9 +222,9 @@ static size_t _channelInit(void) {
 			groupIndex++;
 		}
 	}
-	if (wb_msw.getC02Status(C02_enable)) {
-		if (C02_enable || wb_msw.setC02Status(true)) {
-			if (wb_msw.getC02(_channel[channel].c02)) {
+	if (wb_msw->getC02Status(C02_enable)) {
+		if (C02_enable || wb_msw->setC02Status(true)) {
+			if (wb_msw->getC02(_channel[channel].c02)) {
 				if (_channel[channel].c02 == WB_MSW_INPUT_REG_C02_VALUE_ERROR)
 					_channel[channel].c02 = 0;
 				_channel[channel].type = WB_MSW_CHANNEL_TYPE_C02;
@@ -234,7 +234,7 @@ static size_t _channelInit(void) {
 			}
 		}
 	}
-	if (wb_msw.getVoc(_channel[channel].voc)) {
+	if (wb_msw->getVoc(_channel[channel].voc)) {
 		if (_channel[channel].voc != WB_MSW_INPUT_REG_VOC_VALUE_ERROR) {
 			_channel[channel].type = WB_MSW_CHANNEL_TYPE_VOC;
 			_channel[channel].groupIndex = groupIndex;
@@ -242,13 +242,13 @@ static size_t _channelInit(void) {
 			groupIndex++;
 		}
 	}
-	if (wb_msw.getNoiseLevel(_channel[channel].noise_level)) {
+	if (wb_msw->getNoiseLevel(_channel[channel].noise_level)) {
 		_channel[channel].type = WB_MSW_CHANNEL_TYPE_NOISE_LEVEL;
 		_channel[channel].groupIndex = groupIndex;
 		channel++;
 		groupIndex++;
 	}
-	if (wb_msw.getMotion(motion)) {
+	if (wb_msw->getMotion(motion)) {
 		if (motion != WB_MSW_INPUT_REG_MOTION_VALUE_ERROR) {
 			_channel[channel].bMotion = false;
 			_channel[channel].type = WB_MSW_CHANNEL_TYPE_MOTION;
@@ -309,7 +309,7 @@ static void _channelSet(size_t channel_max) {
 		zunoSetZWChannel(0, 1 | ZWAVE_CHANNEL_MAPPED_BIT);
 }
 // Setting up handlers for all sensor cannels. Handler is used when requesting channel data from controller
-void _channelSetHandler(uint8_t channel_max) {
+void _channelSetHandler(WBMSWSensor* wb_msw, uint8_t channel_max) {
 	for (size_t channel = 0; channel < channel_max; channel++)
 		switch (_channel[channel].type) {
 			case WB_MSW_CHANNEL_TYPE_TEMPERATURE:
@@ -323,7 +323,7 @@ void _channelSetHandler(uint8_t channel_max) {
 				break ;
 			case WB_MSW_CHANNEL_TYPE_C02:
 				_c02_auto = WB_MSW_CONFIG_PARAMETER_GET(WB_MSW_CONFIG_PARAMETER_C02_AUTO);
-				wb_msw.setC02Autocalibration(_c02_auto);
+				wb_msw->setC02Autocalibration(_c02_auto);
 				zunoAppendChannelHandler(channel, WB_MSW_INPUT_REG_C02_VALUE_SIZE, CHANNEL_HANDLER_SINGLE_VALUEMAPPER, (void*)&_channel[channel].c02);
 				break ;
 			case WB_MSW_CHANNEL_TYPE_VOC:
@@ -378,9 +378,9 @@ void processAnalogSensorValue(int32_t current_value, uint8_t chi){
 	}
 }
 // Processing of various types of sensors
-void processTemperature(size_t channel) {
+void processTemperature(WBMSWSensor* wb_msw, size_t channel) {
 	int16_t	 currentTemperature;
-	if (!wb_msw.getTemperature(currentTemperature))
+	if (!wb_msw->getTemperature(currentTemperature))
 		return;
 	if(currentTemperature == WB_MSW_INPUT_REG_TEMPERATURE_VALUE_ERROR)
 		return;
@@ -388,9 +388,9 @@ void processTemperature(size_t channel) {
 	_channel[channel].temperature = currentTemperature;
 	processAnalogSensorValue(currentTemperature, channel);
 }
-void processHumidity(size_t channel) {
+void processHumidity(WBMSWSensor* wb_msw, size_t channel) {
 	uint16_t	currentHumidity;
-	if (!wb_msw.getHumidity(currentHumidity))
+	if (!wb_msw->getHumidity(currentHumidity))
 		return;
 	if (currentHumidity == WB_MSW_INPUT_REG_HUMIDITY_VALUE_ERROR)
 		return;
@@ -398,9 +398,9 @@ void processHumidity(size_t channel) {
 	_channel[channel].humidity = currentHumidity;
 	processAnalogSensorValue(currentHumidity, channel);
 }
-void processLumen(size_t channel) {
+void processLumen(WBMSWSensor* wb_msw, size_t channel) {
 	uint32_t	currentLumen;
-	if (!wb_msw.getLumminance(currentLumen))
+	if (!wb_msw->getLumminance(currentLumen))
 		return;
 	if(currentLumen == WB_MSW_INPUT_REG_LUMEN_VALUE_ERROR)
 		return;
@@ -408,16 +408,16 @@ void processLumen(size_t channel) {
 	_channel[channel].lumen = currentLumen;
 	processAnalogSensorValue(currentLumen, channel);
 }
-void processC02(size_t channel) {
+void processC02(WBMSWSensor* wb_msw, size_t channel) {
 	uint16_t	currentC02;
 	uint8_t		c02_auto;
 	// Check if automatic calibration is needed
 	c02_auto = WB_MSW_CONFIG_PARAMETER_GET(WB_MSW_CONFIG_PARAMETER_C02_AUTO);
 	if (_c02_auto != c02_auto) {
 		_c02_auto = c02_auto;
-		wb_msw.setC02Autocalibration(c02_auto);
+		wb_msw->setC02Autocalibration(c02_auto);
 	}
-	if (!wb_msw.getC02(currentC02))
+	if (!wb_msw->getC02(currentC02))
 		return;
 	if (currentC02 == WB_MSW_INPUT_REG_C02_VALUE_ERROR)
 		return;
@@ -425,10 +425,10 @@ void processC02(size_t channel) {
 	_channel[channel].c02 = currentC02;
 	processAnalogSensorValue(currentC02, channel);
 }
-void processVOC(size_t channel) {
+void processVOC(WBMSWSensor* wb_msw, size_t channel) {
 	uint16_t currentVoc;
 
-	if (!wb_msw.getVoc(currentVoc))
+	if (!wb_msw->getVoc(currentVoc))
 		return;
 	if (currentVoc == WB_MSW_INPUT_REG_VOC_VALUE_ERROR)
 		return;
@@ -436,15 +436,15 @@ void processVOC(size_t channel) {
 	_channel[channel].voc = currentVoc;
 	processAnalogSensorValue(currentVoc, channel);
 }
-void processNoiseLevel(size_t channel) {
+void processNoiseLevel(WBMSWSensor* wb_msw, size_t channel) {
 	uint16_t currentNoiseLevel;
-	if (!wb_msw.getNoiseLevel(currentNoiseLevel))
+	if (!wb_msw->getNoiseLevel(currentNoiseLevel))
 		return;
 	LOG_FIXEDPOINT_VALUE("Noise Level:        ", currentNoiseLevel, 2);
 	_channel[channel].noise_level = currentNoiseLevel;
 	processAnalogSensorValue(currentNoiseLevel, channel);
 }
-void processMotion(size_t channel) {
+void processMotion(WBMSWSensor* wb_msw, size_t channel) {
 	static uint32_t					ms = 0;
 	uint16_t						currentMotion;
 	size_t							bMotion;
@@ -454,7 +454,7 @@ void processMotion(size_t channel) {
 		if (millis() >= ms && abs(millis() - ms) < 16777215)
 			_channel[channel].bMotion = false;
 	if (!_channel[channel].bMotion) {
-		if (!wb_msw.getMotion(currentMotion))
+		if (!wb_msw->getMotion(currentMotion))
 			return;
 		if (currentMotion == WB_MSW_INPUT_REG_MOTION_VALUE_ERROR)
 			return;
@@ -472,10 +472,10 @@ void processMotion(size_t channel) {
 }
 
 // For update firmware version
-static void updateOtaDesriptor(void) {
+static void updateOtaDesriptor(WBMSWSensor* wb_msw) {
 	uint32_t					version;
 
-	if (!wb_msw.getFwVersion(&version)){
+	if (!wb_msw->getFwVersion(&version)){
 		#ifdef LOGGING_DBG
 		LOGGING_UART.print("*** (!!!) Can't connect to WB chip. It doesn't answer to version request!\n");
 		#endif
@@ -489,7 +489,7 @@ static void updateOtaDesriptor(void) {
 }
 
 // Device channel management and firmware data transfer
-static void processChannels(void) {
+static void processChannels(WBMSWSensor* wb_msw) {
 	#ifdef LOGGING_DBG
 	//LOGGING_UART.println("--------------------Measurements-----------------------");
 	#endif
@@ -497,25 +497,25 @@ static void processChannels(void) {
 	for (size_t channel=0; channel < ZUNO_CFG_CHANNEL_COUNT; channel++)
 		switch (_channel[channel].type) {
 			case WB_MSW_CHANNEL_TYPE_TEMPERATURE:
-				processTemperature(channel);
+				processTemperature(wb_msw, channel);
 				break ;
 			case WB_MSW_CHANNEL_TYPE_HUMIDITY:
-				processHumidity(channel);
+				processHumidity(wb_msw, channel);
 				break ;
 			case WB_MSW_CHANNEL_TYPE_LUMEN:
-				processLumen(channel);
+				processLumen(wb_msw, channel);
 				break ;
 			case WB_MSW_CHANNEL_TYPE_C02:
-				processC02(channel);
+				processC02(wb_msw, channel);
 				break ;
 			case WB_MSW_CHANNEL_TYPE_VOC:
-				processVOC(channel);
+				processVOC(wb_msw, channel);
 				break ;
 			case WB_MSW_CHANNEL_TYPE_NOISE_LEVEL:
-				processNoiseLevel(channel);
+				processNoiseLevel(wb_msw, channel);
 				break ;
 			case WB_MSW_CHANNEL_TYPE_MOTION:
-				processMotion(channel);
+				processMotion(wb_msw, channel);
 				break ;
 			default:
 				break ;
@@ -523,17 +523,18 @@ static void processChannels(void) {
 	// If a new firmware came on the radio, send it to the bootloder of the WB chip
 	// IMPORTANT: We do it here, not in the system event handler!
 	if (_fw.bUpdate) {
-		wb_msw.fwUpdate((void *)WB_MSW_UPDATE_ADDRESS, _fw.size);
+		wb_msw->fwUpdate((void *)WB_MSW_UPDATE_ADDRESS, _fw.size);
 		_fw.bUpdate = false;
-		updateOtaDesriptor();
+		updateOtaDesriptor(wb_msw);
 	}
 }
 
 // The function is called at the start of the sketch
 void setup() {
+	wb_msw = new WBMSWSensor(&Serial1, WB_MSW_TIMEOUT, WB_MSW_ADDRES);
 	size_t channel_count;
 	// Connecting to the WB sensor
-	if (!wb_msw.begin(WB_MSW_UART_BAUD, WB_MSW_UART_MODE, WB_MSW_UART_RX, WB_MSW_UART_TX)) {
+	if (!wb_msw->begin(WB_MSW_UART_BAUD, WB_MSW_UART_MODE, WB_MSW_UART_RX, WB_MSW_UART_TX)) {
 		while (1) {
 			#ifdef LOGGING_DBG
 			LOGGING_UART.print("*** Fatal ERROR! Can't connect to WB!\n");
@@ -541,9 +542,9 @@ void setup() {
 			delay(500);
 		}
 	}
-	updateOtaDesriptor();
+	updateOtaDesriptor(wb_msw);
 	// Initializing channels
-	channel_count = _channelInit();
+	channel_count = _channelInit(wb_msw);
 	if (channel_count == 0){
 		#ifdef LOGGING_DBG
 		LOGGING_UART.print("*** (!!!) WB chip doesn't support any kind of sensors!\n");
@@ -558,12 +559,12 @@ void setup() {
 		zunoCommitCfg(); // Transfer the received configuration to the system
 	}
 	// Install Z Wave handlers for channels
-	_channelSetHandler(channel_count);
+	_channelSetHandler(wb_msw, channel_count);
 	// Install a system event handler (needed for firmware updates)
 	zunoAttachSysHandler(ZUNO_HANDLER_SYSEVENT, 0, (void*) &_systemEvent);
 }
 // Main loop
 void loop() {
-	processChannels();
+	processChannels(wb_msw);
 	delay(50);
 }
