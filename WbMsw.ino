@@ -518,9 +518,6 @@ static bool updateOtaDesriptor(TWBMSWSensor *WbMsw)
 
 	if (!WbMsw->GetFwVersion(&version))
 	{
-#ifdef LOGGING_DBG
-		LOGGING_UART.print("*** (!!!) Can't connect to WB chip. It doesn't answer to version request!\n");
-#endif
 		return false;
 	}
 	g_OtaDesriptor.version = version;
@@ -598,7 +595,12 @@ void setup()
 		if (updateOtaDesriptor(WbMsw))
 		{
 			Success = true;
+#ifdef LOGGING_DBG
+			LOGGING_UART.print("Found device at ");
+			LOGGING_UART.println(Address);
+#endif
 		}
+		Address++;
 	}
 
 	if (!Success)
