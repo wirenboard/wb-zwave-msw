@@ -1,4 +1,5 @@
 //  Project global macros definitions for accurate protocol configuration
+// clang-format off
 ZUNO_ENABLE(
 		/* Commands class support. Defined here since device channels being created dynamically */
 		WITH_CC_MULTICHANNEL
@@ -16,3 +17,4 @@ ZUNO_ENABLE(
 		//LOGGING_UART=Serial
 
 	);
+// clang-format on
