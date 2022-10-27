@@ -25,7 +25,7 @@ ZUNO_DECLARE(ZUNOOTAFWDescr_t g_OtaDesriptor);
 /* WB chip firmware descriptor*/
 // ZUNOOTAFWDescr_t g_OtaDesriptor = {0x010A, 0x0103};
 ZUNOOTAFWDescr_t g_OtaDesriptor = {0x0101, 0x0103};
-TWBMSWSensor *WbMsw;
+TWBMSWSensor WbMsw(&Serial1, WB_MSW_TIMEOUT);
 static WbMswChannel_t _channel[WB_MSW_CHANNEL_MAX];
 static int32_t _config_parameter[WB_MSW_MAX_CONFIG_PARAM];
 static uint8_t _c02_auto = false;
@@ -578,10 +578,8 @@ void setup()
 {
 	ZUnoState = TZUnoState::ZUNO_OK;
 
-	WbMsw = new TWBMSWSensor(&Serial1, WB_MSW_TIMEOUT);
-
 	// Connecting to the WB sensor
-	if (!WbMsw->OpenPort(WB_MSW_UART_BAUD, WB_MSW_UART_MODE, WB_MSW_UART_RX, WB_MSW_UART_TX))
+	if (!WbMsw.OpenPort(WB_MSW_UART_BAUD, WB_MSW_UART_MODE, WB_MSW_UART_RX, WB_MSW_UART_TX))
 	{
 		ZUnoState = TZUnoState::ZUNO_OPEN_PORT_ERROR;
 		return;
@@ -592,8 +590,8 @@ void setup()
 
 	while ((Address <= 247) && !Success)
 	{
-		WbMsw->SetModbusAddress(Address);
-		if (updateOtaDesriptor(WbMsw))
+		WbMsw.SetModbusAddress(Address);
+		if (updateOtaDesriptor(&WbMsw))
 		{
 			Success = true;
 #ifdef LOGGING_DBG
@@ -611,7 +609,7 @@ void setup()
 	}
 
 	// Initializing channels
-	size_t channel_count = _channelInit(WbMsw);
+	size_t channel_count = _channelInit(&WbMsw);
 	if (!channel_count)
 	{
 		ZUnoState = TZUnoState::ZUNO_WB_SENSOR_NO_CHANNELS;
@@ -628,7 +626,7 @@ void setup()
 		zunoCommitCfg(); // Transfer the received configuration to the system
 	}
 	// Install Z Wave handlers for channels
-	_channelSetHandler(WbMsw, channel_count);
+	_channelSetHandler(&WbMsw, channel_count);
 	// Install a system event handler (needed for firmware updates)
 	zunoAttachSysHandler(ZUNO_HANDLER_SYSEVENT, 0, (void *)&_systemEvent);
 }
@@ -638,7 +636,7 @@ void loop()
 	switch (ZUnoState)
 	{
 	case ZUNO_OK:
-		processChannels(WbMsw);
+		processChannels(&WbMsw);
 		delay(50);
 		break;
 	case ZUNO_OPEN_PORT_ERROR:
