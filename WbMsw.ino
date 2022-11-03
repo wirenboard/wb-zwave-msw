@@ -1,6 +1,7 @@
 
 #include "WbMsw.h"
 #include "TWBMSWSensor.h"
+#include "TFastModbus.h"
 #include "Debug.h"
 #include "ZunoEnable.h"
 
@@ -26,6 +27,7 @@ ZUNO_DECLARE(ZUNOOTAFWDescr_t g_OtaDesriptor);
 // ZUNOOTAFWDescr_t g_OtaDesriptor = {0x010A, 0x0103};
 ZUNOOTAFWDescr_t g_OtaDesriptor = {0x0101, 0x0103};
 TWBMSWSensor WbMsw(&Serial1, WB_MSW_TIMEOUT);
+TFastModbus fastModbus(&Serial1, WB_MSW_TIMEOUT);
 static WbMswChannel_t _channel[WB_MSW_CHANNEL_MAX];
 static int32_t _config_parameter[WB_MSW_MAX_CONFIG_PARAM];
 static uint8_t _c02_auto = false;
@@ -37,9 +39,11 @@ static WbMswFw_t_t _fw = {
 enum TZUnoState
 {
 	ZUNO_OK = 0,
-	ZUNO_OPEN_PORT_ERROR = -1,
-	ZUNO_WB_SENSOR_NOT_FOUND = -2,
-	ZUNO_WB_SENSOR_NO_CHANNELS = -3
+	ZUNO_SCAN_OPEN_PORT_ERROR = -1,
+	ZUNO_SCAN_WB_SENSOR_NOT_FOUND = -2,
+	ZUNO_MODBUS_OPEN_PORT_ERROR = -3,
+	ZUNO_MODBUS_WB_SENSOR_NOT_RESPONDS = -4,
+	ZUNO_WB_SENSOR_NO_CHANNELS = -5
 };
 
 enum TZUnoState ZUnoState;
@@ -578,33 +582,38 @@ void setup()
 {
 	ZUnoState = TZUnoState::ZUNO_OK;
 
-	// Connecting to the WB sensor
-	if (!WbMsw.OpenPort(WB_MSW_UART_BAUD, WB_MSW_UART_MODE, WB_MSW_UART_RX, WB_MSW_UART_TX))
+	if (!fastModbus.OpenPort(WB_MSW_UART_BAUD, WB_MSW_UART_MODE, WB_MSW_UART_RX, WB_MSW_UART_TX))
 	{
-		ZUnoState = TZUnoState::ZUNO_OPEN_PORT_ERROR;
+		ZUnoState = TZUnoState::ZUNO_SCAN_OPEN_PORT_ERROR;
 		return;
 	}
 
-	uint16_t Address = 0;
-	bool Success = false;
-
-	while ((Address <= 247) && !Success)
+	uint8_t serialNumber[WB_MSW_SERIAL_NUMBER_SIZE];
+	uint8_t modbusAddress;
+	bool scanSuccess = fastModbus.ScanBus(serialNumber, &modbusAddress);
+	fastModbus.ClosePort();
+	if (!scanSuccess)
 	{
-		WbMsw.SetModbusAddress(Address);
-		if (updateOtaDesriptor(&WbMsw))
-		{
-			Success = true;
-#ifdef LOGGING_DBG
-			LOGGING_UART.print("Found device at ");
-			LOGGING_UART.println(Address);
-#endif
-		}
-		Address++;
+		ZUnoState = TZUnoState::ZUNO_SCAN_WB_SENSOR_NOT_FOUND;
+		return;
 	}
 
-	if (!Success)
+#ifdef LOGGING_DBG
+	LOGGING_UART.print("Found device at ");
+	LOGGING_UART.println(modbusAddress);
+#endif
+
+	// Connecting to the WB sensor
+	if (!WbMsw.OpenPort(WB_MSW_UART_BAUD, WB_MSW_UART_MODE, WB_MSW_UART_RX, WB_MSW_UART_TX))
 	{
-		ZUnoState = TZUnoState::ZUNO_WB_SENSOR_NOT_FOUND;
+		ZUnoState = TZUnoState::ZUNO_MODBUS_OPEN_PORT_ERROR;
+		return;
+	}
+
+	WbMsw.SetModbusAddress(modbusAddress);
+	if (!updateOtaDesriptor(&WbMsw))
+	{
+		ZUnoState = TZUnoState::ZUNO_MODBUS_WB_SENSOR_NOT_RESPONDS;
 		return;
 	}
 
@@ -639,15 +648,27 @@ void loop()
 		processChannels(&WbMsw);
 		delay(50);
 		break;
-	case ZUNO_OPEN_PORT_ERROR:
+	case ZUNO_SCAN_OPEN_PORT_ERROR:
 #ifdef LOGGING_DBG
-		LOGGING_UART.print("*** Fatal ERROR! Can't open port!\n");
+		LOGGING_UART.print("*** Fatal ERROR! Can't open port for fast modbus scan!\n");
 #endif
 		delay(1000);
 		break;
-	case ZUNO_WB_SENSOR_NOT_FOUND:
+	case ZUNO_SCAN_WB_SENSOR_NOT_FOUND:
 #ifdef LOGGING_DBG
-		LOGGING_UART.print("*** Fatal ERROR! WB sensor not found!\n");
+		LOGGING_UART.print("*** Fatal ERROR! WB sensor address not found!\n");
+#endif
+		delay(1000);
+		break;
+	case ZUNO_MODBUS_OPEN_PORT_ERROR:
+#ifdef LOGGING_DBG
+		LOGGING_UART.print("*** Fatal ERROR! Can't open modbus port!\n");
+#endif
+		delay(1000);
+		break;
+	case ZUNO_MODBUS_WB_SENSOR_NOT_RESPONDS:
+#ifdef LOGGING_DBG
+		LOGGING_UART.print("*** Fatal ERROR! WB sensor not responds!\n");
 #endif
 		delay(1000);
 		break;
