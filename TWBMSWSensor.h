@@ -8,7 +8,7 @@ class TWBMSWSensor : private ModBusRtuClass
 public:
 	TWBMSWSensor(HardwareSerial *HardwareSerial, uint16_t TimeoutMs);
 	bool OpenPort(size_t Speed, uint32_t Config, uint8_t Rx, uint8_t Tx);
-	void SetModbusAddress(uint16_t Address);
+	void SetModbusAddress(uint8_t Address);
 	bool GetFwVersion(uint32_t *Version);
 	bool GetTemperature(int16_t &Temperature);
 	bool GetHumidity(uint16_t &Humidity);

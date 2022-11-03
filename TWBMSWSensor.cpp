@@ -27,12 +27,10 @@ TWBMSWSensor::TWBMSWSensor(HardwareSerial *HardwareSerial, uint16_t TimeoutMs) :
 /* Public Methods */
 bool TWBMSWSensor::OpenPort(size_t Speed, uint32_t Config, uint8_t Rx, uint8_t Tx)
 {
-	if (!ModBusRtuClass::begin(Speed, Config, Rx, Tx))
-		return (false);
-	return true;
+	return ModBusRtuClass::begin(Speed, Config, Rx, Tx);
 }
 
-void TWBMSWSensor::SetModbusAddress(uint16_t Address)
+void TWBMSWSensor::SetModbusAddress(uint8_t Address)
 {
 	this->Address = Address;
 }
