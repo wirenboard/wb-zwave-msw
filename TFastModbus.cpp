@@ -23,7 +23,7 @@ bool TFastModbus::StartScan()
     else
     {
 #ifdef LOGGING_DBG
-        LOGGING_UART.print("*** ERROR sending fast modbus scan start!\n");
+        LOGGING_UART.print("*** ERROR Sending fast modbus scan start!\n");
 #endif
     }
 
@@ -36,7 +36,7 @@ bool TFastModbus::ContinueScan(uint8_t *serialNumber, uint8_t *modbusAddress)
     if (Serial->write(continueData, sizeof(continueData)) != sizeof(continueData))
     {
 #ifdef LOGGING_DBG
-        LOGGING_UART.print("*** ERROR sending fast modbus scan continue!\n");
+        LOGGING_UART.print("*** ERROR Sending fast modbus scan continue!\n");
 #endif
         return false;
     }
@@ -65,7 +65,7 @@ bool TFastModbus::ContinueScan(uint8_t *serialNumber, uint8_t *modbusAddress)
     if (!scanDataLength)
     {
 #ifdef LOGGING_DBG
-        LOGGING_UART.print("*** ERROR reading fast modbus scan response!\n");
+        LOGGING_UART.print("*** ERROR Reading fast modbus scan response!\n");
 #endif
         return false;
     }
@@ -93,7 +93,7 @@ bool TFastModbus::ContinueScan(uint8_t *serialNumber, uint8_t *modbusAddress)
     if (checkCrc != crc)
     {
 #ifdef LOGGING_DBG
-        LOGGING_UART.print("*** ERROR crc mismatch! ");
+        LOGGING_UART.print("*** ERROR CRC mismatch! ");
         LOGGING_UART.print(checkCrc, 0x10);
         LOGGING_UART.print(" expected, but ");
         LOGGING_UART.print(crc, 0x10);
@@ -105,7 +105,7 @@ bool TFastModbus::ContinueScan(uint8_t *serialNumber, uint8_t *modbusAddress)
     if (fastModbusPacket[0] != 0xFD || fastModbusPacket[1] != 0x60)
     {
 #ifdef LOGGING_DBG
-        LOGGING_UART.print("*** ERROR wrong modbus address or fast modbus command: 0xFD address and 0x60 command expected, but ");
+        LOGGING_UART.print("*** ERROR Wrong modbus address or fast modbus command: 0xFD address and 0x60 command expected, but ");
         LOGGING_UART.print(fastModbusPacket[0], 0x10);
         LOGGING_UART.print(" and ");
         LOGGING_UART.print(fastModbusPacket[1], 0x10);
@@ -124,7 +124,7 @@ bool TFastModbus::ContinueScan(uint8_t *serialNumber, uint8_t *modbusAddress)
         return false;
     default:
 #ifdef LOGGING_DBG
-        LOGGING_UART.print("*** ERROR unknown fast modbus subcommand !\n");
+        LOGGING_UART.print("*** ERROR Unknown fast modbus subcommand !\n");
         LOGGING_UART.println(fastModbusPacket[2], 0x10);
 #endif
         break;
@@ -157,7 +157,7 @@ bool TFastModbus::ScanBus(uint8_t *serialNumber, uint8_t *modbusAddress)
     }
 
 #ifdef LOGGING_DBG
-    LOGGING_UART.print("*** ERROR fast modbus meets more than one device!\n");
+    LOGGING_UART.print("*** ERROR Fast modbus meets zero or more than one device!\n");
 #endif
 
     return false;
