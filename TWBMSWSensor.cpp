@@ -20,22 +20,22 @@
 #define WBMSW_FIRMWARE_DATA_SIZE 136
 
 /* Public Constructors */
-TWBMSWSensor::TWBMSWSensor(HardwareSerial* HardwareSerial, uint16_t TimeoutMs)
-    : ModBusRtuClass(HardwareSerial, TimeoutMs)
+TWBMSWSensor::TWBMSWSensor(HardwareSerial* hardwareSerial, uint16_t timeoutMs)
+    : ModBusRtuClass(hardwareSerial, timeoutMs)
 {}
 
 /* Public Methods */
-bool TWBMSWSensor::OpenPort(size_t Speed, uint32_t Config, uint8_t Rx, uint8_t Tx)
+bool TWBMSWSensor::OpenPort(size_t speed, uint32_t config, uint8_t rx, uint8_t tx)
 {
-    return ModBusRtuClass::begin(Speed, Config, Rx, Tx);
+    return ModBusRtuClass::begin(speed, config, rx, tx);
 }
 
-void TWBMSWSensor::SetModbusAddress(uint8_t Address)
+void TWBMSWSensor::SetModbusAddress(uint8_t address)
 {
     this->Address = Address;
 }
 
-bool TWBMSWSensor::GetFwVersion(uint32_t* Version)
+bool TWBMSWSensor::GetFwVersion(uint32_t* version)
 {
     uint32_t out, number;
     uint16_t fw_v[0x10];
@@ -65,67 +65,67 @@ bool TWBMSWSensor::GetFwVersion(uint32_t* Version)
     }
     if (count != 0x0)
         out = (out << 0x8) | number;
-    Version[0x0] = out;
+    version[0x0] = out;
     return (true);
 }
 
-bool TWBMSWSensor::GetTemperature(int16_t& Temperature)
+bool TWBMSWSensor::GetTemperature(int16_t& temperature)
 {
-    return ModBusRtuClass::readInputRegisters(Address, WBMSW_REG_TEMPERATURE, 1, &Temperature);
+    return ModBusRtuClass::readInputRegisters(Address, WBMSW_REG_TEMPERATURE, 1, &temperature);
 }
 
-bool TWBMSWSensor::GetHumidity(uint16_t& Humidity)
+bool TWBMSWSensor::GetHumidity(uint16_t& humidity)
 {
-    return ModBusRtuClass::readInputRegisters(Address, WBMSW_REG_HUMIDITY, 1, &Humidity);
+    return ModBusRtuClass::readInputRegisters(Address, WBMSW_REG_HUMIDITY, 1, &humidity);
 }
 
-bool TWBMSWSensor::GetLumminance(uint32_t& Iumminance)
+bool TWBMSWSensor::GetLuminance(uint32_t& luminance)
 {
     uint16_t lumen[2];
     if (!ModBusRtuClass::readInputRegisters(Address, WBMSW_REG_LUMINANCE, (sizeof(lumen) / sizeof(lumen[0x0])), lumen))
         return false;
-    Iumminance = (lumen[0x0] << 0x10) | lumen[1];
+    luminance = (lumen[0x0] << 0x10) | lumen[1];
     return true;
 }
 
-bool TWBMSWSensor::GetC02(uint16_t& C02)
+bool TWBMSWSensor::GetC02(uint16_t& c02)
 {
-    return ModBusRtuClass::readInputRegisters(Address, WBMSW_REG_CO2, 1, &C02);
+    return ModBusRtuClass::readInputRegisters(Address, WBMSW_REG_CO2, 1, &c02);
 }
 
-bool TWBMSWSensor::GetC02Status(bool& Status)
+bool TWBMSWSensor::GetC02Status(bool& status)
 {
     uint8_t out;
     if (!ModBusRtuClass::readCoils(Address, WBMSW_COIL_CO2_STAUS, 1, &out))
         return false;
-    Status = (out != 0);
+    status = (out != 0);
     return true;
 }
 
-bool TWBMSWSensor::SetC02Status(bool Status)
+bool TWBMSWSensor::SetC02Status(bool status)
 {
-    return ModBusRtuClass::writeSingleCoils(Address, WBMSW_COIL_CO2_STAUS, Status);
+    return ModBusRtuClass::writeSingleCoils(Address, WBMSW_COIL_CO2_STAUS, status);
 }
 
-bool TWBMSWSensor::SetC02Autocalibration(bool Status)
+bool TWBMSWSensor::SetC02Autocalibration(bool status)
 {
-    uint16_t value = Status ? 1 : 0;
+    uint16_t value = status ? 1 : 0;
     return ModBusRtuClass::writeSingleRegisters(Address, WBMSW_REG_CO2_AUTO_CALIB, value);
 }
 
-bool TWBMSWSensor::GetVoc(uint16_t& Voc)
+bool TWBMSWSensor::GetVoc(uint16_t& voc)
 {
-    return ModBusRtuClass::readInputRegisters(Address, WBMSW_REG_VOC, 1, &Voc);
+    return ModBusRtuClass::readInputRegisters(Address, WBMSW_REG_VOC, 1, &voc);
 }
 
-bool TWBMSWSensor::GetNoiseLevel(uint16_t& NoiseLevel)
+bool TWBMSWSensor::GetNoiseLevel(uint16_t& noiseLevel)
 {
-    return ModBusRtuClass::readInputRegisters(Address, WBMSW_REG_NOIZE, 1, &NoiseLevel);
+    return ModBusRtuClass::readInputRegisters(Address, WBMSW_REG_NOIZE, 1, &noiseLevel);
 }
 
-bool TWBMSWSensor::GetMotion(uint16_t& Motion)
+bool TWBMSWSensor::GetMotion(uint16_t& motion)
 {
-    return ModBusRtuClass::readInputRegisters(Address, WBMSW_REG_MOTION, 1, &Motion); // 0x0118 - max
+    return ModBusRtuClass::readInputRegisters(Address, WBMSW_REG_MOTION, 1, &motion); // 0x0118 - max
 }
 
 bool TWBMSWSensor::FwMode(void)
@@ -133,47 +133,47 @@ bool TWBMSWSensor::FwMode(void)
     return ModBusRtuClass::writeSingleRegisters(Address, WBMSW_REG_FW_MODE, 1);
 }
 
-bool TWBMSWSensor::FwWriteInfo(uint8_t* Info)
+bool TWBMSWSensor::FwWriteInfo(uint8_t* info)
 {
-    return ModBusRtuClass::writeMultipleRegisters(Address, WBMSW_REG_FW_INFO, WBMSW_FIRMWARE_INFO_SIZE / 2, Info);
+    return ModBusRtuClass::writeMultipleRegisters(Address, WBMSW_REG_FW_INFO, WBMSW_FIRMWARE_INFO_SIZE / 2, info);
 }
 
-bool TWBMSWSensor::FwWriteData(uint8_t* Data)
+bool TWBMSWSensor::FwWriteData(uint8_t* data)
 {
-    return ModBusRtuClass::writeMultipleRegisters(Address, WBMSW_REG_FW_DATA, WBMSW_FIRMWARE_DATA_SIZE / 2, Data);
+    return ModBusRtuClass::writeMultipleRegisters(Address, WBMSW_REG_FW_DATA, WBMSW_FIRMWARE_DATA_SIZE / 2, data);
 }
 
-bool TWBMSWSensor::FwUpdate(const void* Buffer, size_t Len, uint16_t TimeoutMs)
+bool TWBMSWSensor::FwUpdate(const void* buffer, size_t len, uint16_t timeoutMs)
 {
     uint8_t* data;
-    if (Len < WBMSW_FIRMWARE_INFO_SIZE)
+    if (len < WBMSW_FIRMWARE_INFO_SIZE)
         return false;
 #ifdef LOGGING_DBG
     LOGGING_UART.print("FW size: ");
-    LOGGING_UART.println(Len);
+    LOGGING_UART.println(len);
 #endif
     if (!this->FwMode())
         return false;
 #ifdef LOGGING_DBG
     LOGGING_UART.print("Wait 2 sec\n");
 #endif
-    delay(TimeoutMs);
-    data = (uint8_t*)Buffer;
+    delay(timeoutMs);
+    data = (uint8_t*)buffer;
     if (!this->FwWriteInfo(data))
         return false;
 #ifdef LOGGING_DBG
     LOGGING_UART.print("Write info\n");
 #endif
     data += WBMSW_FIRMWARE_INFO_SIZE;
-    Len -= WBMSW_FIRMWARE_INFO_SIZE;
+    len -= WBMSW_FIRMWARE_INFO_SIZE;
 #ifdef LOGGING_DBG
     LOGGING_UART.print("Write data\n");
 #endif
-    while (Len) {
+    while (len) {
         if (!FwWriteData(data))
             return false;
         data += WBMSW_FIRMWARE_DATA_SIZE;
-        Len -= WBMSW_FIRMWARE_DATA_SIZE;
+        len -= WBMSW_FIRMWARE_DATA_SIZE;
     }
 #ifdef LOGGING_DBG
     LOGGING_UART.print("Write finish\n");
