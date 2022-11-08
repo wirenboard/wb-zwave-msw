@@ -1,12 +1,13 @@
 #include "TFastModbus.h"
-#include "Status.h"
+#include "Arduino.h"
 #include "CrcClass.h"
 #include "Debug.h"
-#include "Arduino.h"
+#include "Status.h"
 
-TFastModbus::TFastModbus(HardwareSerial *hardwareSerial, uint16_t timeoutMs) : Serial(hardwareSerial), TimeoutMs(timeoutMs)
-{
-}
+TFastModbus::TFastModbus(HardwareSerial* hardwareSerial, uint16_t timeoutMs)
+    : Serial(hardwareSerial),
+      TimeoutMs(timeoutMs)
+{}
 
 bool TFastModbus::OpenPort(size_t Speed, uint32_t Config, uint8_t Rx, uint8_t Tx)
 {
@@ -20,8 +21,7 @@ bool TFastModbus::StartScan()
 
     if (result)
         delay(Serial->countWaitingMs(4));
-    else
-    {
+    else {
 #ifdef LOGGING_DBG
         LOGGING_UART.print("*** ERROR Sending fast modbus scan start!\n");
 #endif
@@ -30,11 +30,10 @@ bool TFastModbus::StartScan()
     return result;
 }
 
-bool TFastModbus::ContinueScan(uint8_t *serialNumber, uint8_t *modbusAddress)
+bool TFastModbus::ContinueScan(uint8_t* serialNumber, uint8_t* modbusAddress)
 {
     uint8_t continueData[] = {0xFD, 0x60, 0x02, 0x49, 0xF1};
-    if (Serial->write(continueData, sizeof(continueData)) != sizeof(continueData))
-    {
+    if (Serial->write(continueData, sizeof(continueData)) != sizeof(continueData)) {
 #ifdef LOGGING_DBG
         LOGGING_UART.print("*** ERROR Sending fast modbus scan continue!\n");
 #endif
@@ -44,36 +43,29 @@ bool TFastModbus::ContinueScan(uint8_t *serialNumber, uint8_t *modbusAddress)
     uint16_t timeout = TimeoutMs;
     uint8_t scanData[32];
     size_t scanDataLength = 0;
-    while (scanDataLength < sizeof(scanData) && timeout > 0x0)
-    {
+    while (scanDataLength < sizeof(scanData) && timeout > 0x0) {
         int availableDataLength = Serial->available();
-        if (!availableDataLength)
-        {
+        if (!availableDataLength) {
             timeout = timeout - 0xA;
             delay(0xA);
-        }
-        else
-        {
-            for (int i = 0; i < availableDataLength; i++)
-            {
+        } else {
+            for (int i = 0; i < availableDataLength; i++) {
                 scanData[scanDataLength] = (uint8_t)Serial->read();
                 scanDataLength++;
             }
         }
     }
 
-    if (!scanDataLength)
-    {
+    if (!scanDataLength) {
 #ifdef LOGGING_DBG
         LOGGING_UART.print("*** ERROR Reading fast modbus scan response!\n");
 #endif
         return false;
     }
 
-    uint8_t *fastModbusPacket = scanData;
+    uint8_t* fastModbusPacket = scanData;
     uint8_t fastModbusPacketLength = scanDataLength;
-    while ((fastModbusPacketLength > 0) && (*fastModbusPacket == 0xFF))
-    {
+    while ((fastModbusPacketLength > 0) && (*fastModbusPacket == 0xFF)) {
         fastModbusPacket += 1;
         fastModbusPacketLength -= 1;
     }
@@ -81,8 +73,7 @@ bool TFastModbus::ContinueScan(uint8_t *serialNumber, uint8_t *modbusAddress)
 #ifdef LOGGING_DBG
     LOGGING_UART.print("Fast modbus packet length: ");
     LOGGING_UART.println(fastModbusPacketLength);
-    for (int i = 0; i < fastModbusPacketLength; i++)
-    {
+    for (int i = 0; i < fastModbusPacketLength; i++) {
         LOGGING_UART.print(fastModbusPacket[i], 0x10);
     }
     LOGGING_UART.println();
@@ -90,8 +81,7 @@ bool TFastModbus::ContinueScan(uint8_t *serialNumber, uint8_t *modbusAddress)
 
     uint16_t checkCrc = CrcClass::crc16_modbus(fastModbusPacket, fastModbusPacketLength - 2);
     uint16_t crc = (fastModbusPacket[fastModbusPacketLength - 1] << 8) + fastModbusPacket[fastModbusPacketLength - 2];
-    if (checkCrc != crc)
-    {
+    if (checkCrc != crc) {
 #ifdef LOGGING_DBG
         LOGGING_UART.print("*** ERROR CRC mismatch! ");
         LOGGING_UART.print(checkCrc, 0x10);
@@ -102,10 +92,10 @@ bool TFastModbus::ContinueScan(uint8_t *serialNumber, uint8_t *modbusAddress)
         return false;
     }
 
-    if (fastModbusPacket[0] != 0xFD || fastModbusPacket[1] != 0x60)
-    {
+    if (fastModbusPacket[0] != 0xFD || fastModbusPacket[1] != 0x60) {
 #ifdef LOGGING_DBG
-        LOGGING_UART.print("*** ERROR Wrong modbus address or fast modbus command: 0xFD address and 0x60 command expected, but ");
+        LOGGING_UART.print(
+            "*** ERROR Wrong modbus address or fast modbus command: 0xFD address and 0x60 command expected, but ");
         LOGGING_UART.print(fastModbusPacket[0], 0x10);
         LOGGING_UART.print(" and ");
         LOGGING_UART.print(fastModbusPacket[1], 0x10);
@@ -114,20 +104,19 @@ bool TFastModbus::ContinueScan(uint8_t *serialNumber, uint8_t *modbusAddress)
         return false;
     }
 
-    switch (fastModbusPacket[2])
-    {
-    case 0x03:
-        memcpy(serialNumber, &fastModbusPacket[3], WB_MSW_SERIAL_NUMBER_SIZE);
-        memcpy(modbusAddress, &fastModbusPacket[7], 1);
-        return true;
-    case 0x04:
-        return false;
-    default:
+    switch (fastModbusPacket[2]) {
+        case 0x03:
+            memcpy(serialNumber, &fastModbusPacket[3], WB_MSW_SERIAL_NUMBER_SIZE);
+            memcpy(modbusAddress, &fastModbusPacket[7], 1);
+            return true;
+        case 0x04:
+            return false;
+        default:
 #ifdef LOGGING_DBG
-        LOGGING_UART.print("*** ERROR Unknown fast modbus subcommand !\n");
-        LOGGING_UART.println(fastModbusPacket[2], 0x10);
+            LOGGING_UART.print("*** ERROR Unknown fast modbus subcommand !\n");
+            LOGGING_UART.println(fastModbusPacket[2], 0x10);
 #endif
-        break;
+            break;
     }
 
     return false;
@@ -138,7 +127,7 @@ void TFastModbus::ClosePort(void)
     Serial->end();
 }
 
-bool TFastModbus::ScanBus(uint8_t *serialNumber, uint8_t *modbusAddress)
+bool TFastModbus::ScanBus(uint8_t* serialNumber, uint8_t* modbusAddress)
 {
     if (!this->StartScan())
         return false;
@@ -149,8 +138,7 @@ bool TFastModbus::ScanBus(uint8_t *serialNumber, uint8_t *modbusAddress)
     while (this->ContinueScan(newSerialNumber, &newModbusAddress))
         count++;
 
-    if (count == 1)
-    {
+    if (count == 1) {
         memcpy(serialNumber, newSerialNumber, WB_MSW_SERIAL_NUMBER_SIZE);
         memcpy(modbusAddress, &newModbusAddress, 1);
         return true;
