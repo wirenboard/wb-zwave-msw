@@ -1,6 +1,7 @@
 
 #include "TWBMSWSensor.h"
 #include "Debug.h"
+#include "DebugOutput.h"
 
 #define WBMSW_REG_TEMPERATURE 0x0004
 #define WBMSW_REG_HUMIDITY 0x0005
@@ -32,41 +33,39 @@ bool TWBMSWSensor::OpenPort(size_t speed, uint32_t config, uint8_t rx, uint8_t t
 
 void TWBMSWSensor::SetModbusAddress(uint8_t address)
 {
-    this->Address = Address;
+    this->Address = address;
 }
 
 bool TWBMSWSensor::GetFwVersion(uint32_t* version)
 {
-    uint32_t out, number;
-    uint16_t fw_v[0x10];
-    size_t i;
-    size_t count;
+    uint16_t fw_v[16];
     uint16_t letter;
 
-    if (ModBusRtuClass::readInputRegisters(this->Address,
-                                           WBMSW_REG_FW_VERSION,
-                                           (sizeof(fw_v) / sizeof(fw_v[0x0])),
-                                           &fw_v[0x0]) == false)
-        return (false);
-    out = 0x0;
-    number = 00;
-    i = 0x0;
-    count = 0x0;
-    while ((letter = fw_v[i]) != 0x0) {
+    if (!ModBusRtuClass::readInputRegisters(this->Address,
+                                            WBMSW_REG_FW_VERSION,
+                                            (sizeof(fw_v) / sizeof(fw_v[0])),
+                                            &fw_v[0]))
+        return false;
+
+    uint32_t out = 0;
+    uint32_t number = 0;
+    size_t i = 0;
+    size_t count = 0;
+    while (letter = fw_v[i]) {
         if (letter == '.') {
             out = (out << 0x8) | number;
-            number = 0x0;
-            count = 0x0;
+            number = 0;
+            count = 0;
         } else {
-            number = number * 0xA + (letter - 0x30);
+            number = number * 10 + (letter - '0');
             count++;
         }
         i++;
     }
-    if (count != 0x0)
+    if (count)
         out = (out << 0x8) | number;
-    version[0x0] = out;
-    return (true);
+    version[0] = out;
+    return true;
 }
 
 bool TWBMSWSensor::GetTemperature(int16_t& temperature)
@@ -148,35 +147,34 @@ bool TWBMSWSensor::FwUpdate(const void* buffer, size_t len, uint16_t timeoutMs)
     uint8_t* data;
     if (len < WBMSW_FIRMWARE_INFO_SIZE)
         return false;
-#ifdef LOGGING_DBG
-    LOGGING_UART.print("FW size: ");
-    LOGGING_UART.println(len);
-#endif
+    DEBUG("FW size: ");
+    DEBUG(len);
+    DEBUG("\n");
+
     if (!this->FwMode())
         return false;
-#ifdef LOGGING_DBG
-    LOGGING_UART.print("Wait 2 sec\n");
-#endif
+
+    DEBUG("Wait ");
+    DEBUG(timeoutMs);
+    DEBUG(" ms\n");
+
     delay(timeoutMs);
     data = (uint8_t*)buffer;
     if (!this->FwWriteInfo(data))
         return false;
-#ifdef LOGGING_DBG
-    LOGGING_UART.print("Write info\n");
-#endif
+
+    DEBUG("Write info\n");
     data += WBMSW_FIRMWARE_INFO_SIZE;
     len -= WBMSW_FIRMWARE_INFO_SIZE;
-#ifdef LOGGING_DBG
-    LOGGING_UART.print("Write data\n");
-#endif
+
+    DEBUG("Write data\n");
     while (len) {
         if (!FwWriteData(data))
             return false;
         data += WBMSW_FIRMWARE_DATA_SIZE;
         len -= WBMSW_FIRMWARE_DATA_SIZE;
     }
-#ifdef LOGGING_DBG
-    LOGGING_UART.print("Write finish\n");
-#endif
+
+    DEBUG("Write finish\n");
     return true;
 }
