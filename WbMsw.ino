@@ -49,7 +49,7 @@ ZUNOOTAFWDescr_t g_OtaDesriptor = {0x0101, 0x0103};
 TWBMSWSensor WbMsw(&Serial1, WB_MSW_TIMEOUT, WB_MSW_ADDRES);
 static WbMswChannel_t _channel[WB_MSW_CHANNEL_MAX];
 static int32_t _config_parameter[WB_MSW_MAX_CONFIG_PARAM];
-static uint8_t _c02_auto = false;
+static uint8_t _co2_auto = false;
 // New firmware image values
 static WbMswFw_t_t _fw = {.size = 0, .bUpdate = false};
 // Available device parameters description
@@ -80,10 +80,10 @@ static const ZunoCFGParameter_t config_parameter_init[WB_MSW_MAX_CONFIG_PARAM] =
     ZUNO_CONFIG_PARAMETER_INFO("Lumen invert", "If set device sends Basic.off instead of Basic.on", false, true, false),
     ZUNO_CONFIG_PARAMETER_INFO("Lumen threshold", "Value in 0.01Lux.", 0, 10000000, 20000),
     // CO2 sensor settings
-    ZUNO_CONFIG_PARAMETER_INFO("C02 hysteresis", "C02 hysteresis", 0, 200, 5),
-    ZUNO_CONFIG_PARAMETER_INFO("C02 invert", "If set device sends Basic.off instead of Basic.on", false, true, false),
-    ZUNO_CONFIG_PARAMETER_INFO("C02 threshold", "C02 threshold", 400, 5000, 600),
-    ZUNO_CONFIG_PARAMETER_INFO("C02 auto", "C02 auto", false, true, true),
+    ZUNO_CONFIG_PARAMETER_INFO("CO2 hysteresis", "CO2 hysteresis", 0, 200, 5),
+    ZUNO_CONFIG_PARAMETER_INFO("CO2 invert", "If set device sends Basic.off instead of Basic.on", false, true, false),
+    ZUNO_CONFIG_PARAMETER_INFO("CO2 threshold", "CO2 threshold", 400, 5000, 600),
+    ZUNO_CONFIG_PARAMETER_INFO("CO2 auto", "CO2 auto", false, true, true),
     // VOC sensor settings
     ZUNO_CONFIG_PARAMETER_INFO("VOC hysteresis", "VOC hysteresis", 0, 200, 1),
     ZUNO_CONFIG_PARAMETER_INFO("VOC invert", "If set device sends Basic.off instead of Basic.on", false, true, false),
@@ -118,7 +118,7 @@ const char* zunoAssociationGroupName(uint8_t groupIndex)
                     return "Humidity Basic On/Off";
                 case WB_MSW_CHANNEL_TYPE_LUMEN:
                     return "Lumen Basic On/Off";
-                case WB_MSW_CHANNEL_TYPE_C02:
+                case WB_MSW_CHANNEL_TYPE_CO2:
                     return "CO2 Basic On/Off";
                 case WB_MSW_CHANNEL_TYPE_VOC:
                     return "VOC Basic On/Off";
@@ -162,11 +162,11 @@ const ZunoCFGParameter_t* zunoCFGParameter(size_t param)
             if (!_channelFindType(WB_MSW_CHANNEL_TYPE_LUMEN))
                 return (ZUNO_CFG_PARAMETER_UNKNOWN);
             break;
-        case WB_MSW_CONFIG_PARAMETER_C02_HYSTERESIS:
-        case WB_MSW_CONFIG_PARAMETER_C02_INVERT:
-        case WB_MSW_CONFIG_PARAMETER_C02_THRESHOLD:
-        case WB_MSW_CONFIG_PARAMETER_C02_AUTO:
-            if (!_channelFindType(WB_MSW_CHANNEL_TYPE_C02))
+        case WB_MSW_CONFIG_PARAMETER_CO2_HYSTERESIS:
+        case WB_MSW_CONFIG_PARAMETER_CO2_INVERT:
+        case WB_MSW_CONFIG_PARAMETER_CO2_THRESHOLD:
+        case WB_MSW_CONFIG_PARAMETER_CO2_AUTO:
+            if (!_channelFindType(WB_MSW_CHANNEL_TYPE_CO2))
                 return (ZUNO_CFG_PARAMETER_UNKNOWN);
             break;
         case WB_MSW_CONFIG_PARAMETER_VOC_HYSTERESIS:
@@ -215,7 +215,7 @@ static size_t _channelInit(void)
 {
     size_t channel;
     size_t groupIndex;
-    bool C02_enable;
+    bool CO2_enable;
     uint16_t motion;
 
     channel = 0;
@@ -251,12 +251,12 @@ static size_t _channelInit(void)
             groupIndex++;
         }
     }
-    if (WbMsw.GetC02Status(C02_enable)) {
-        if (C02_enable || WbMsw.SetC02Status(true)) {
-            if (WbMsw.GetC02(_channel[channel].c02)) {
-                if (_channel[channel].c02 == WB_MSW_INPUT_REG_C02_VALUE_ERROR)
-                    _channel[channel].c02 = 0;
-                _channel[channel].type = WB_MSW_CHANNEL_TYPE_C02;
+    if (WbMsw.GetCO2Status(CO2_enable)) {
+        if (CO2_enable || WbMsw.SetCO2Status(true)) {
+            if (WbMsw.GetCO2(_channel[channel].co2)) {
+                if (_channel[channel].co2 == WB_MSW_INPUT_REG_CO2_VALUE_ERROR)
+                    _channel[channel].co2 = 0;
+                _channel[channel].type = WB_MSW_CHANNEL_TYPE_CO2;
                 _channel[channel].groupIndex = groupIndex;
                 channel++;
                 groupIndex++;
@@ -320,12 +320,12 @@ static void _channelSet(size_t channel_max)
                 zunoSetZWChannel(channel, channel + 1);
                 zunoAddAssociation(ZUNO_ASSOC_BASIC_SET_NUMBER, 0);
                 break;
-            case WB_MSW_CHANNEL_TYPE_C02:
+            case WB_MSW_CHANNEL_TYPE_CO2:
                 zunoAddChannel(ZUNO_SENSOR_MULTILEVEL_CHANNEL_NUMBER,
                                ZUNO_SENSOR_MULTILEVEL_TYPE_CO2_LEVEL,
                                (SENSOR_MULTILEVEL_PROPERTIES_COMBINER(SENSOR_MULTILEVEL_SCALE_PARTS_PER_MILLION,
-                                                                      WB_MSW_INPUT_REG_C02_VALUE_SIZE,
-                                                                      WB_MSW_INPUT_REG_C02_VALUE_PRECISION)));
+                                                                      WB_MSW_INPUT_REG_CO2_VALUE_SIZE,
+                                                                      WB_MSW_INPUT_REG_CO2_VALUE_PRECISION)));
                 zunoSetZWChannel(channel, channel + 1);
                 zunoAddAssociation(ZUNO_ASSOC_BASIC_SET_NUMBER, 0);
                 break;
@@ -379,17 +379,17 @@ void _channelSetHandler(uint8_t channel_max)
                                          CHANNEL_HANDLER_SINGLE_VALUEMAPPER,
                                          (void*)&_channel[channel].lumen);
                 break;
-            case WB_MSW_CHANNEL_TYPE_C02:
-                _c02_auto = WB_MSW_CONFIG_PARAMETER_GET(WB_MSW_CONFIG_PARAMETER_C02_AUTO);
-                WbMsw.SetC02Autocalibration(_c02_auto);
+            case WB_MSW_CHANNEL_TYPE_CO2:
+                _co2_auto = WB_MSW_CONFIG_PARAMETER_GET(WB_MSW_CONFIG_PARAMETER_CO2_AUTO);
+                WbMsw.SetCO2Autocalibration(_co2_auto);
                 zunoAppendChannelHandler(channel,
-                                         WB_MSW_INPUT_REG_C02_VALUE_SIZE,
+                                         WB_MSW_INPUT_REG_CO2_VALUE_SIZE,
                                          CHANNEL_HANDLER_SINGLE_VALUEMAPPER,
-                                         (void*)&_channel[channel].c02);
+                                         (void*)&_channel[channel].co2);
                 break;
             case WB_MSW_CHANNEL_TYPE_VOC:
                 zunoAppendChannelHandler(channel,
-                                         WB_MSW_INPUT_REG_C02_VALUE_SIZE,
+                                         WB_MSW_INPUT_REG_CO2_VALUE_SIZE,
                                          CHANNEL_HANDLER_SINGLE_VALUEMAPPER,
                                          (void*)&_channel[channel].voc);
                 break;
@@ -483,23 +483,23 @@ void processLumen(size_t channel)
     _channel[channel].lumen = currentLumen;
     processAnalogSensorValue(currentLumen, channel);
 }
-void processC02(size_t channel)
+void processCO2(size_t channel)
 {
-    uint16_t currentC02;
-    uint8_t c02_auto;
+    uint16_t currentCO2;
+    uint8_t co2_auto;
     // Check if automatic calibration is needed
-    c02_auto = WB_MSW_CONFIG_PARAMETER_GET(WB_MSW_CONFIG_PARAMETER_C02_AUTO);
-    if (_c02_auto != c02_auto) {
-        _c02_auto = c02_auto;
-        WbMsw.SetC02Autocalibration(c02_auto);
+    co2_auto = WB_MSW_CONFIG_PARAMETER_GET(WB_MSW_CONFIG_PARAMETER_CO2_AUTO);
+    if (_co2_auto != co2_auto) {
+        _co2_auto = co2_auto;
+        WbMsw.SetCO2Autocalibration(co2_auto);
     }
-    if (!WbMsw.GetC02(currentC02))
+    if (!WbMsw.GetCO2(currentCO2))
         return;
-    if (currentC02 == WB_MSW_INPUT_REG_C02_VALUE_ERROR)
+    if (currentCO2 == WB_MSW_INPUT_REG_CO2_VALUE_ERROR)
         return;
-    LOG_INT_VALUE("C02:                ", currentC02);
-    _channel[channel].c02 = currentC02;
-    processAnalogSensorValue(currentC02, channel);
+    LOG_INT_VALUE("CO2:                ", currentCO2);
+    _channel[channel].co2 = currentCO2;
+    processAnalogSensorValue(currentCO2, channel);
 }
 void processVOC(size_t channel)
 {
@@ -586,8 +586,8 @@ static void processChannels(void)
             case WB_MSW_CHANNEL_TYPE_LUMEN:
                 processLumen(channel);
                 break;
-            case WB_MSW_CHANNEL_TYPE_C02:
-                processC02(channel);
+            case WB_MSW_CHANNEL_TYPE_CO2:
+                processCO2(channel);
                 break;
             case WB_MSW_CHANNEL_TYPE_VOC:
                 processVOC(channel);

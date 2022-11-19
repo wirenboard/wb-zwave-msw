@@ -12,10 +12,10 @@ public:
     bool GetTemperature(int16_t& temperature);
     bool GetHumidity(uint16_t& humidity);
     bool GetLuminance(uint32_t& luminance);
-    bool GetC02(uint16_t& c02);
-    bool GetC02Status(bool& status);
-    bool SetC02Status(bool status);
-    bool SetC02Autocalibration(bool status);
+    bool GetCO2(uint16_t& co2);
+    bool GetCO2Status(bool& status);
+    bool SetCO2Status(bool status);
+    bool SetCO2Autocalibration(bool status);
     bool GetVoc(uint16_t& voc);
     bool GetNoiseLevel(uint16_t& noiseLevel);
     bool GetMotion(uint16_t& motion);

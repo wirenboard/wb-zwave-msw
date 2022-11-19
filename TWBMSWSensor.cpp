@@ -87,12 +87,12 @@ bool TWBMSWSensor::GetLuminance(uint32_t& luminance)
     return true;
 }
 
-bool TWBMSWSensor::GetC02(uint16_t& c02)
+bool TWBMSWSensor::GetCO2(uint16_t& co2)
 {
-    return readInputRegisters(Address, WBMSW_REG_CO2, 1, &c02);
+    return readInputRegisters(Address, WBMSW_REG_CO2, 1, &co2);
 }
 
-bool TWBMSWSensor::GetC02Status(bool& status)
+bool TWBMSWSensor::GetCO2Status(bool& status)
 {
     uint8_t out;
     if (!readCoils(Address, WBMSW_COIL_CO2_STAUS, 1, &out))
@@ -101,12 +101,12 @@ bool TWBMSWSensor::GetC02Status(bool& status)
     return true;
 }
 
-bool TWBMSWSensor::SetC02Status(bool status)
+bool TWBMSWSensor::SetCO2Status(bool status)
 {
     return writeSingleCoils(Address, WBMSW_COIL_CO2_STAUS, status);
 }
 
-bool TWBMSWSensor::SetC02Autocalibration(bool status)
+bool TWBMSWSensor::SetCO2Autocalibration(bool status)
 {
     uint16_t value = status ? 1 : 0;
     return writeSingleRegisters(Address, WBMSW_REG_CO2_AUTO_CALIB, value);
