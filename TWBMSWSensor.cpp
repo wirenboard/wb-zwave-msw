@@ -1,5 +1,5 @@
 
-#include "WBMSWSensor.h"
+#include "TWBMSWSensor.h"
 #include "Debug.h"
 
 #define WBMSW_REG_TEMPERATURE 0x0004
@@ -20,20 +20,20 @@
 #define WBMSW_FIRMWARE_DATA_SIZE 136
 
 /* Public Constructors */
-WBMSWSensor::WBMSWSensor(HardwareSerial* hardwareSerial, uint16_t timout_ms, uint8_t addr)
-    : ModBusRtuClass(hardwareSerial, timout_ms),
-      _addr(addr)
+TWBMSWSensor::TWBMSWSensor(HardwareSerial* hardwareSerial, uint16_t timeoutMs, uint8_t address)
+    : ModBusRtuClass(hardwareSerial, timeoutMs),
+      Address(address)
 {}
 
 /* Public Methods */
-bool WBMSWSensor::begin(size_t speed, uint32_t config, uint8_t rx, uint8_t tx)
+bool TWBMSWSensor::OpenPort(size_t speed, uint32_t config, uint8_t rx, uint8_t tx)
 {
     if (!ModBusRtuClass::begin(speed, config, rx, tx))
         return (false);
     return true;
 }
 
-bool WBMSWSensor::getFwVersion(uint32_t* version)
+bool TWBMSWSensor::GetFwVersion(uint32_t* version)
 {
     uint32_t out;
     uint32_t number;
@@ -42,7 +42,7 @@ bool WBMSWSensor::getFwVersion(uint32_t* version)
     size_t count;
     uint16_t letter;
 
-    if (ModBusRtuClass::readInputRegisters(this->_addr,
+    if (ModBusRtuClass::readInputRegisters(this->Address,
                                            WBMSW_REG_FW_VERSION,
                                            (sizeof(fw_v) / sizeof(fw_v[0x0])),
                                            &fw_v[0x0]) == false)
@@ -68,81 +68,81 @@ bool WBMSWSensor::getFwVersion(uint32_t* version)
     return (true);
 }
 
-bool WBMSWSensor::getTemperature(int16_t& temperature)
+bool TWBMSWSensor::GetTemperature(int16_t& temperature)
 {
-    return readInputRegisters(_addr, WBMSW_REG_TEMPERATURE, 1, &temperature);
+    return readInputRegisters(Address, WBMSW_REG_TEMPERATURE, 1, &temperature);
 }
 
-bool WBMSWSensor::getHumidity(uint16_t& humidity)
+bool TWBMSWSensor::GetHumidity(uint16_t& humidity)
 {
-    return readInputRegisters(_addr, WBMSW_REG_HUMIDITY, 1, &humidity);
+    return readInputRegisters(Address, WBMSW_REG_HUMIDITY, 1, &humidity);
 }
 
-bool WBMSWSensor::getLumminance(uint32_t& lumminance)
+bool TWBMSWSensor::GetLuminance(uint32_t& luminance)
 {
     uint16_t lumen[2];
-    if (!readInputRegisters(_addr, WBMSW_REG_LUMINANCE, (sizeof(lumen) / sizeof(lumen[0x0])), lumen))
+    if (!readInputRegisters(Address, WBMSW_REG_LUMINANCE, (sizeof(lumen) / sizeof(lumen[0x0])), lumen))
         return false;
-    lumminance = (lumen[0x0] << 0x10) | lumen[1];
+    luminance = (lumen[0x0] << 0x10) | lumen[1];
     return true;
 }
 
-bool WBMSWSensor::getC02(uint16_t& c02)
+bool TWBMSWSensor::GetC02(uint16_t& c02)
 {
-    return readInputRegisters(_addr, WBMSW_REG_CO2, 1, &c02);
+    return readInputRegisters(Address, WBMSW_REG_CO2, 1, &c02);
 }
 
-bool WBMSWSensor::getC02Status(bool& status)
+bool TWBMSWSensor::GetC02Status(bool& status)
 {
     uint8_t out;
-    if (!readCoils(_addr, WBMSW_COIL_CO2_STAUS, 1, &out))
+    if (!readCoils(Address, WBMSW_COIL_CO2_STAUS, 1, &out))
         return false;
     status = (out != 0);
     return true;
 }
 
-bool WBMSWSensor::setC02Status(bool status)
+bool TWBMSWSensor::SetC02Status(bool status)
 {
-    return writeSingleCoils(_addr, WBMSW_COIL_CO2_STAUS, status);
+    return writeSingleCoils(Address, WBMSW_COIL_CO2_STAUS, status);
 }
 
-bool WBMSWSensor::setC02Autocalibration(bool status)
+bool TWBMSWSensor::SetC02Autocalibration(bool status)
 {
     uint16_t value = status ? 1 : 0;
-    return writeSingleRegisters(_addr, WBMSW_REG_CO2_AUTO_CALIB, value);
+    return writeSingleRegisters(Address, WBMSW_REG_CO2_AUTO_CALIB, value);
 }
 
-bool WBMSWSensor::getVoc(uint16_t& voc)
+bool TWBMSWSensor::GetVoc(uint16_t& voc)
 {
-    return readInputRegisters(_addr, WBMSW_REG_VOC, 1, &voc);
+    return readInputRegisters(Address, WBMSW_REG_VOC, 1, &voc);
 }
 
-bool WBMSWSensor::getNoiseLevel(uint16_t& noise_level)
+bool TWBMSWSensor::GetNoiseLevel(uint16_t& noiseLevel)
 {
-    return readInputRegisters(_addr, WBMSW_REG_NOIZE, 1, &noise_level);
+    return readInputRegisters(Address, WBMSW_REG_NOIZE, 1, &noiseLevel);
 }
 
-bool WBMSWSensor::getMotion(uint16_t& motion)
+bool TWBMSWSensor::GetMotion(uint16_t& motion)
 {
-    return readInputRegisters(_addr, WBMSW_REG_MOTION, 1, &motion); // 0x0118 - max
+    return readInputRegisters(Address, WBMSW_REG_MOTION, 1, &motion); // 0x0118 - max
 }
 
-bool WBMSWSensor::fwMode(void)
+bool TWBMSWSensor::FwMode(void)
 {
-    return writeSingleRegisters(_addr, WBMSW_REG_FW_MODE, 1);
+    return writeSingleRegisters(Address, WBMSW_REG_FW_MODE, 1);
 }
 
-bool WBMSWSensor::fwWriteInfo(uint8_t* info)
+bool TWBMSWSensor::FwWriteInfo(uint8_t* info)
 {
-    return writeMultipleRegisters(_addr, WBMSW_REG_FW_INFO, WBMSW_FIRMWARE_INFO_SIZE / 2, info);
+    return writeMultipleRegisters(Address, WBMSW_REG_FW_INFO, WBMSW_FIRMWARE_INFO_SIZE / 2, info);
 }
 
-bool WBMSWSensor::fwWriteData(uint8_t* data)
+bool TWBMSWSensor::FwWriteData(uint8_t* data)
 {
-    return writeMultipleRegisters(_addr, WBMSW_REG_FW_DATA, WBMSW_FIRMWARE_DATA_SIZE / 2, data);
+    return writeMultipleRegisters(Address, WBMSW_REG_FW_DATA, WBMSW_FIRMWARE_DATA_SIZE / 2, data);
 }
 
-bool WBMSWSensor::fwUpdate(const void* buffer, size_t len, uint16_t timout_ms)
+bool TWBMSWSensor::FwUpdate(const void* buffer, size_t len, uint16_t timeoutMs)
 {
     uint8_t* data;
     if (len < WBMSW_FIRMWARE_INFO_SIZE)
@@ -151,14 +151,14 @@ bool WBMSWSensor::fwUpdate(const void* buffer, size_t len, uint16_t timout_ms)
     LOGGING_UART.print("FW size: ");
     LOGGING_UART.println(len);
 #endif
-    if (!this->fwMode())
+    if (!this->FwMode())
         return false;
 #ifdef LOGGING_DBG
     LOGGING_UART.print("Wait 2 sec\n");
 #endif
-    delay(timout_ms);
+    delay(timeoutMs);
     data = (uint8_t*)buffer;
-    if (!this->fwWriteInfo(data))
+    if (!this->FwWriteInfo(data))
         return false;
 #ifdef LOGGING_DBG
     LOGGING_UART.print("Write info\n");
@@ -169,7 +169,7 @@ bool WBMSWSensor::fwUpdate(const void* buffer, size_t len, uint16_t timout_ms)
     LOGGING_UART.print("Write data\n");
 #endif
     while (len) {
-        if (!fwWriteData(data))
+        if (!FwWriteData(data))
             return false;
         data += WBMSW_FIRMWARE_DATA_SIZE;
         len -= WBMSW_FIRMWARE_DATA_SIZE;
