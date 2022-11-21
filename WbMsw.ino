@@ -113,7 +113,7 @@ static const ZunoCFGParameter_t config_parameter_init[WB_MSW_MAX_CONFIG_PARAM] =
 // Only those groups for which there are corresponding channels are created in the device
 const char* zunoAssociationGroupName(uint8_t groupIndex)
 {
-    for (uint8_t channel = 0; channel < ZUNO_CFG_CHANNEL_COUNT; channel++)
+    for (uint8_t channel = 0; channel < ZUNO_CFG_CHANNEL_COUNT; channel++) {
         if (_channel[channel].groupIndex == groupIndex) {
             switch (_channel[channel].type) {
                 case WB_MSW_CHANNEL_TYPE_TEMPERATURE:
@@ -134,15 +134,17 @@ const char* zunoAssociationGroupName(uint8_t groupIndex)
                     return NULL;
             }
         }
+    }
     return NULL;
 }
 // Finds channel of needed type
 static WbMswChannel_t* _channelFindType(size_t type)
 {
-    for (size_t channel = 0; channel < ZUNO_CFG_CHANNEL_COUNT; channel++)
+    for (size_t channel = 0; channel < ZUNO_CFG_CHANNEL_COUNT; channel++) {
         if (_channel[channel].type == type) {
             return (&_channel[channel]);
         }
+    }
     return 0;
 }
 //  Function checks whether the device has a specified configuration parameter
@@ -217,8 +219,9 @@ static void _configParameterChanged(size_t param, int32_t value)
 static void _configParameterInit(void)
 {
     // Load configuration parameters from FLASH memory
-    for (size_t i = 0; i < WB_MSW_MAX_CONFIG_PARAM; i++)
+    for (size_t i = 0; i < WB_MSW_MAX_CONFIG_PARAM; i++) {
         _config_parameter[i] = zunoLoadCFGParam(i + WB_MSW_CONFIG_PARAMETER_FIRST);
+    }
     // Handler installing
     zunoAttachSysHandler(ZUNO_HANDLER_ZW_CFG, 0, (void*)_configParameterChanged);
 }
@@ -305,7 +308,7 @@ static size_t _channelInit(void)
 // Setting up Z-Wave channels, setting Multichannel indexes
 static void _channelSet(size_t channel_max)
 {
-    for (size_t channel = 0; channel < channel_max; channel++)
+    for (size_t channel = 0; channel < channel_max; channel++) {
         switch (_channel[channel].type) {
             case WB_MSW_CHANNEL_TYPE_TEMPERATURE:
                 zunoAddChannel(ZUNO_SENSOR_MULTILEVEL_CHANNEL_NUMBER,
@@ -367,6 +370,7 @@ static void _channelSet(size_t channel_max)
                 zunoAddAssociation(ZUNO_ASSOC_BASIC_SET_NUMBER, 0);
                 break;
         }
+    }
     if (ZUNO_CFG_CHANNEL_COUNT > 1) {
         zunoSetZWChannel(0, 1 | ZWAVE_CHANNEL_MAPPED_BIT);
     }
@@ -374,7 +378,7 @@ static void _channelSet(size_t channel_max)
 // Setting up handlers for all sensor cannels. Handler is used when requesting channel data from controller
 void _channelSetHandler(uint8_t channel_max)
 {
-    for (size_t channel = 0; channel < channel_max; channel++)
+    for (size_t channel = 0; channel < channel_max; channel++) {
         switch (_channel[channel].type) {
             case WB_MSW_CHANNEL_TYPE_TEMPERATURE:
                 zunoAppendChannelHandler(channel,
@@ -421,6 +425,7 @@ void _channelSetHandler(uint8_t channel_max)
                                          (void*)&_channel[channel].bMotion);
                 break;
         }
+    }
 }
 
 // Static function where system events arrive
@@ -609,7 +614,7 @@ static void processChannels(void)
 // LOGGING_UART.println("--------------------Measurements-----------------------");
 #endif
     // Check all channels of available sensors
-    for (size_t channel = 0; channel < ZUNO_CFG_CHANNEL_COUNT; channel++)
+    for (size_t channel = 0; channel < ZUNO_CFG_CHANNEL_COUNT; channel++) {
         switch (_channel[channel].type) {
             case WB_MSW_CHANNEL_TYPE_TEMPERATURE:
                 processTemperature(channel);
@@ -635,6 +640,7 @@ static void processChannels(void)
             default:
                 break;
         }
+    }
     // If a new firmware came on the radio, send it to the bootloder of the WB chip
     // IMPORTANT: We do it here, not in the system event handler!
     if (_fw.bUpdate) {
