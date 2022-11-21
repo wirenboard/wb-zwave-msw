@@ -33,39 +33,35 @@ bool TWBMSWSensor::OpenPort(size_t speed, uint32_t config, uint8_t rx, uint8_t t
 
 bool TWBMSWSensor::GetFwVersion(uint32_t* version)
 {
-    uint32_t out;
-    uint32_t number;
-    uint16_t fw_v[0x10];
-    size_t i;
-    size_t count;
+    uint16_t fw_v[16];
     uint16_t letter;
 
-    if (ModBusRtuClass::readInputRegisters(this->Address,
-                                           WBMSW_REG_FW_VERSION,
-                                           (sizeof(fw_v) / sizeof(fw_v[0x0])),
-                                           &fw_v[0x0]) == false)
+    if (!ModBusRtuClass::readInputRegisters(this->Address,
+                                            WBMSW_REG_FW_VERSION,
+                                            (sizeof(fw_v) / sizeof(fw_v[0])),
+                                            &fw_v[0]))
     {
         return (false);
     }
-    out = 0x0;
-    number = 00;
-    i = 0x0;
-    count = 0x0;
-    while ((letter = fw_v[i]) != 0x0) {
+    uint32_t number = 0;
+    size_t i = 0;
+    size_t count = 0;
+    while (letter = fw_v[i]) {
         if (letter == '.') {
-            out = (out << 0x8) | number;
-            number = 0x0;
-            count = 0x0;
+            out = (out << 8) | number;
+            number = 0;
+            count = 0;
         } else {
-            number = number * 0xA + (letter - 0x30);
+            number = number * 10 + (letter - '0');
             count++;
         }
         i++;
     }
-    if (count != 0x0)
-        out = (out << 0x8) | number;
-    version[0x0] = out;
-    return (true);
+    if (count) {
+        out = (out << 8) | number;
+    }
+    version[0] = out;
+    return true;
 }
 
 bool TWBMSWSensor::GetTemperature(int16_t& temperature)
@@ -81,10 +77,10 @@ bool TWBMSWSensor::GetHumidity(uint16_t& humidity)
 bool TWBMSWSensor::GetLuminance(uint32_t& luminance)
 {
     uint16_t lumen[2];
-    if (!readInputRegisters(Address, WBMSW_REG_LUMINANCE, (sizeof(lumen) / sizeof(lumen[0x0])), lumen)) {
+    if (!readInputRegisters(Address, WBMSW_REG_LUMINANCE, (sizeof(lumen) / sizeof(lumen[0])), lumen)) {
         return false;
     }
-    luminance = (lumen[0x0] << 0x10) | lumen[1];
+    luminance = (lumen[0] << 16) | lumen[1];
     return true;
 }
 
