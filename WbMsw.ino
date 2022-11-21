@@ -1,5 +1,5 @@
 
-#include "Debug.h"
+#include "DebugOutput.h"
 #include "TWBMSWSensor.h"
 #include "WbMsw.h"
 
@@ -23,26 +23,6 @@ ZUNO_ENABLE(
 
 	);
 // clang-format on
-
-// Debug output of values
-// DBG
-#ifdef LOGGING_DBG
-#define LOG_INT_VALUE(TEXT, VALUE)                                                                                     \
-    do {                                                                                                               \
-        LOGGING_UART.print(TEXT);                                                                                      \
-        LOGGING_UART.print(VALUE);                                                                                     \
-        LOGGING_UART.print("\n");                                                                                      \
-    } while (0)
-#define LOG_FIXEDPOINT_VALUE(TEXT, VALUE, PREC)                                                                        \
-    do {                                                                                                               \
-        LOGGING_UART.print(TEXT);                                                                                      \
-        LOGGING_UART.fixPrint(VALUE, PREC);                                                                            \
-        LOGGING_UART.print("\n");                                                                                      \
-    } while (0)
-#else
-#define LOG_INT_VALUE(TEXT, VALUE) ((void)0)
-#define LOG_FIXEDPOINT_VALUE(TEXT, VALUE, PREC) ((void)0)
-#endif
 /* ZUNO_DECLARE defines global EXTERN for whole project, descriptor must be visible in all project files to make build
  * right*/
 ZUNO_DECLARE(ZUNOOTAFWDescr_t g_OtaDesriptor);
@@ -595,24 +575,19 @@ static void updateOtaDesriptor(void)
     uint32_t version;
 
     if (!WbMsw.GetFwVersion(&version)) {
-#ifdef LOGGING_DBG
-        LOGGING_UART.print("*** (!!!) Can't connect to WB chip. It doesn't answer to version request!\n");
-#endif
+        DEBUG("*** (!!!) Can't connect to WB chip. It doesn't answer to version request!\n");
         return;
     }
     g_OtaDesriptor.version = version;
-#ifdef LOGGING_DBG
-    LOGGING_UART.print("FW:                 ");
-    LOGGING_UART.println(version, 0x10);
-#endif
+    DEBUG("FW:                 ");
+    DEBUG(version, 16);
+    DEBUG("\n");
 }
 
 // Device channel management and firmware data transfer
 static void processChannels(void)
 {
-#ifdef LOGGING_DBG
-// LOGGING_UART.println("--------------------Measurements-----------------------");
-#endif
+    DEBUG("--------------------Measurements-----------------------");
     // Check all channels of available sensors
     for (size_t channel = 0; channel < ZUNO_CFG_CHANNEL_COUNT; channel++) {
         switch (_channel[channel].type) {
@@ -657,9 +632,7 @@ void setup()
     // Connecting to the WB sensor
     if (!WbMsw.OpenPort(WB_MSW_UART_BAUD, WB_MSW_UART_MODE, WB_MSW_UART_RX, WB_MSW_UART_TX)) {
         while (1) {
-#ifdef LOGGING_DBG
-            LOGGING_UART.print("*** Fatal ERROR! Can't connect to WB!\n");
-#endif
+            DEBUG("*** Fatal ERROR! Can't connect to WB!\n");
             delay(500);
         }
     }
@@ -667,9 +640,7 @@ void setup()
     // Initializing channels
     channel_count = _channelInit();
     if (channel_count == 0) {
-#ifdef LOGGING_DBG
-        LOGGING_UART.print("*** (!!!) WB chip doesn't support any kind of sensors!\n");
-#endif
+        DEBUG("*** (!!!) WB chip doesn't support any kind of sensors!\n");
     }
     // Initialize the configuration parameters (depending on the number of channels)
     _configParameterInit();

@@ -1,6 +1,6 @@
 
 #include "TWBMSWSensor.h"
-#include "Debug.h"
+#include "DebugOutput.h"
 
 #define WBMSW_REG_TEMPERATURE 0x0004
 #define WBMSW_REG_HUMIDITY 0x0005
@@ -150,29 +150,27 @@ bool TWBMSWSensor::FwUpdate(const void* buffer, size_t len, uint16_t timeoutMs)
     if (len < WBMSW_FIRMWARE_INFO_SIZE) {
         return false;
     }
-#ifdef LOGGING_DBG
-    LOGGING_UART.print("FW size: ");
-    LOGGING_UART.println(len);
-#endif
+    DEBUG("FW size: ");
+    DEBUG(len);
+    DEBUG("\n");
+
     if (!this->FwMode()) {
         return false;
     }
-#ifdef LOGGING_DBG
-    LOGGING_UART.print("Wait 2 sec\n");
-#endif
+    DEBUG("Wait ");
+    DEBUG(timeoutMs);
+    DEBUG(" ms\n");
+
     delay(timeoutMs);
     data = (uint8_t*)buffer;
     if (!this->FwWriteInfo(data)) {
         return false;
     }
-#ifdef LOGGING_DBG
-    LOGGING_UART.print("Write info\n");
-#endif
+    DEBUG("Write info\n");
     data += WBMSW_FIRMWARE_INFO_SIZE;
     len -= WBMSW_FIRMWARE_INFO_SIZE;
-#ifdef LOGGING_DBG
-    LOGGING_UART.print("Write data\n");
-#endif
+
+    DEBUG("Write data\n");
     while (len) {
         if (!FwWriteData(data)) {
             return false;
@@ -180,8 +178,7 @@ bool TWBMSWSensor::FwUpdate(const void* buffer, size_t len, uint16_t timeoutMs)
         data += WBMSW_FIRMWARE_DATA_SIZE;
         len -= WBMSW_FIRMWARE_DATA_SIZE;
     }
-#ifdef LOGGING_DBG
-    LOGGING_UART.print("Write finish\n");
-#endif
+
+    DEBUG("Write finish\n");
     return true;
 }
