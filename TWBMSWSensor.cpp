@@ -28,9 +28,7 @@ TWBMSWSensor::TWBMSWSensor(HardwareSerial* hardwareSerial, uint16_t timeoutMs, u
 /* Public Methods */
 bool TWBMSWSensor::OpenPort(size_t speed, uint32_t config, uint8_t rx, uint8_t tx)
 {
-    if (!ModBusRtuClass::begin(speed, config, rx, tx))
-        return (false);
-    return true;
+    return ModBusRtuClass::begin(speed, config, rx, tx));
 }
 
 bool TWBMSWSensor::GetFwVersion(uint32_t* version)
@@ -46,7 +44,9 @@ bool TWBMSWSensor::GetFwVersion(uint32_t* version)
                                            WBMSW_REG_FW_VERSION,
                                            (sizeof(fw_v) / sizeof(fw_v[0x0])),
                                            &fw_v[0x0]) == false)
+    {
         return (false);
+    }
     out = 0x0;
     number = 00;
     i = 0x0;
@@ -81,8 +81,9 @@ bool TWBMSWSensor::GetHumidity(uint16_t& humidity)
 bool TWBMSWSensor::GetLuminance(uint32_t& luminance)
 {
     uint16_t lumen[2];
-    if (!readInputRegisters(Address, WBMSW_REG_LUMINANCE, (sizeof(lumen) / sizeof(lumen[0x0])), lumen))
+    if (!readInputRegisters(Address, WBMSW_REG_LUMINANCE, (sizeof(lumen) / sizeof(lumen[0x0])), lumen)) {
         return false;
+    }
     luminance = (lumen[0x0] << 0x10) | lumen[1];
     return true;
 }
@@ -95,8 +96,9 @@ bool TWBMSWSensor::GetCO2(uint16_t& co2)
 bool TWBMSWSensor::GetCO2Status(bool& status)
 {
     uint8_t out;
-    if (!readCoils(Address, WBMSW_COIL_CO2_STAUS, 1, &out))
+    if (!readCoils(Address, WBMSW_COIL_CO2_STAUS, 1, &out)) {
         return false;
+    }
     status = (out != 0);
     return true;
 }
@@ -145,21 +147,24 @@ bool TWBMSWSensor::FwWriteData(uint8_t* data)
 bool TWBMSWSensor::FwUpdate(const void* buffer, size_t len, uint16_t timeoutMs)
 {
     uint8_t* data;
-    if (len < WBMSW_FIRMWARE_INFO_SIZE)
+    if (len < WBMSW_FIRMWARE_INFO_SIZE) {
         return false;
+    }
 #ifdef LOGGING_DBG
     LOGGING_UART.print("FW size: ");
     LOGGING_UART.println(len);
 #endif
-    if (!this->FwMode())
+    if (!this->FwMode()) {
         return false;
+    }
 #ifdef LOGGING_DBG
     LOGGING_UART.print("Wait 2 sec\n");
 #endif
     delay(timeoutMs);
     data = (uint8_t*)buffer;
-    if (!this->FwWriteInfo(data))
+    if (!this->FwWriteInfo(data)) {
         return false;
+    }
 #ifdef LOGGING_DBG
     LOGGING_UART.print("Write info\n");
 #endif
@@ -169,8 +174,9 @@ bool TWBMSWSensor::FwUpdate(const void* buffer, size_t len, uint16_t timeoutMs)
     LOGGING_UART.print("Write data\n");
 #endif
     while (len) {
-        if (!FwWriteData(data))
+        if (!FwWriteData(data)) {
             return false;
+        }
         data += WBMSW_FIRMWARE_DATA_SIZE;
         len -= WBMSW_FIRMWARE_DATA_SIZE;
     }

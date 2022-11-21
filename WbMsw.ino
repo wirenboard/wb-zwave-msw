@@ -28,16 +28,20 @@ ZUNO_ENABLE(
 // DBG
 #ifdef LOGGING_DBG
 #define LOG_INT_VALUE(TEXT, VALUE)                                                                                     \
-    LOGGING_UART.print(TEXT);                                                                                          \
-    LOGGING_UART.print(VALUE);                                                                                         \
-    LOGGING_UART.print("\n");
+    do {                                                                                                               \
+        LOGGING_UART.print(TEXT);                                                                                      \
+        LOGGING_UART.print(VALUE);                                                                                     \
+        LOGGING_UART.print("\n");                                                                                      \
+    } while (0)
 #define LOG_FIXEDPOINT_VALUE(TEXT, VALUE, PREC)                                                                        \
-    LOGGING_UART.print(TEXT);                                                                                          \
-    LOGGING_UART.fixPrint(VALUE, PREC);                                                                                \
-    LOGGING_UART.print("\n");
+    do {                                                                                                               \
+        LOGGING_UART.print(TEXT);                                                                                      \
+        LOGGING_UART.fixPrint(VALUE, PREC);                                                                            \
+        LOGGING_UART.print("\n");                                                                                      \
+    } while (0)
 #else
-#define LOG_INT_VALUE(TEXT, VALUE)
-#define LOG_FIXEDPOINT_VALUE(TEXT, VALUE, PREC)
+#define LOG_INT_VALUE(TEXT, VALUE) ((void)0)
+#define LOG_FIXEDPOINT_VALUE(TEXT, VALUE, PREC) ((void)0)
 #endif
 /* ZUNO_DECLARE defines global EXTERN for whole project, descriptor must be visible in all project files to make build
  * right*/
@@ -136,8 +140,9 @@ const char* zunoAssociationGroupName(uint8_t groupIndex)
 static WbMswChannel_t* _channelFindType(size_t type)
 {
     for (size_t channel = 0; channel < ZUNO_CFG_CHANNEL_COUNT; channel++)
-        if (_channel[channel].type == type)
+        if (_channel[channel].type == type) {
             return (&_channel[channel]);
+        }
     return 0;
 }
 //  Function checks whether the device has a specified configuration parameter
@@ -147,45 +152,52 @@ const ZunoCFGParameter_t* zunoCFGParameter(size_t param)
         case WB_MSW_CONFIG_PARAMETER_TEMPERATURE_HYSTERESIS:
         case WB_MSW_CONFIG_PARAMETER_TEMPERATURE_INVERT:
         case WB_MSW_CONFIG_PARAMETER_TEMPERATURE_THRESHOLD:
-            if (!_channelFindType(WB_MSW_CHANNEL_TYPE_TEMPERATURE))
+            if (!_channelFindType(WB_MSW_CHANNEL_TYPE_TEMPERATURE)) {
                 return (ZUNO_CFG_PARAMETER_UNKNOWN);
+            }
             break;
         case WB_MSW_CONFIG_PARAMETER_HUMIDITY_HYSTERESIS:
         case WB_MSW_CONFIG_PARAMETER_HUMIDITY_INVERT:
         case WB_MSW_CONFIG_PARAMETER_HUMIDITY_THRESHOLD:
-            if (!_channelFindType(WB_MSW_CHANNEL_TYPE_HUMIDITY))
+            if (!_channelFindType(WB_MSW_CHANNEL_TYPE_HUMIDITY)) {
                 return (ZUNO_CFG_PARAMETER_UNKNOWN);
+            }
             break;
         case WB_MSW_CONFIG_PARAMETER_LUMEN_HYSTERESIS:
         case WB_MSW_CONFIG_PARAMETER_LUMEN_INVERT:
         case WB_MSW_CONFIG_PARAMETER_LUMEN_THRESHOLD:
-            if (!_channelFindType(WB_MSW_CHANNEL_TYPE_LUMEN))
+            if (!_channelFindType(WB_MSW_CHANNEL_TYPE_LUMEN)) {
                 return (ZUNO_CFG_PARAMETER_UNKNOWN);
+            }
             break;
         case WB_MSW_CONFIG_PARAMETER_CO2_HYSTERESIS:
         case WB_MSW_CONFIG_PARAMETER_CO2_INVERT:
         case WB_MSW_CONFIG_PARAMETER_CO2_THRESHOLD:
         case WB_MSW_CONFIG_PARAMETER_CO2_AUTO:
-            if (!_channelFindType(WB_MSW_CHANNEL_TYPE_CO2))
+            if (!_channelFindType(WB_MSW_CHANNEL_TYPE_CO2)) {
                 return (ZUNO_CFG_PARAMETER_UNKNOWN);
+            }
             break;
         case WB_MSW_CONFIG_PARAMETER_VOC_HYSTERESIS:
         case WB_MSW_CONFIG_PARAMETER_VOC_INVERT:
         case WB_MSW_CONFIG_PARAMETER_VOC_THRESHOLD:
-            if (!_channelFindType(WB_MSW_CHANNEL_TYPE_VOC))
+            if (!_channelFindType(WB_MSW_CHANNEL_TYPE_VOC)) {
                 return (ZUNO_CFG_PARAMETER_UNKNOWN);
+            }
             break;
         case WB_MSW_CONFIG_PARAMETER_NOISE_LEVEL_HYSTERESIS:
         case WB_MSW_CONFIG_PARAMETER_NOISE_LEVEL_INVERT:
         case WB_MSW_CONFIG_PARAMETER_NOISE_LEVEL_THRESHOLD:
-            if (!_channelFindType(WB_MSW_CHANNEL_TYPE_NOISE_LEVEL))
+            if (!_channelFindType(WB_MSW_CHANNEL_TYPE_NOISE_LEVEL)) {
                 return (ZUNO_CFG_PARAMETER_UNKNOWN);
+            }
             break;
         case WB_MSW_CONFIG_PARAMETER_MOTION_TIME:
         case WB_MSW_CONFIG_PARAMETER_MOTION_INVERT:
         case WB_MSW_CONFIG_PARAMETER_MOTION_THRESHOLD:
-            if (!_channelFindType(WB_MSW_CHANNEL_TYPE_MOTION))
+            if (!_channelFindType(WB_MSW_CHANNEL_TYPE_MOTION)) {
                 return (ZUNO_CFG_PARAMETER_UNKNOWN);
+            }
             break;
         default:
             return (ZUNO_CFG_PARAMETER_UNKNOWN);
@@ -196,8 +208,9 @@ const ZunoCFGParameter_t* zunoCFGParameter(size_t param)
 // The handler is called when a configuration parameter value updated from Z-Wave controller
 static void _configParameterChanged(size_t param, int32_t value)
 {
-    if (param < WB_MSW_CONFIG_PARAMETER_FIRST || param > WB_MSW_CONFIG_PARAMETER_LAST)
+    if (param < WB_MSW_CONFIG_PARAMETER_FIRST || param > WB_MSW_CONFIG_PARAMETER_LAST) {
         return;
+    }
     _config_parameter[param - WB_MSW_CONFIG_PARAMETER_FIRST] = value;
 }
 // Device configuration parameters initialization
@@ -254,8 +267,9 @@ static size_t _channelInit(void)
     if (WbMsw.GetCO2Status(CO2_enable)) {
         if (CO2_enable || WbMsw.SetCO2Status(true)) {
             if (WbMsw.GetCO2(_channel[channel].co2)) {
-                if (_channel[channel].co2 == WB_MSW_INPUT_REG_CO2_VALUE_ERROR)
+                if (_channel[channel].co2 == WB_MSW_INPUT_REG_CO2_VALUE_ERROR) {
                     _channel[channel].co2 = 0;
+                }
                 _channel[channel].type = WB_MSW_CHANNEL_TYPE_CO2;
                 _channel[channel].groupIndex = groupIndex;
                 channel++;
@@ -353,8 +367,9 @@ static void _channelSet(size_t channel_max)
                 zunoAddAssociation(ZUNO_ASSOC_BASIC_SET_NUMBER, 0);
                 break;
         }
-    if (ZUNO_CFG_CHANNEL_COUNT > 1)
+    if (ZUNO_CFG_CHANNEL_COUNT > 1) {
         zunoSetZWChannel(0, 1 | ZWAVE_CHANNEL_MAPPED_BIT);
+    }
 }
 // Setting up handlers for all sensor cannels. Handler is used when requesting channel data from controller
 void _channelSetHandler(uint8_t channel_max)
@@ -453,10 +468,16 @@ void processAnalogSensorValue(int32_t current_value, uint8_t chi)
 void processTemperature(size_t channel)
 {
     int16_t currentTemperature;
-    if (!WbMsw.GetTemperature(currentTemperature))
-        return;
-    if (currentTemperature == WB_MSW_INPUT_REG_TEMPERATURE_VALUE_ERROR)
-        return;
+    if (!WbMsw.GetTemperature(currentTemperature)) {
+        {
+            return;
+        }
+    }
+    if (currentTemperature == WB_MSW_INPUT_REG_TEMPERATURE_VALUE_ERROR) {
+        {
+            return;
+        }
+    }
     LOG_FIXEDPOINT_VALUE("Temperature:        ", currentTemperature, 2);
     _channel[channel].temperature = currentTemperature;
     processAnalogSensorValue(currentTemperature, channel);
@@ -464,10 +485,12 @@ void processTemperature(size_t channel)
 void processHumidity(size_t channel)
 {
     uint16_t currentHumidity;
-    if (!WbMsw.GetHumidity(currentHumidity))
+    if (!WbMsw.GetHumidity(currentHumidity)) {
         return;
-    if (currentHumidity == WB_MSW_INPUT_REG_HUMIDITY_VALUE_ERROR)
+    }
+    if (currentHumidity == WB_MSW_INPUT_REG_HUMIDITY_VALUE_ERROR) {
         return;
+    }
     LOG_FIXEDPOINT_VALUE("Humidity:           ", currentHumidity, 2);
     _channel[channel].humidity = currentHumidity;
     processAnalogSensorValue(currentHumidity, channel);
@@ -475,10 +498,12 @@ void processHumidity(size_t channel)
 void processLumen(size_t channel)
 {
     uint32_t currentLumen;
-    if (!WbMsw.GetLuminance(currentLumen))
+    if (!WbMsw.GetLuminance(currentLumen)) {
         return;
-    if (currentLumen == WB_MSW_INPUT_REG_LUMEN_VALUE_ERROR)
+    }
+    if (currentLumen == WB_MSW_INPUT_REG_LUMEN_VALUE_ERROR) {
         return;
+    }
     LOG_FIXEDPOINT_VALUE("Lumen:              ", currentLumen, 2);
     _channel[channel].lumen = currentLumen;
     processAnalogSensorValue(currentLumen, channel);
@@ -493,10 +518,12 @@ void processCO2(size_t channel)
         _co2_auto = co2_auto;
         WbMsw.SetCO2Autocalibration(co2_auto);
     }
-    if (!WbMsw.GetCO2(currentCO2))
+    if (!WbMsw.GetCO2(currentCO2)) {
         return;
-    if (currentCO2 == WB_MSW_INPUT_REG_CO2_VALUE_ERROR)
+    }
+    if (currentCO2 == WB_MSW_INPUT_REG_CO2_VALUE_ERROR) {
         return;
+    }
     LOG_INT_VALUE("CO2:                ", currentCO2);
     _channel[channel].co2 = currentCO2;
     processAnalogSensorValue(currentCO2, channel);
@@ -505,10 +532,12 @@ void processVOC(size_t channel)
 {
     uint16_t currentVoc;
 
-    if (!WbMsw.GetVoc(currentVoc))
+    if (!WbMsw.GetVoc(currentVoc)) {
         return;
-    if (currentVoc == WB_MSW_INPUT_REG_VOC_VALUE_ERROR)
+    }
+    if (currentVoc == WB_MSW_INPUT_REG_VOC_VALUE_ERROR) {
         return;
+    }
     LOG_INT_VALUE("VOC:                ", currentVoc);
     _channel[channel].voc = currentVoc;
     processAnalogSensorValue(currentVoc, channel);
@@ -516,8 +545,9 @@ void processVOC(size_t channel)
 void processNoiseLevel(size_t channel)
 {
     uint16_t currentNoiseLevel;
-    if (!WbMsw.GetNoiseLevel(currentNoiseLevel))
+    if (!WbMsw.GetNoiseLevel(currentNoiseLevel)) {
         return;
+    }
     LOG_FIXEDPOINT_VALUE("Noise Level:        ", currentNoiseLevel, 2);
     _channel[channel].noise_level = currentNoiseLevel;
     processAnalogSensorValue(currentNoiseLevel, channel);
@@ -529,14 +559,18 @@ void processMotion(size_t channel)
     size_t bMotion;
     bool inv = WB_MSW_CONFIG_PARAMETER_GET(WB_MSW_CONFIG_PARAMETER_MOTION_INVERT);
 
-    if ((bMotion = _channel[channel].bMotion))
-        if (millis() >= ms && abs(millis() - ms) < 16777215)
+    if ((bMotion = _channel[channel].bMotion)) {
+        if (millis() >= ms && abs(millis() - ms) < 16777215) {
             _channel[channel].bMotion = false;
+        }
+    }
     if (!_channel[channel].bMotion) {
-        if (!WbMsw.GetMotion(currentMotion))
+        if (!WbMsw.GetMotion(currentMotion)) {
             return;
-        if (currentMotion == WB_MSW_INPUT_REG_MOTION_VALUE_ERROR)
+        }
+        if (currentMotion == WB_MSW_INPUT_REG_MOTION_VALUE_ERROR) {
             return;
+        }
         LOG_INT_VALUE("Motion:             ", currentMotion);
         if (currentMotion >= (size_t)WB_MSW_CONFIG_PARAMETER_GET(WB_MSW_CONFIG_PARAMETER_MOTION_THRESHOLD)) {
             ms = millis() + (WB_MSW_CONFIG_PARAMETER_GET(WB_MSW_CONFIG_PARAMETER_MOTION_TIME) * 1000);
