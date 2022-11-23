@@ -20,15 +20,19 @@
 #define WBMSW_FIRMWARE_DATA_SIZE 136
 
 /* Public Constructors */
-TWBMSWSensor::TWBMSWSensor(HardwareSerial* hardwareSerial, uint16_t timeoutMs, uint8_t address)
-    : ModBusRtuClass(hardwareSerial, timeoutMs),
-      Address(address)
+TWBMSWSensor::TWBMSWSensor(HardwareSerial* hardwareSerial, uint16_t timeoutMs)
+    : ModBusRtuClass(hardwareSerial, timeoutMs)
 {}
 
 /* Public Methods */
 bool TWBMSWSensor::OpenPort(size_t speed, uint32_t config, uint8_t rx, uint8_t tx)
 {
     return ModBusRtuClass::begin(speed, config, rx, tx);
+}
+
+void TWBMSWSensor::SetModbusAddress(uint8_t address)
+{
+    this->Address = address;
 }
 
 bool TWBMSWSensor::GetFwVersion(uint32_t* version)
@@ -43,6 +47,8 @@ bool TWBMSWSensor::GetFwVersion(uint32_t* version)
     {
         return (false);
     }
+
+    uint32_t out = 0;
     uint32_t number = 0;
     size_t i = 0;
     size_t count = 0;
@@ -125,7 +131,7 @@ bool TWBMSWSensor::GetMotion(uint16_t& motion)
     return readInputRegisters(Address, WBMSW_REG_MOTION, 1, &motion); // 0x0118 - max
 }
 
-bool TWBMSWSensor::FwMode(void)
+bool TWBMSWSensor::SetFwMode(void)
 {
     return writeSingleRegisters(Address, WBMSW_REG_FW_MODE, 1);
 }
@@ -150,7 +156,7 @@ bool TWBMSWSensor::FwUpdate(const void* buffer, size_t len, uint16_t timeoutMs)
     DEBUG(len);
     DEBUG("\n");
 
-    if (!this->FwMode()) {
+    if (!this->SetFwMode()) {
         return false;
     }
     DEBUG("Wait ");

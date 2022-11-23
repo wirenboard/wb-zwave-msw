@@ -6,8 +6,9 @@
 class TWBMSWSensor: private ModBusRtuClass
 {
 public:
-    TWBMSWSensor(HardwareSerial* hardwareSerial, uint16_t timeoutMs, uint8_t address);
+    TWBMSWSensor(HardwareSerial* hardwareSerial, uint16_t timeoutMs);
     bool OpenPort(size_t speed, uint32_t config, uint8_t rx, uint8_t tx);
+    void SetModbusAddress(uint8_t address);
     bool GetFwVersion(uint32_t* version);
     bool GetTemperature(int16_t& temperature);
     bool GetHumidity(uint16_t& humidity);
@@ -19,12 +20,12 @@ public:
     bool GetVoc(uint16_t& voc);
     bool GetNoiseLevel(uint16_t& noiseLevel);
     bool GetMotion(uint16_t& motion);
-    bool FwMode(void);
-    bool FwWriteInfo(uint8_t* info);
-    bool FwWriteData(uint8_t* info);
     bool FwUpdate(const void* buffer, size_t len, uint16_t timeoutMs = 2000);
 
 private:
+    bool SetFwMode(void);
+    bool FwWriteInfo(uint8_t* info);
+    bool FwWriteData(uint8_t* info);
     uint8_t Address;
 };
 #endif // WB_MSW_SENSOR_H
