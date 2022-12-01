@@ -66,7 +66,7 @@ bool TWBMSWSensor::GetFwVersion(uint32_t* version)
     if (count) {
         out = (out << 8) | number;
     }
-    version[0] = out;
+    *version = out;
     return true;
 }
 

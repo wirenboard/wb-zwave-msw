@@ -40,7 +40,7 @@
 
 #define WB_MSW_CONFIG_PARAMETER_TEMPERATURE_HYSTERESIS                                                                 \
     64 // Temperature. Hysteresis (degree tenths). Set 0 to disable report publishing.
-// Otherwise, the value will be multiplied by 0.1 to calculate the hysteresis
+// Otherwise, the value will be multiplied by 0.01 to calculate the hysteresis
 #define WB_MSW_CONFIG_PARAMETER_TEMPERATURE_INVERT                                                                     \
     65 // Temperature. Logic inverting (In case of threshold exceeding Basic.Off will be sent)
 #define WB_MSW_CONFIG_PARAMETER_TEMPERATURE_THRESHOLD 66 // Temperature. Threshold for Basic.On sending

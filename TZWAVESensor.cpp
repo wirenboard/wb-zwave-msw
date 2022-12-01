@@ -167,7 +167,7 @@ bool TZWAVESensor::ChannelsInitialize()
 // Setting up Z-Wave channels, setting Multichannel indexes
 void TZWAVESensor::ChannelsSetup()
 {
-    for (size_t i = 0; i < ChannelsCount; i++)
+    for (size_t i = 0; i < ChannelsCount; i++) {
         switch (Channels[i].GetType()) {
             case TZWAVEChannelType::WB_MSW_CHANNEL_TYPE_TEMPERATURE:
                 zunoAddChannel(ZUNO_SENSOR_MULTILEVEL_CHANNEL_NUMBER,
@@ -229,8 +229,10 @@ void TZWAVESensor::ChannelsSetup()
                 zunoAddAssociation(ZUNO_ASSOC_BASIC_SET_NUMBER, 0);
                 break;
         }
-    if (ZUNO_CFG_CHANNEL_COUNT > 1)
+    }
+    if (ZUNO_CFG_CHANNEL_COUNT > 1) {
         zunoSetZWChannel(0, 1 | ZWAVE_CHANNEL_MAPPED_BIT);
+    }
 }
 
 // Setting up handlers for all sensor cannels. Handler is used when requesting channel data from controller
@@ -285,7 +287,7 @@ void TZWAVESensor::SetChannelHandlers()
 // Sets by return value name of group by its index
 const char* TZWAVESensor::GetGroupNameByIndex(uint8_t groupIndex)
 {
-    for (uint8_t i = 0; i < ZUNO_CFG_CHANNEL_COUNT; i++)
+    for (uint8_t i = 0; i < ZUNO_CFG_CHANNEL_COUNT; i++) {
         if (Channels[i].GetGroupIndex() == groupIndex) {
             switch (Channels[i].GetType()) {
                 case TZWAVEChannelType::WB_MSW_CHANNEL_TYPE_TEMPERATURE:
@@ -306,6 +308,7 @@ const char* TZWAVESensor::GetGroupNameByIndex(uint8_t groupIndex)
                     return NULL;
             }
         }
+    }
     return NULL;
 }
 
@@ -314,13 +317,24 @@ void TZWAVESensor::ParametersInitialize()
     // Load configuration parameters from FLASH memory
     for (size_t i = 0; i < WB_MSW_MAX_CONFIG_PARAM; i++) {
         ParameterValues[i] = zunoLoadCFGParam(i + WB_MSW_CONFIG_PARAMETER_FIRST);
+        DEBUG("Parameter ");
+        DEBUG(i);
+        DEBUG(" value ");
+        DEBUG(ParameterValues[i]);
+        DEBUG("\n");
     }
 }
 
 // The handler is called when a configuration parameter value updated from Z-Wave controller
 void TZWAVESensor::SetParameterValue(size_t paramNumber, int32_t value)
 {
+    // DEBUG("Set parameter ");
+    // DEBUG(paramNumber);
+    // DEBUG(" with value ");
+    // DEBUG(value);
+    // DEBUG("\n");
     if (paramNumber < WB_MSW_CONFIG_PARAMETER_FIRST || paramNumber > WB_MSW_CONFIG_PARAMETER_LAST) {
+        DEBUG("***ERROR Wrong parameter number!\n");
         return;
     }
     ParameterValues[paramNumber - WB_MSW_CONFIG_PARAMETER_FIRST] = value;
@@ -328,24 +342,39 @@ void TZWAVESensor::SetParameterValue(size_t paramNumber, int32_t value)
 
 int32_t TZWAVESensor::GetParameterValue(size_t paramNumber)
 {
+    // DEBUG("Get parameter ");
+    // DEBUG(paramNumber);
     if (paramNumber < WB_MSW_CONFIG_PARAMETER_FIRST || paramNumber > WB_MSW_CONFIG_PARAMETER_LAST) {
+        DEBUG("***ERROR Wrong parameter value number!\n");
         return 0;
     }
+    // DEBUG(" value ");
+    // DEBUG(ParameterValues[paramNumber - WB_MSW_CONFIG_PARAMETER_FIRST]);
+    // DEBUG("\n");
     return ParameterValues[paramNumber - WB_MSW_CONFIG_PARAMETER_FIRST];
 }
 
 ZunoCFGParameter_t* TZWAVESensor::GetParameterByNumber(size_t paramNumber)
 {
+    // DEBUG("Get parameter ");
+    // DEBUG(paramNumber);
+    // DEBUG("\n");
+    if (paramNumber < WB_MSW_CONFIG_PARAMETER_FIRST || paramNumber > WB_MSW_CONFIG_PARAMETER_LAST) {
+        DEBUG("***ERROR Wrong parameter number \n");
+        return NULL;
+    }
     return &Parameters[paramNumber - WB_MSW_CONFIG_PARAMETER_FIRST];
 }
 
 // Finds channel of needed type
 TZWAVEChannel* TZWAVESensor::GetChannelByType(enum TZWAVEChannelType type)
 {
-    for (size_t i = 0; i < ZUNO_CFG_CHANNEL_COUNT; i++)
-        if (Channels[i].GetType() == type)
+    for (size_t i = 0; i < ZUNO_CFG_CHANNEL_COUNT; i++) {
+        if (Channels[i].GetType() == type) {
             return (&Channels[i]);
-    return 0;
+        }
+    }
+    return NULL;
 }
 
 // Returns parameter's description if corresponding channel exists
@@ -355,45 +384,52 @@ const ZunoCFGParameter_t* TZWAVESensor::GetParameterIfChannelExists(size_t param
         case WB_MSW_CONFIG_PARAMETER_TEMPERATURE_HYSTERESIS:
         case WB_MSW_CONFIG_PARAMETER_TEMPERATURE_INVERT:
         case WB_MSW_CONFIG_PARAMETER_TEMPERATURE_THRESHOLD:
-            if (!GetChannelByType(TZWAVEChannelType::WB_MSW_CHANNEL_TYPE_TEMPERATURE))
+            if (!GetChannelByType(TZWAVEChannelType::WB_MSW_CHANNEL_TYPE_TEMPERATURE)) {
                 return (ZUNO_CFG_PARAMETER_UNKNOWN);
+            }
             break;
         case WB_MSW_CONFIG_PARAMETER_HUMIDITY_HYSTERESIS:
         case WB_MSW_CONFIG_PARAMETER_HUMIDITY_INVERT:
         case WB_MSW_CONFIG_PARAMETER_HUMIDITY_THRESHOLD:
-            if (!GetChannelByType(TZWAVEChannelType ::WB_MSW_CHANNEL_TYPE_HUMIDITY))
+            if (!GetChannelByType(TZWAVEChannelType ::WB_MSW_CHANNEL_TYPE_HUMIDITY)) {
                 return (ZUNO_CFG_PARAMETER_UNKNOWN);
+            }
             break;
         case WB_MSW_CONFIG_PARAMETER_LUMEN_HYSTERESIS:
         case WB_MSW_CONFIG_PARAMETER_LUMEN_INVERT:
         case WB_MSW_CONFIG_PARAMETER_LUMEN_THRESHOLD:
-            if (!GetChannelByType(TZWAVEChannelType::WB_MSW_CHANNEL_TYPE_LUMEN))
+            if (!GetChannelByType(TZWAVEChannelType::WB_MSW_CHANNEL_TYPE_LUMEN)) {
                 return (ZUNO_CFG_PARAMETER_UNKNOWN);
+            }
             break;
         case WB_MSW_CONFIG_PARAMETER_CO2_HYSTERESIS:
         case WB_MSW_CONFIG_PARAMETER_CO2_INVERT:
         case WB_MSW_CONFIG_PARAMETER_CO2_THRESHOLD:
         case WB_MSW_CONFIG_PARAMETER_CO2_AUTO:
-            if (!GetChannelByType(TZWAVEChannelType::WB_MSW_CHANNEL_TYPE_CO2))
+            if (!GetChannelByType(TZWAVEChannelType::WB_MSW_CHANNEL_TYPE_CO2)) {
                 return (ZUNO_CFG_PARAMETER_UNKNOWN);
+            }
             break;
         case WB_MSW_CONFIG_PARAMETER_VOC_HYSTERESIS:
         case WB_MSW_CONFIG_PARAMETER_VOC_INVERT:
         case WB_MSW_CONFIG_PARAMETER_VOC_THRESHOLD:
-            if (!GetChannelByType(TZWAVEChannelType::WB_MSW_CHANNEL_TYPE_VOC))
+            if (!GetChannelByType(TZWAVEChannelType::WB_MSW_CHANNEL_TYPE_VOC)) {
                 return (ZUNO_CFG_PARAMETER_UNKNOWN);
+            }
             break;
         case WB_MSW_CONFIG_PARAMETER_NOISE_LEVEL_HYSTERESIS:
         case WB_MSW_CONFIG_PARAMETER_NOISE_LEVEL_INVERT:
         case WB_MSW_CONFIG_PARAMETER_NOISE_LEVEL_THRESHOLD:
-            if (!GetChannelByType(TZWAVEChannelType::WB_MSW_CHANNEL_TYPE_NOISE_LEVEL))
+            if (!GetChannelByType(TZWAVEChannelType::WB_MSW_CHANNEL_TYPE_NOISE_LEVEL)) {
                 return (ZUNO_CFG_PARAMETER_UNKNOWN);
+            }
             break;
         case WB_MSW_CONFIG_PARAMETER_MOTION_TIME:
         case WB_MSW_CONFIG_PARAMETER_MOTION_INVERT:
         case WB_MSW_CONFIG_PARAMETER_MOTION_THRESHOLD:
-            if (!GetChannelByType(TZWAVEChannelType::WB_MSW_CHANNEL_TYPE_MOTION))
+            if (!GetChannelByType(TZWAVEChannelType::WB_MSW_CHANNEL_TYPE_MOTION)) {
                 return (ZUNO_CFG_PARAMETER_UNKNOWN);
+            }
             break;
         default:
             return (ZUNO_CFG_PARAMETER_UNKNOWN);
@@ -409,7 +445,11 @@ void TZWAVESensor::PublishAnalogSensorValue(TZWAVEChannel& channel,
                                             int32_t threshold)
 {
     if ((hysteresis != 0) && (abs(value - channel.GetReportedValue()) > hysteresis)) {
-
+        // DEBUG("Channel ");
+        // DEBUG(channel.GetType());
+        // DEBUG(" send report value ");
+        // DEBUG(value);
+        // DEBUG("\n");
         channel.SetReportedValue(value); // Remember last sent value
         zunoSendReport(channel.GetChannelNumber());
     }
@@ -569,9 +609,15 @@ void TZWAVESensor::ProcessMotionChannel(TZWAVEChannel& channel)
         if (currentMotion >= (size_t)GetParameterValue(WB_MSW_CONFIG_PARAMETER_MOTION_THRESHOLD)) {
             MotionLastTime = currentTime;
             channel.BMotion = true;
+            // DEBUG("Channel Motion send report value ");
+            // DEBUG(channel.BMotion);
+            // DEBUG("\n");
             zunoSendReport(channel.GetChannelNumber());
             zunoSendToGroupSetValueCommand(channel.GetGroupIndex(), (!inverting) ? WB_MSW_ON : WB_MSW_OFF);
         } else if (bMotion) {
+            // DEBUG("Channel Motion send report value ");
+            // DEBUG(channel.BMotion);
+            // DEBUG("\n");
             zunoSendReport(channel.GetChannelNumber());
             zunoSendToGroupSetValueCommand(channel.GetGroupIndex(), (!inverting) ? WB_MSW_OFF : WB_MSW_ON);
         }

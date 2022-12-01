@@ -4,7 +4,7 @@
 #include "DebugOutput.h"
 #include "Status.h"
 
-#define TIMEOUT_COUNTING_DELTA 10
+#define TIMEOUT_COUNTING_DELTA 1
 
 TFastModbus::TFastModbus(HardwareSerial* hardwareSerial): Serial(hardwareSerial)
 {}
@@ -157,8 +157,9 @@ bool TFastModbus::ScanBus(uint8_t* serialNumber,
     }
 
     uint8_t count = 0;
-    while (this->ContinueScan(newSerialNumber, &newModbusAddress, timeoutMs))
+    while (this->ContinueScan(newSerialNumber, &newModbusAddress, timeoutMs)) {
         count++;
+    }
 
     if (count == 1) {
         memcpy(serialNumber, newSerialNumber, WB_MSW_SERIAL_NUMBER_SIZE);
