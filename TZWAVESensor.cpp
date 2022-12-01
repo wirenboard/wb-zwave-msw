@@ -91,60 +91,43 @@ bool TZWAVESensor::ChannelsInitialize()
 
     // Temperature channel
     if (WbMsw->GetTemperature(temperature) && (temperature != WB_MSW_INPUT_REG_TEMPERATURE_VALUE_ERROR)) {
-        Channels[ChannelsCount].SetTemperatureChannel(TZWAVEChannelType::WB_MSW_CHANNEL_TYPE_TEMPERATURE,
-                                                      channelNumber,
-                                                      groupIndex,
-                                                      temperature);
+        Channels[ChannelsCount].SetTemperatureChannel(channelNumber, groupIndex, temperature);
         ChannelsCount++;
         channelNumber++;
         groupIndex++;
     }
     // Humidity channel
     if (WbMsw->GetHumidity(humidity) && (humidity != WB_MSW_INPUT_REG_HUMIDITY_VALUE_ERROR)) {
-        Channels[ChannelsCount].SetHumidityChannel(TZWAVEChannelType::WB_MSW_CHANNEL_TYPE_HUMIDITY,
-                                                   channelNumber,
-                                                   groupIndex,
-                                                   humidity);
+        Channels[ChannelsCount].SetHumidityChannel(channelNumber, groupIndex, humidity);
         ChannelsCount++;
         channelNumber++;
         groupIndex++;
     }
     // Lumen channel
     if (WbMsw->GetLuminance(luminance) && (luminance != WB_MSW_INPUT_REG_LUMEN_VALUE_ERROR)) {
-        Channels[ChannelsCount].SetHumidityChannel(TZWAVEChannelType::WB_MSW_CHANNEL_TYPE_LUMEN,
-                                                   channelNumber,
-                                                   groupIndex,
-                                                   luminance);
+        Channels[ChannelsCount].SetLuminanceChannel(channelNumber, groupIndex, luminance);
         ChannelsCount++;
         channelNumber++;
         groupIndex++;
     }
     if (WbMsw->GetCO2Status(co2Enable) && (co2Enable || WbMsw->SetCO2Status(true)) && (WbMsw->GetCO2(co2))) {
-        if (co2 == WB_MSW_INPUT_REG_CO2_VALUE_ERROR)
+        if (co2 == WB_MSW_INPUT_REG_CO2_VALUE_ERROR) {
             co2 = 0;
+        }
 
-        Channels[ChannelsCount].SetCO2Channel(TZWAVEChannelType::WB_MSW_CHANNEL_TYPE_CO2,
-                                              channelNumber,
-                                              groupIndex,
-                                              co2);
+        Channels[ChannelsCount].SetCO2Channel(channelNumber, groupIndex, co2);
         ChannelsCount++;
         channelNumber++;
         groupIndex++;
     }
     if (WbMsw->GetVoc(voc) && (voc != WB_MSW_INPUT_REG_VOC_VALUE_ERROR)) {
-        Channels[ChannelsCount].SetVocChannel(TZWAVEChannelType::WB_MSW_CHANNEL_TYPE_VOC,
-                                              channelNumber,
-                                              groupIndex,
-                                              voc);
+        Channels[ChannelsCount].SetVocChannel(channelNumber, groupIndex, voc);
         ChannelsCount++;
         channelNumber++;
         groupIndex++;
     }
     if (WbMsw->GetNoiseLevel(noiseLevel)) {
-        Channels[ChannelsCount].SetNoiseLevelChannel(TZWAVEChannelType::WB_MSW_CHANNEL_TYPE_NOISE_LEVEL,
-                                                     channelNumber,
-                                                     groupIndex,
-                                                     noiseLevel);
+        Channels[ChannelsCount].SetNoiseLevelChannel(channelNumber, groupIndex, noiseLevel);
         ChannelsCount++;
         channelNumber++;
         groupIndex++;
@@ -152,10 +135,7 @@ bool TZWAVESensor::ChannelsInitialize()
     if (WbMsw->GetMotion(motion) && (motion != WB_MSW_INPUT_REG_MOTION_VALUE_ERROR)) {
         if (motion != WB_MSW_INPUT_REG_MOTION_VALUE_ERROR) {
 
-            Channels[ChannelsCount].SetBMotionChannel(TZWAVEChannelType::WB_MSW_CHANNEL_TYPE_MOTION,
-                                                      channelNumber,
-                                                      groupIndex,
-                                                      false);
+            Channels[ChannelsCount].SetBMotionChannel(channelNumber, groupIndex, false);
             ChannelsCount++;
             channelNumber++;
             groupIndex++;
@@ -239,49 +219,12 @@ void TZWAVESensor::ChannelsSetup()
 // Function binds i-channel directly to value
 void TZWAVESensor::SetChannelHandlers()
 {
-    for (size_t i = 0; i < ChannelsCount; i++)
-        switch (Channels[i].GetType()) {
-            case TZWAVEChannelType::WB_MSW_CHANNEL_TYPE_TEMPERATURE:
-                zunoAppendChannelHandler(i,
-                                         WB_MSW_INPUT_REG_TEMPERATURE_VALUE_SIZE,
-                                         CHANNEL_HANDLER_SINGLE_VALUEMAPPER,
-                                         (void*)&Channels[i].Temperature);
-                break;
-            case TZWAVEChannelType::WB_MSW_CHANNEL_TYPE_HUMIDITY:
-                zunoAppendChannelHandler(i,
-                                         WB_MSW_INPUT_REG_HUMIDITY_VALUE_SIZE,
-                                         CHANNEL_HANDLER_SINGLE_VALUEMAPPER,
-                                         (void*)&Channels[i].Humidity);
-                break;
-            case TZWAVEChannelType::WB_MSW_CHANNEL_TYPE_LUMEN:
-                zunoAppendChannelHandler(i,
-                                         WB_MSW_INPUT_REG_LUMEN_VALUE_SIZE,
-                                         CHANNEL_HANDLER_SINGLE_VALUEMAPPER,
-                                         (void*)&Channels[i].Luminance);
-                break;
-            case TZWAVEChannelType::WB_MSW_CHANNEL_TYPE_CO2: {
-                zunoAppendChannelHandler(i,
-                                         WB_MSW_INPUT_REG_CO2_VALUE_SIZE,
-                                         CHANNEL_HANDLER_SINGLE_VALUEMAPPER,
-                                         (void*)&Channels[i].CO2);
-                break;
-            }
-            case TZWAVEChannelType::WB_MSW_CHANNEL_TYPE_VOC:
-                zunoAppendChannelHandler(i,
-                                         WB_MSW_INPUT_REG_CO2_VALUE_SIZE,
-                                         CHANNEL_HANDLER_SINGLE_VALUEMAPPER,
-                                         (void*)&Channels[i].Voc);
-                break;
-            case TZWAVEChannelType::WB_MSW_CHANNEL_TYPE_NOISE_LEVEL:
-                zunoAppendChannelHandler(i,
-                                         WB_MSW_INPUT_REG_NOISE_LEVEL_VALUE_SIZE,
-                                         CHANNEL_HANDLER_SINGLE_VALUEMAPPER,
-                                         (void*)&Channels[i].NoiseLevel);
-                break;
-            case TZWAVEChannelType::WB_MSW_CHANNEL_TYPE_MOTION:
-                zunoAppendChannelHandler(i, 1, CHANNEL_HANDLER_SINGLE_VALUEMAPPER, (void*)&Channels[i].BMotion);
-                break;
-        }
+    for (size_t i = 0; i < ChannelsCount; i++) {
+        zunoAppendChannelHandler(i,
+                                 WB_MSW_INPUT_REG_TEMPERATURE_VALUE_SIZE,
+                                 CHANNEL_HANDLER_SINGLE_VALUEMAPPER,
+                                 Channels[i].GetValuePointer());
+    }
 }
 
 // Sets by return value name of group by its index

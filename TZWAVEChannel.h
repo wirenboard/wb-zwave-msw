@@ -16,22 +16,14 @@ class TZWAVEChannel
 {
 public:
     TZWAVEChannel();
-    void SetTemperatureChannel(enum TZWAVEChannelType type,
-                               uint8_t channelNumber,
-                               uint8_t groupIndex,
-                               int16_t temperature);
-    void SetHumidityChannel(enum TZWAVEChannelType type, uint8_t channelNumber, uint8_t groupIndex, uint16_t humidity);
-    void SetVocChannel(enum TZWAVEChannelType type, uint8_t channelNumber, uint8_t groupIndex, uint16_t voc);
-    void SetNoiseLevelChannel(enum TZWAVEChannelType type,
-                              uint8_t channelNumber,
-                              uint8_t groupIndex,
-                              uint16_t noiseLevel);
-    void SetCO2Channel(enum TZWAVEChannelType type, uint8_t channelNumber, uint8_t groupIndex, uint16_t co2);
-    void SetLuminanceChannel(enum TZWAVEChannelType type,
-                             uint8_t channelNumber,
-                             uint8_t groupIndex,
-                             uint32_t luminance);
-    void SetBMotionChannel(enum TZWAVEChannelType type, uint8_t channelNumber, uint8_t groupIndex, uint8_t bMotion);
+    void SetTemperatureChannel(uint8_t channelNumber, uint8_t groupIndex, int16_t temperature);
+    void SetHumidityChannel(uint8_t channelNumber, uint8_t groupIndex, uint16_t humidity);
+    void SetVocChannel(uint8_t channelNumber, uint8_t groupIndex, uint16_t voc);
+    void SetNoiseLevelChannel(uint8_t channelNumber, uint8_t groupIndex, uint16_t noiseLevel);
+    void SetCO2Channel(uint8_t channelNumber, uint8_t groupIndex, uint16_t co2);
+    void SetLuminanceChannel(uint8_t channelNumber, uint8_t groupIndex, uint32_t luminance);
+    void SetBMotionChannel(uint8_t channelNumber, uint8_t groupIndex, uint8_t bMotion);
+    void* GetValuePointer();
 
     enum TZWAVEChannelType GetType();
     uint8_t GetGroupIndex();
