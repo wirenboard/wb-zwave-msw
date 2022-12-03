@@ -30,6 +30,13 @@ bool TWBMSWSensor::OpenPort(size_t speed, uint32_t config, uint8_t rx, uint8_t t
     return ModBusRtuClass::begin(speed, config, rx, tx);
 }
 
+void TWBMSWSensor::ClosePort(void)
+{
+    // There is no ability to end session with ModBus Rtu, but Hardware Serial and ModBus Rtu Class have no mutex for
+    // port access. Hence there no error will happen while using  non-simultaneously one physical serial port
+    return;
+}
+
 void TWBMSWSensor::SetModbusAddress(uint8_t address)
 {
     this->Address = address;

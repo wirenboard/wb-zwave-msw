@@ -2,6 +2,13 @@
 #include "TZWAVEChannel.h"
 #include "WbMsw.h"
 
+enum TZWAVEProcessResult
+{
+    ZWAVE_PROCESS_OK,
+    ZWAVE_PROCESS_VALUE_ERROR,
+    ZWAVE_PROCESS_MODBUS_ERROR
+};
+
 class TZWAVESensor
 {
 public:
@@ -16,7 +23,7 @@ public:
     void SetParameterValue(size_t paramNumber, int32_t value);
     int32_t GetParameterValue(size_t paramNumber);
 
-    void ProcessChannels();
+    enum TZWAVEProcessResult ProcessChannels();
 
 private:
     TWBMSWSensor* WbMsw;
@@ -29,13 +36,13 @@ private:
     TZWAVEChannel* GetChannelByType(enum TZWAVEChannelType type);
     ZunoCFGParameter_t* GetParameterByNumber(size_t paramNumber);
 
-    void ProcessTemperatureChannel(TZWAVEChannel& channel);
-    void ProcessHumidityChannel(TZWAVEChannel& channel);
-    void ProcessLuminanceChannel(TZWAVEChannel& channel);
-    void ProcessCO2Channel(TZWAVEChannel& channel);
-    void ProcessVOCChannel(TZWAVEChannel& channel);
-    void ProcessNoiseLevelChannel(TZWAVEChannel& channel);
-    void ProcessMotionChannel(TZWAVEChannel& channel);
+    enum TZWAVEProcessResult ProcessTemperatureChannel(TZWAVEChannel& channel);
+    enum TZWAVEProcessResult ProcessHumidityChannel(TZWAVEChannel& channel);
+    enum TZWAVEProcessResult ProcessLuminanceChannel(TZWAVEChannel& channel);
+    enum TZWAVEProcessResult ProcessCO2Channel(TZWAVEChannel& channel);
+    enum TZWAVEProcessResult ProcessVOCChannel(TZWAVEChannel& channel);
+    enum TZWAVEProcessResult ProcessNoiseLevelChannel(TZWAVEChannel& channel);
+    enum TZWAVEProcessResult ProcessMotionChannel(TZWAVEChannel& channel);
     uint32_t MotionLastTime;
     void PublishAnalogSensorValue(TZWAVEChannel& channel,
                                   int32_t value,

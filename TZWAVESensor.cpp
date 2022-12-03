@@ -413,14 +413,14 @@ void TZWAVESensor::PublishAnalogSensorValue(TZWAVEChannel& channel,
 }
 
 // Processing of various types of sensors
-void TZWAVESensor::ProcessTemperatureChannel(TZWAVEChannel& channel)
+enum TZWAVEProcessResult TZWAVESensor::ProcessTemperatureChannel(TZWAVEChannel& channel)
 {
     int16_t currentTemperature;
     if (!WbMsw->GetTemperature(currentTemperature)) {
-        return;
+        return TZWAVEProcessResult::ZWAVE_PROCESS_MODBUS_ERROR;
     }
     if (currentTemperature == WB_MSW_INPUT_REG_TEMPERATURE_VALUE_ERROR) {
-        return;
+        return TZWAVEProcessResult::ZWAVE_PROCESS_VALUE_ERROR;
     }
     LOG_FIXEDPOINT_VALUE("Temperature:        ", currentTemperature, 2);
     channel.SetTemperatureValue(currentTemperature);
@@ -429,16 +429,17 @@ void TZWAVESensor::ProcessTemperatureChannel(TZWAVEChannel& channel)
     bool inversion = (bool)GetParameterValue(WB_MSW_CONFIG_PARAMETER_TEMPERATURE_INVERT);
     int32_t threshold = GetParameterValue(WB_MSW_CONFIG_PARAMETER_TEMPERATURE_THRESHOLD);
     PublishAnalogSensorValue(channel, currentTemperature, hysteresis, inversion, threshold);
+    return TZWAVEProcessResult::ZWAVE_PROCESS_OK;
 }
 
-void TZWAVESensor::ProcessHumidityChannel(TZWAVEChannel& channel)
+enum TZWAVEProcessResult TZWAVESensor::ProcessHumidityChannel(TZWAVEChannel& channel)
 {
     uint16_t currentHumidity;
     if (!WbMsw->GetHumidity(currentHumidity)) {
-        return;
+        return TZWAVEProcessResult::ZWAVE_PROCESS_MODBUS_ERROR;
     }
     if (currentHumidity == WB_MSW_INPUT_REG_HUMIDITY_VALUE_ERROR) {
-        return;
+        return TZWAVEProcessResult::ZWAVE_PROCESS_VALUE_ERROR;
     }
     LOG_FIXEDPOINT_VALUE("Humidity:           ", currentHumidity, 2);
     channel.SetHumidityValue(currentHumidity);
@@ -447,16 +448,17 @@ void TZWAVESensor::ProcessHumidityChannel(TZWAVEChannel& channel)
     bool inversion = (bool)GetParameterValue(WB_MSW_CONFIG_PARAMETER_HUMIDITY_INVERT);
     int32_t threshold = GetParameterValue(WB_MSW_CONFIG_PARAMETER_HUMIDITY_THRESHOLD);
     PublishAnalogSensorValue(channel, currentHumidity, hysteresis, inversion, threshold);
+    return TZWAVEProcessResult::ZWAVE_PROCESS_OK;
 }
 
-void TZWAVESensor::ProcessLuminanceChannel(TZWAVEChannel& channel)
+enum TZWAVEProcessResult TZWAVESensor::ProcessLuminanceChannel(TZWAVEChannel& channel)
 {
     uint32_t currentLumen;
     if (!WbMsw->GetLuminance(currentLumen)) {
-        return;
+        return TZWAVEProcessResult::ZWAVE_PROCESS_MODBUS_ERROR;
     }
     if (currentLumen == WB_MSW_INPUT_REG_LUMEN_VALUE_ERROR) {
-        return;
+        return TZWAVEProcessResult::ZWAVE_PROCESS_VALUE_ERROR;
     }
     LOG_FIXEDPOINT_VALUE("Lumen:              ", currentLumen, 2);
     channel.SetLuminanceValue(currentLumen);
@@ -465,9 +467,10 @@ void TZWAVESensor::ProcessLuminanceChannel(TZWAVEChannel& channel)
     bool inversion = (bool)GetParameterValue(WB_MSW_CONFIG_PARAMETER_LUMEN_INVERT);
     int32_t threshold = GetParameterValue(WB_MSW_CONFIG_PARAMETER_LUMEN_THRESHOLD);
     PublishAnalogSensorValue(channel, currentLumen, hysteresis, inversion, threshold);
+    return TZWAVEProcessResult::ZWAVE_PROCESS_OK;
 }
 
-void TZWAVESensor::ProcessCO2Channel(TZWAVEChannel& channel)
+enum TZWAVEProcessResult TZWAVESensor::ProcessCO2Channel(TZWAVEChannel& channel)
 {
     uint16_t currentCO2;
     // Check if automatic calibration is needed
@@ -478,10 +481,10 @@ void TZWAVESensor::ProcessCO2Channel(TZWAVEChannel& channel)
         WbMsw->SetCO2Autocalibration(autocalibration);
     }
     if (!WbMsw->GetCO2(currentCO2)) {
-        return;
+        return TZWAVEProcessResult::ZWAVE_PROCESS_MODBUS_ERROR;
     }
     if (currentCO2 == WB_MSW_INPUT_REG_CO2_VALUE_ERROR) {
-        return;
+        return TZWAVEProcessResult::ZWAVE_PROCESS_VALUE_ERROR;
     }
     LOG_INT_VALUE("CO2:                ", currentCO2);
     channel.SetCO2Value(currentCO2);
@@ -490,16 +493,17 @@ void TZWAVESensor::ProcessCO2Channel(TZWAVEChannel& channel)
     bool inversion = (bool)GetParameterValue(WB_MSW_CONFIG_PARAMETER_CO2_INVERT);
     int32_t threshold = GetParameterValue(WB_MSW_CONFIG_PARAMETER_CO2_THRESHOLD);
     PublishAnalogSensorValue(channel, currentCO2, hysteresis, inversion, threshold);
+    return TZWAVEProcessResult::ZWAVE_PROCESS_OK;
 }
 
-void TZWAVESensor::ProcessVOCChannel(TZWAVEChannel& channel)
+enum TZWAVEProcessResult TZWAVESensor::ProcessVOCChannel(TZWAVEChannel& channel)
 {
     uint16_t currentVoc;
     if (!WbMsw->GetVoc(currentVoc)) {
-        return;
+        return TZWAVEProcessResult::ZWAVE_PROCESS_MODBUS_ERROR;
     }
     if (currentVoc == WB_MSW_INPUT_REG_VOC_VALUE_ERROR) {
-        return;
+        return TZWAVEProcessResult::ZWAVE_PROCESS_VALUE_ERROR;
     }
     LOG_INT_VALUE("VOC:                ", currentVoc);
     channel.SetVocValue(currentVoc);
@@ -508,13 +512,14 @@ void TZWAVESensor::ProcessVOCChannel(TZWAVEChannel& channel)
     bool inversion = (bool)GetParameterValue(WB_MSW_CONFIG_PARAMETER_VOC_INVERT);
     int32_t threshold = GetParameterValue(WB_MSW_CONFIG_PARAMETER_VOC_THRESHOLD);
     PublishAnalogSensorValue(channel, currentVoc, hysteresis, inversion, threshold);
+    return TZWAVEProcessResult::ZWAVE_PROCESS_OK;
 }
 
-void TZWAVESensor::ProcessNoiseLevelChannel(TZWAVEChannel& channel)
+enum TZWAVEProcessResult TZWAVESensor::ProcessNoiseLevelChannel(TZWAVEChannel& channel)
 {
     uint16_t currentNoiseLevel;
     if (!WbMsw->GetNoiseLevel(currentNoiseLevel)) {
-        return;
+        return TZWAVEProcessResult::ZWAVE_PROCESS_MODBUS_ERROR;
     }
     LOG_FIXEDPOINT_VALUE("Noise Level:        ", currentNoiseLevel, 2);
     channel.SetNoiseLevelValue(currentNoiseLevel);
@@ -523,9 +528,10 @@ void TZWAVESensor::ProcessNoiseLevelChannel(TZWAVEChannel& channel)
     bool inversion = (bool)GetParameterValue(WB_MSW_CONFIG_PARAMETER_NOISE_LEVEL_INVERT);
     int32_t threshold = GetParameterValue(WB_MSW_CONFIG_PARAMETER_NOISE_LEVEL_THRESHOLD);
     PublishAnalogSensorValue(channel, currentNoiseLevel, hysteresis, inversion, threshold);
+    return TZWAVEProcessResult::ZWAVE_PROCESS_OK;
 }
 
-void TZWAVESensor::ProcessMotionChannel(TZWAVEChannel& channel)
+enum TZWAVEProcessResult TZWAVESensor::ProcessMotionChannel(TZWAVEChannel& channel)
 {
     uint8_t bMotion;
 
@@ -541,11 +547,11 @@ void TZWAVESensor::ProcessMotionChannel(TZWAVEChannel& channel)
     if (!channel.GetBMotionValue()) {
         uint16_t currentMotion;
         if (!WbMsw->GetMotion(currentMotion)) {
-            return;
+            return TZWAVEProcessResult::ZWAVE_PROCESS_MODBUS_ERROR;
         }
 
         if (currentMotion == WB_MSW_INPUT_REG_MOTION_VALUE_ERROR) {
-            return;
+            return TZWAVEProcessResult::ZWAVE_PROCESS_VALUE_ERROR;
         }
 
         LOG_INT_VALUE("Motion:             ", currentMotion);
@@ -565,37 +571,44 @@ void TZWAVESensor::ProcessMotionChannel(TZWAVEChannel& channel)
             zunoSendToGroupSetValueCommand(channel.GetGroupIndex(), (!inverting) ? WB_MSW_OFF : WB_MSW_ON);
         }
     }
+    return TZWAVEProcessResult::ZWAVE_PROCESS_OK;
 }
 
 // Device channel management and firmware data transfer
-void TZWAVESensor::ProcessChannels()
+enum TZWAVEProcessResult TZWAVESensor::ProcessChannels()
 {
     DEBUG("--------------------Measurements-----------------------\n");
     // Check all channels of available sensors
-    for (size_t i = 0; i < ZUNO_CFG_CHANNEL_COUNT; i++)
+    enum TZWAVEProcessResult result;
+    for (size_t i = 0; i < ZUNO_CFG_CHANNEL_COUNT; i++) {
         switch (Channels[i].GetType()) {
-            case WB_MSW_CHANNEL_TYPE_TEMPERATURE:
-                ProcessTemperatureChannel(Channels[i]);
+            case ZWAVE_CHANNEL_TYPE_TEMPERATURE:
+                result = ProcessTemperatureChannel(Channels[i]);
                 break;
-            case WB_MSW_CHANNEL_TYPE_HUMIDITY:
-                ProcessHumidityChannel(Channels[i]);
+            case ZWAVE_CHANNEL_TYPE_HUMIDITY:
+                result = ProcessHumidityChannel(Channels[i]);
                 break;
-            case WB_MSW_CHANNEL_TYPE_LUMEN:
-                ProcessLuminanceChannel(Channels[i]);
+            case ZWAVE_CHANNEL_TYPE_LUMEN:
+                result = ProcessLuminanceChannel(Channels[i]);
                 break;
-            case WB_MSW_CHANNEL_TYPE_CO2:
-                ProcessCO2Channel(Channels[i]);
+            case ZWAVE_CHANNEL_TYPE_CO2:
+                result = ProcessCO2Channel(Channels[i]);
                 break;
-            case WB_MSW_CHANNEL_TYPE_VOC:
-                ProcessVOCChannel(Channels[i]);
+            case ZWAVE_CHANNEL_TYPE_VOC:
+                result = ProcessVOCChannel(Channels[i]);
                 break;
-            case WB_MSW_CHANNEL_TYPE_NOISE_LEVEL:
-                ProcessNoiseLevelChannel(Channels[i]);
+            case ZWAVE_CHANNEL_TYPE_NOISE_LEVEL:
+                result = ProcessNoiseLevelChannel(Channels[i]);
                 break;
-            case WB_MSW_CHANNEL_TYPE_MOTION:
-                ProcessMotionChannel(Channels[i]);
+            case ZWAVE_CHANNEL_TYPE_MOTION:
+                result = ProcessMotionChannel(Channels[i]);
                 break;
             default:
                 break;
         }
+        if (result == TZWAVEProcessResult::ZWAVE_PROCESS_MODBUS_ERROR) {
+            return result;
+        }
+    }
+    return TZWAVEProcessResult::ZWAVE_PROCESS_OK;
 }

@@ -55,13 +55,13 @@ enum TZUnoState ZUnoState;
 // Only those groups for which there are corresponding channels are created in the device
 const char* zunoAssociationGroupName(uint8_t groupIndex)
 {
-    ZwaveSensor.GetGroupNameByIndex(groupIndex);
+    return ZwaveSensor.GetGroupNameByIndex(groupIndex);
 }
 
 //  Function checks whether the device has a specified configuration parameter
 const ZunoCFGParameter_t* zunoCFGParameter(size_t paramNumber)
 {
-    ZwaveSensor.GetParameterIfChannelExists(paramNumber);
+    return ZwaveSensor.GetParameterIfChannelExists(paramNumber);
 }
 
 // Static function where system events arrive
@@ -176,7 +176,11 @@ void loop()
             break;
         }
         case TZUnoState::ZUNO_POLL_CHANNELS: {
-            ZwaveSensor.ProcessChannels();
+            if (ZwaveSensor.ProcessChannels() != TZWAVEProcessResult::ZWAVE_PROCESS_OK) {
+                WbMsw.ClosePort();
+                ZUnoState = TZUnoState::ZUNO_SCAN_ADDRESS_INITIALIZE;
+                break;
+            }
 
             // If a new firmware came on the radio, send it to the bootloder of the WB chip
             if (FwUpdater.CheckNewFirmwareAvailable()) {
