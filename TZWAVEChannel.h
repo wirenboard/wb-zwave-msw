@@ -2,14 +2,14 @@
 
 enum TZWAVEChannelType
 {
-    WB_MSW_CHANNEL_TYPE_TEMPERATURE,
-    WB_MSW_CHANNEL_TYPE_HUMIDITY,
-    WB_MSW_CHANNEL_TYPE_LUMEN,
-    WB_MSW_CHANNEL_TYPE_CO2,
-    WB_MSW_CHANNEL_TYPE_VOC,
-    WB_MSW_CHANNEL_TYPE_NOISE_LEVEL,
-    WB_MSW_CHANNEL_TYPE_MOTION,
-    WB_MSW_CHANNEL_MAX
+    ZWAVE_CHANNEL_TYPE_TEMPERATURE,
+    ZWAVE_CHANNEL_TYPE_HUMIDITY,
+    ZWAVE_CHANNEL_TYPE_LUMEN,
+    ZWAVE_CHANNEL_TYPE_CO2,
+    ZWAVE_CHANNEL_TYPE_VOC,
+    ZWAVE_CHANNEL_TYPE_NOISE_LEVEL,
+    ZWAVE_CHANNEL_TYPE_MOTION,
+    ZWAVE_CHANNEL_MAX
 };
 
 class TZWAVEChannel
@@ -23,6 +23,22 @@ public:
     void SetCO2Channel(uint8_t channelNumber, uint8_t groupIndex, uint16_t co2);
     void SetLuminanceChannel(uint8_t channelNumber, uint8_t groupIndex, uint32_t luminance);
     void SetBMotionChannel(uint8_t channelNumber, uint8_t groupIndex, uint8_t bMotion);
+
+    void SetTemperatureValue(int16_t temperature);
+    void SetHumidityValue(uint16_t humidity);
+    void SetVocValue(uint16_t voc);
+    void SetNoiseLevelValue(uint16_t noiseLevel);
+    void SetCO2Value(uint16_t co2);
+    void SetLuminanceValue(uint32_t luminance);
+    void SetBMotionValue(uint8_t bMotion);
+
+    int16_t GetTemperatureValue();
+    uint16_t GetHumidityValue();
+    uint16_t GetVocValue();
+    uint16_t GetNoiseLevelValue();
+    uint16_t GetCO2Value();
+    uint32_t GetLuminanceValue();
+    uint8_t GetBMotionValue();
     void* GetValuePointer();
 
     enum TZWAVEChannelType GetType();
@@ -38,8 +54,7 @@ public:
     bool GetAutocalibration();
     void SetAutocalibration(bool autocalibration);
 
-    // It's nessesary to make this union public, CHANNEL_HANDLER_SINGLE_VALUEMAPPER takes only direct access to the
-    // field
+private:
     union
     {
         int16_t Temperature;
@@ -50,8 +65,6 @@ public:
         uint32_t Luminance;
         uint8_t BMotion;
     };
-
-private:
     enum TZWAVEChannelType Type;
     uint8_t ChannelNumber;
     uint8_t GroupIndex;

@@ -20,7 +20,7 @@ public:
 
 private:
     TWBMSWSensor* WbMsw;
-    TZWAVEChannel Channels[WB_MSW_CHANNEL_MAX];
+    TZWAVEChannel Channels[ZWAVE_CHANNEL_MAX];
     uint16_t ChannelsCount;
 
     ZunoCFGParameter_t Parameters[WB_MSW_MAX_CONFIG_PARAM];
