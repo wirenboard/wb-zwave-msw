@@ -133,13 +133,10 @@ bool TZWAVESensor::ChannelsInitialize()
         groupIndex++;
     }
     if (WbMsw->GetMotion(motion) && (motion != WB_MSW_INPUT_REG_MOTION_VALUE_ERROR)) {
-        if (motion != WB_MSW_INPUT_REG_MOTION_VALUE_ERROR) {
-
-            Channels[ChannelsCount].SetBMotionChannel(channelNumber, groupIndex, false);
-            ChannelsCount++;
-            channelNumber++;
-            groupIndex++;
-        }
+        Channels[ChannelsCount].SetBMotionChannel(channelNumber, groupIndex, false);
+        ChannelsCount++;
+        channelNumber++;
+        groupIndex++;
     }
     return ChannelsCount;
 }
