@@ -1,6 +1,6 @@
 
 #include "TWBMSWSensor.h"
-#include "Debug.h"
+#include "DebugOutput.h"
 
 #define WBMSW_REG_TEMPERATURE 0x0004
 #define WBMSW_REG_HUMIDITY 0x0005
@@ -20,9 +20,8 @@
 #define WBMSW_FIRMWARE_DATA_SIZE 136
 
 /* Public Constructors */
-TWBMSWSensor::TWBMSWSensor(HardwareSerial* hardwareSerial, uint16_t timeoutMs, uint8_t address)
-    : ModBusRtuClass(hardwareSerial, timeoutMs),
-      Address(address)
+TWBMSWSensor::TWBMSWSensor(HardwareSerial* hardwareSerial, uint16_t timeoutMs)
+    : ModBusRtuClass(hardwareSerial, timeoutMs)
 {}
 
 /* Public Methods */
@@ -31,41 +30,51 @@ bool TWBMSWSensor::OpenPort(size_t speed, uint32_t config, uint8_t rx, uint8_t t
     return ModBusRtuClass::begin(speed, config, rx, tx);
 }
 
+void TWBMSWSensor::ClosePort(void)
+{
+    // There is no ability to end session with ModBus Rtu, but Hardware Serial and ModBus Rtu Class have no mutex for
+    // port access. Hence there no error will happen while using  non-simultaneously one physical serial port
+    return;
+}
+
+void TWBMSWSensor::SetModbusAddress(uint8_t address)
+{
+    this->Address = address;
+}
+
 bool TWBMSWSensor::GetFwVersion(uint32_t* version)
 {
-    uint32_t out;
-    uint32_t number;
-    uint16_t fw_v[0x10];
-    size_t i;
-    size_t count;
+    uint16_t fw_v[16];
     uint16_t letter;
 
-    if (ModBusRtuClass::readInputRegisters(this->Address,
-                                           WBMSW_REG_FW_VERSION,
-                                           (sizeof(fw_v) / sizeof(fw_v[0x0])),
-                                           &fw_v[0x0]) == false)
+    if (!ModBusRtuClass::readInputRegisters(this->Address,
+                                            WBMSW_REG_FW_VERSION,
+                                            (sizeof(fw_v) / sizeof(fw_v[0])),
+                                            &fw_v[0]))
     {
         return (false);
     }
-    out = 0x0;
-    number = 00;
-    i = 0x0;
-    count = 0x0;
-    while ((letter = fw_v[i]) != 0x0) {
+
+    uint32_t out = 0;
+    uint32_t number = 0;
+    size_t i = 0;
+    size_t count = 0;
+    while (letter = fw_v[i]) {
         if (letter == '.') {
-            out = (out << 0x8) | number;
-            number = 0x0;
-            count = 0x0;
+            out = (out << 8) | number;
+            number = 0;
+            count = 0;
         } else {
-            number = number * 0xA + (letter - 0x30);
+            number = number * 10 + (letter - '0');
             count++;
         }
         i++;
     }
-    if (count != 0x0)
-        out = (out << 0x8) | number;
-    version[0x0] = out;
-    return (true);
+    if (count) {
+        out = (out << 8) | number;
+    }
+    *version = out;
+    return true;
 }
 
 bool TWBMSWSensor::GetTemperature(int16_t& temperature)
@@ -81,10 +90,10 @@ bool TWBMSWSensor::GetHumidity(uint16_t& humidity)
 bool TWBMSWSensor::GetLuminance(uint32_t& luminance)
 {
     uint16_t lumen[2];
-    if (!readInputRegisters(Address, WBMSW_REG_LUMINANCE, (sizeof(lumen) / sizeof(lumen[0x0])), lumen)) {
+    if (!readInputRegisters(Address, WBMSW_REG_LUMINANCE, (sizeof(lumen) / sizeof(lumen[0])), lumen)) {
         return false;
     }
-    luminance = (lumen[0x0] << 0x10) | lumen[1];
+    luminance = (lumen[0] << 16) | lumen[1];
     return true;
 }
 
@@ -129,7 +138,7 @@ bool TWBMSWSensor::GetMotion(uint16_t& motion)
     return readInputRegisters(Address, WBMSW_REG_MOTION, 1, &motion); // 0x0118 - max
 }
 
-bool TWBMSWSensor::FwMode(void)
+bool TWBMSWSensor::SetFwMode(void)
 {
     return writeSingleRegisters(Address, WBMSW_REG_FW_MODE, 1);
 }
@@ -150,29 +159,27 @@ bool TWBMSWSensor::FwUpdate(const void* buffer, size_t len, uint16_t timeoutMs)
     if (len < WBMSW_FIRMWARE_INFO_SIZE) {
         return false;
     }
-#ifdef LOGGING_DBG
-    LOGGING_UART.print("FW size: ");
-    LOGGING_UART.println(len);
-#endif
-    if (!this->FwMode()) {
+    DEBUG("FW size: ");
+    DEBUG(len);
+    DEBUG("\n");
+
+    if (!this->SetFwMode()) {
         return false;
     }
-#ifdef LOGGING_DBG
-    LOGGING_UART.print("Wait 2 sec\n");
-#endif
+    DEBUG("Wait ");
+    DEBUG(timeoutMs);
+    DEBUG(" ms\n");
+
     delay(timeoutMs);
     data = (uint8_t*)buffer;
     if (!this->FwWriteInfo(data)) {
         return false;
     }
-#ifdef LOGGING_DBG
-    LOGGING_UART.print("Write info\n");
-#endif
+    DEBUG("Write info\n");
     data += WBMSW_FIRMWARE_INFO_SIZE;
     len -= WBMSW_FIRMWARE_INFO_SIZE;
-#ifdef LOGGING_DBG
-    LOGGING_UART.print("Write data\n");
-#endif
+
+    DEBUG("Write data\n");
     while (len) {
         if (!FwWriteData(data)) {
             return false;
@@ -180,8 +187,7 @@ bool TWBMSWSensor::FwUpdate(const void* buffer, size_t len, uint16_t timeoutMs)
         data += WBMSW_FIRMWARE_DATA_SIZE;
         len -= WBMSW_FIRMWARE_DATA_SIZE;
     }
-#ifdef LOGGING_DBG
-    LOGGING_UART.print("Write finish\n");
-#endif
+
+    DEBUG("Write finish\n");
     return true;
 }
