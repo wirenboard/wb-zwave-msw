@@ -185,7 +185,7 @@ void TZWAVESensor::ChannelsSetup()
             case TZWAVEChannelType::ZWAVE_CHANNEL_TYPE_VOC:
                 zunoAddChannel(ZUNO_SENSOR_MULTILEVEL_CHANNEL_NUMBER,
                                ZUNO_SENSOR_MULTILEVEL_TYPE_VOLATILE_ORGANIC_COMPOUND,
-                               (SENSOR_MULTILEVEL_PROPERTIES_COMBINER(1,
+                               (SENSOR_MULTILEVEL_PROPERTIES_COMBINER(SENSOR_MULTILEVEL_SCALE_PARTS_PER_MILLION,
                                                                       WB_MSW_INPUT_REG_VOC_VALUE_SIZE,
                                                                       WB_MSW_INPUT_REG_VOC_VALUE_PRECISION)));
                 zunoSetZWChannel(i, i + 1);
@@ -204,6 +204,8 @@ void TZWAVESensor::ChannelsSetup()
                 zunoAddChannel(ZUNO_SENSOR_BINARY_CHANNEL_NUMBER, ZUNO_SENSOR_BINARY_TYPE_MOTION, 0);
                 zunoSetZWChannel(i, i + 1);
                 zunoAddAssociation(ZUNO_ASSOC_BASIC_SET_NUMBER, 0);
+                break;
+            default:
                 break;
         }
     }
@@ -601,6 +603,7 @@ enum TZWAVEProcessResult TZWAVESensor::ProcessChannels()
                 result = ProcessMotionChannel(Channels[i]);
                 break;
             default:
+                result = TZWAVEProcessResult::ZWAVE_PROCESS_OK;
                 break;
         }
         if (result == TZWAVEProcessResult::ZWAVE_PROCESS_MODBUS_ERROR) {

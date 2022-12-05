@@ -45,7 +45,6 @@ void TWBMSWSensor::SetModbusAddress(uint8_t address)
 bool TWBMSWSensor::GetFwVersion(uint32_t* version)
 {
     uint16_t fw_v[16];
-    uint16_t letter;
 
     if (!ModBusRtuClass::readInputRegisters(this->Address,
                                             WBMSW_REG_FW_VERSION,
@@ -59,13 +58,13 @@ bool TWBMSWSensor::GetFwVersion(uint32_t* version)
     uint32_t number = 0;
     size_t i = 0;
     size_t count = 0;
-    while (letter = fw_v[i]) {
-        if (letter == '.') {
+    while (fw_v[i]) {
+        if (fw_v[i] == '.') {
             out = (out << 8) | number;
             number = 0;
             count = 0;
         } else {
-            number = number * 10 + (letter - '0');
+            number = number * 10 + (fw_v[i] - '0');
             count++;
         }
         i++;

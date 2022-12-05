@@ -45,7 +45,6 @@ enum TZUnoState
     ZUNO_MODBUS_INITIALIZE,
     ZUNO_SENSOR_INITIALIZE,
     ZUNO_CHANNELS_INITIALIZE,
-    ZUNO_DEVICE_INITIALIZE,
     ZUNO_POLL_CHANNELS
 };
 
@@ -183,8 +182,7 @@ void loop()
             }
 
             // If a new firmware came on the radio, send it to the bootloder of the WB chip
-            if (FwUpdater.CheckNewFirmwareAvailable()) {
-                FwUpdater.UpdateFirmware();
+            if (FwUpdater.CheckNewFirmwareAvailable() && FwUpdater.UpdateFirmware()) {
                 uint32_t version;
                 FwUpdater.GetFirmvareVersion(version);
                 g_OtaDesriptor.version = version;

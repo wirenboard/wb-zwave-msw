@@ -190,7 +190,7 @@ bool TZWAVEChannel::GetAutocalibration()
 
 void TZWAVEChannel::SetAutocalibration(bool autocalibration)
 {
-    Autocalibration == autocalibration;
+    Autocalibration = autocalibration;
 }
 
 void* TZWAVEChannel::GetValuePointer()
