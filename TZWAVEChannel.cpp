@@ -104,42 +104,49 @@ int16_t TZWAVEChannel::GetTemperatureValue()
     if (Type == TZWAVEChannelType::ZWAVE_CHANNEL_TYPE_TEMPERATURE) {
         return Temperature;
     }
+    return 0;
 }
 uint16_t TZWAVEChannel::GetHumidityValue()
 {
     if (Type == TZWAVEChannelType::ZWAVE_CHANNEL_TYPE_HUMIDITY) {
         return Humidity;
     }
+    return 0;
 }
 uint16_t TZWAVEChannel::GetVocValue()
 {
     if (Type == TZWAVEChannelType::ZWAVE_CHANNEL_TYPE_VOC) {
         return Voc;
     }
+    return 0;
 }
 uint16_t TZWAVEChannel::GetNoiseLevelValue()
 {
     if (Type == TZWAVEChannelType::ZWAVE_CHANNEL_TYPE_NOISE_LEVEL) {
         return NoiseLevel;
     }
+    return 0;
 }
 uint16_t TZWAVEChannel::GetCO2Value()
 {
     if (Type == TZWAVEChannelType::ZWAVE_CHANNEL_TYPE_CO2) {
         return CO2;
     }
+    return 0;
 }
 uint32_t TZWAVEChannel::GetLuminanceValue()
 {
     if (Type == TZWAVEChannelType::ZWAVE_CHANNEL_TYPE_LUMEN) {
         return Luminance;
     }
+    return 0;
 }
 uint8_t TZWAVEChannel::GetBMotionValue()
 {
     if (Type == TZWAVEChannelType::ZWAVE_CHANNEL_TYPE_MOTION) {
         return BMotion;
     }
+    return 0;
 }
 
 enum TZWAVEChannelType TZWAVEChannel::GetType()
