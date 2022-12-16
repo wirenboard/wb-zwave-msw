@@ -1,0 +1,5 @@
+wb-zwave-msw (1.0) stable; urgency=medium
+
+  * Add build and flash instructions 
+
+ -- Ekaterina Volkova <ekaterina.volkova@wirenboard.ru>  Fri, 16 Dec 2022 12:50:42 +0300

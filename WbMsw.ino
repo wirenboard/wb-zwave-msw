@@ -7,6 +7,7 @@
 #include "WbMsw.h"
 
 //  Project global macros definitions for accurate protocol configuration
+// DO NOT MOVE ZUNO_ENABLE FROM THIS PLACE
 // clang-format off
 ZUNO_ENABLE(
 		/* Commands class support. Defined here since device channels being created dynamically */
@@ -18,6 +19,7 @@ ZUNO_ENABLE(
 		ZUNO_CUSTOM_OTA_OFFSET=0x10000 // 64 kB
 		/* Additional OTA firmwares count*/
 		ZUNO_EXT_FIRMWARES_COUNT=1
+		SKETCH_VERSION=0x0100
 		/* Firmware descriptor pointer */
 		ZUNO_EXT_FIRMWARES_DESCR_PTR=&g_OtaDesriptor
 		LOGGING_DBG // Comment out if debugging information is not needed
