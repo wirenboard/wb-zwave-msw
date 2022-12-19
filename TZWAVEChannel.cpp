@@ -5,57 +5,51 @@ TZWAVEChannel::TZWAVEChannel()
 {
     this->ReportedValue = 0;
     this->Triggered = false;
+    this->State = TZWAVEChannelState::ZWAVE_CHANNEL_UNINITIALIZED;
 }
 
-void TZWAVEChannel::SetTemperatureChannel(uint8_t channelNumber, uint8_t groupIndex, int16_t temperature)
+void TZWAVEChannel::SetTemperatureChannel(uint8_t channelNumber, uint8_t groupIndex)
 {
     Type = TZWAVEChannelType::ZWAVE_CHANNEL_TYPE_TEMPERATURE;
     ChannelNumber = channelNumber;
     GroupIndex = groupIndex;
-    SetTemperatureValue(temperature);
 }
-void TZWAVEChannel::SetHumidityChannel(uint8_t channelNumber, uint8_t groupIndex, uint16_t humidity)
+void TZWAVEChannel::SetHumidityChannel(uint8_t channelNumber, uint8_t groupIndex)
 {
     Type = TZWAVEChannelType::ZWAVE_CHANNEL_TYPE_HUMIDITY;
     ChannelNumber = channelNumber;
     GroupIndex = groupIndex;
-    SetHumidityValue(humidity);
 }
-void TZWAVEChannel::SetVocChannel(uint8_t channelNumber, uint8_t groupIndex, uint16_t voc)
+void TZWAVEChannel::SetVocChannel(uint8_t channelNumber, uint8_t groupIndex)
 {
     Type = TZWAVEChannelType::ZWAVE_CHANNEL_TYPE_VOC;
     ChannelNumber = channelNumber;
     GroupIndex = groupIndex;
-    SetVocValue(voc);
 }
-void TZWAVEChannel::SetNoiseLevelChannel(uint8_t channelNumber, uint8_t groupIndex, uint16_t noiseLevel)
+void TZWAVEChannel::SetNoiseLevelChannel(uint8_t channelNumber, uint8_t groupIndex)
 {
     Type = TZWAVEChannelType::ZWAVE_CHANNEL_TYPE_NOISE_LEVEL;
     ChannelNumber = channelNumber;
     GroupIndex = groupIndex;
-    SetNoiseLevelValue(noiseLevel);
 }
-void TZWAVEChannel::SetCO2Channel(uint8_t channelNumber, uint8_t groupIndex, uint16_t co2)
+void TZWAVEChannel::SetCO2Channel(uint8_t channelNumber, uint8_t groupIndex)
 {
     Type = TZWAVEChannelType::ZWAVE_CHANNEL_TYPE_CO2;
     ChannelNumber = channelNumber;
     GroupIndex = groupIndex;
     Autocalibration = false;
-    SetCO2Value(co2);
 }
-void TZWAVEChannel::SetLuminanceChannel(uint8_t channelNumber, uint8_t groupIndex, uint32_t luminance)
+void TZWAVEChannel::SetLuminanceChannel(uint8_t channelNumber, uint8_t groupIndex)
 {
     Type = TZWAVEChannelType::ZWAVE_CHANNEL_TYPE_LUMEN;
     ChannelNumber = channelNumber;
     GroupIndex = groupIndex;
-    SetLuminanceValue(luminance);
 }
-void TZWAVEChannel::SetBMotionChannel(uint8_t channelNumber, uint8_t groupIndex, uint8_t bMotion)
+void TZWAVEChannel::SetBMotionChannel(uint8_t channelNumber, uint8_t groupIndex)
 {
     Type = TZWAVEChannelType::ZWAVE_CHANNEL_TYPE_MOTION;
     ChannelNumber = channelNumber;
     GroupIndex = groupIndex;
-    SetBMotionValue(bMotion);
 }
 void TZWAVEChannel::SetTemperatureValue(int16_t temperature)
 {
@@ -99,54 +93,27 @@ void TZWAVEChannel::SetBMotionValue(uint8_t bMotion)
         BMotion = bMotion;
     }
 }
-int16_t TZWAVEChannel::GetTemperatureValue()
+
+void* TZWAVEChannel::GetValuePointer()
 {
-    if (Type == TZWAVEChannelType::ZWAVE_CHANNEL_TYPE_TEMPERATURE) {
-        return Temperature;
+    switch (Type) {
+        case TZWAVEChannelType::ZWAVE_CHANNEL_TYPE_TEMPERATURE:
+            return &Temperature;
+        case TZWAVEChannelType::ZWAVE_CHANNEL_TYPE_HUMIDITY:
+            return &Humidity;
+        case TZWAVEChannelType::ZWAVE_CHANNEL_TYPE_LUMEN:
+            return &Luminance;
+        case TZWAVEChannelType::ZWAVE_CHANNEL_TYPE_CO2:
+            return &CO2;
+        case TZWAVEChannelType::ZWAVE_CHANNEL_TYPE_VOC:
+            return &Voc;
+        case TZWAVEChannelType::ZWAVE_CHANNEL_TYPE_NOISE_LEVEL:
+            return &NoiseLevel;
+        case TZWAVEChannelType::ZWAVE_CHANNEL_TYPE_MOTION:
+            return &BMotion;
+        default:
+            return NULL;
     }
-    return 0;
-}
-uint16_t TZWAVEChannel::GetHumidityValue()
-{
-    if (Type == TZWAVEChannelType::ZWAVE_CHANNEL_TYPE_HUMIDITY) {
-        return Humidity;
-    }
-    return 0;
-}
-uint16_t TZWAVEChannel::GetVocValue()
-{
-    if (Type == TZWAVEChannelType::ZWAVE_CHANNEL_TYPE_VOC) {
-        return Voc;
-    }
-    return 0;
-}
-uint16_t TZWAVEChannel::GetNoiseLevelValue()
-{
-    if (Type == TZWAVEChannelType::ZWAVE_CHANNEL_TYPE_NOISE_LEVEL) {
-        return NoiseLevel;
-    }
-    return 0;
-}
-uint16_t TZWAVEChannel::GetCO2Value()
-{
-    if (Type == TZWAVEChannelType::ZWAVE_CHANNEL_TYPE_CO2) {
-        return CO2;
-    }
-    return 0;
-}
-uint32_t TZWAVEChannel::GetLuminanceValue()
-{
-    if (Type == TZWAVEChannelType::ZWAVE_CHANNEL_TYPE_LUMEN) {
-        return Luminance;
-    }
-    return 0;
-}
-uint8_t TZWAVEChannel::GetBMotionValue()
-{
-    if (Type == TZWAVEChannelType::ZWAVE_CHANNEL_TYPE_MOTION) {
-        return BMotion;
-    }
-    return 0;
 }
 
 enum TZWAVEChannelType TZWAVEChannel::GetType()
@@ -172,6 +139,7 @@ int32_t TZWAVEChannel::GetReportedValue()
 void TZWAVEChannel::SetReportedValue(int32_t reportedValue)
 {
     ReportedValue = reportedValue;
+    State = TZWAVEChannelState::ZWAVE_CHANNEL_INITIALIZED;
 }
 
 bool TZWAVEChannel::GetTriggered()
@@ -193,24 +161,7 @@ void TZWAVEChannel::SetAutocalibration(bool autocalibration)
     Autocalibration = autocalibration;
 }
 
-void* TZWAVEChannel::GetValuePointer()
+enum TZWAVEChannelState TZWAVEChannel::GetState()
 {
-    switch (Type) {
-        case TZWAVEChannelType::ZWAVE_CHANNEL_TYPE_TEMPERATURE:
-            return &Temperature;
-        case TZWAVEChannelType::ZWAVE_CHANNEL_TYPE_HUMIDITY:
-            return &Humidity;
-        case TZWAVEChannelType::ZWAVE_CHANNEL_TYPE_LUMEN:
-            return &Luminance;
-        case TZWAVEChannelType::ZWAVE_CHANNEL_TYPE_CO2:
-            return &CO2;
-        case TZWAVEChannelType::ZWAVE_CHANNEL_TYPE_VOC:
-            return &Voc;
-        case TZWAVEChannelType::ZWAVE_CHANNEL_TYPE_NOISE_LEVEL:
-            return &NoiseLevel;
-        case TZWAVEChannelType::ZWAVE_CHANNEL_TYPE_MOTION:
-            return &BMotion;
-        default:
-            return NULL;
-    }
+    return State;
 }
