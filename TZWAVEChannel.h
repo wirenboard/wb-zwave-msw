@@ -12,17 +12,23 @@ enum TZWAVEChannelType
     ZWAVE_CHANNEL_MAX
 };
 
+enum TZWAVEChannelState
+{
+    ZWAVE_CHANNEL_UNINITIALIZED,
+    ZWAVE_CHANNEL_INITIALIZED
+};
+
 class TZWAVEChannel
 {
 public:
     TZWAVEChannel();
-    void SetTemperatureChannel(uint8_t channelNumber, uint8_t groupIndex, int16_t temperature);
-    void SetHumidityChannel(uint8_t channelNumber, uint8_t groupIndex, uint16_t humidity);
-    void SetVocChannel(uint8_t channelNumber, uint8_t groupIndex, uint16_t voc);
-    void SetNoiseLevelChannel(uint8_t channelNumber, uint8_t groupIndex, uint16_t noiseLevel);
-    void SetCO2Channel(uint8_t channelNumber, uint8_t groupIndex, uint16_t co2);
-    void SetLuminanceChannel(uint8_t channelNumber, uint8_t groupIndex, uint32_t luminance);
-    void SetBMotionChannel(uint8_t channelNumber, uint8_t groupIndex, uint8_t bMotion);
+    void SetTemperatureChannel(uint8_t channelNumber, uint8_t groupIndex);
+    void SetHumidityChannel(uint8_t channelNumber, uint8_t groupIndex);
+    void SetVocChannel(uint8_t channelNumber, uint8_t groupIndex);
+    void SetNoiseLevelChannel(uint8_t channelNumber, uint8_t groupIndex);
+    void SetCO2Channel(uint8_t channelNumber, uint8_t groupIndex);
+    void SetLuminanceChannel(uint8_t channelNumber, uint8_t groupIndex);
+    void SetBMotionChannel(uint8_t channelNumber, uint8_t groupIndex);
 
     void SetTemperatureValue(int16_t temperature);
     void SetHumidityValue(uint16_t humidity);
@@ -32,13 +38,6 @@ public:
     void SetLuminanceValue(uint32_t luminance);
     void SetBMotionValue(uint8_t bMotion);
 
-    int16_t GetTemperatureValue();
-    uint16_t GetHumidityValue();
-    uint16_t GetVocValue();
-    uint16_t GetNoiseLevelValue();
-    uint16_t GetCO2Value();
-    uint32_t GetLuminanceValue();
-    uint8_t GetBMotionValue();
     void* GetValuePointer();
 
     enum TZWAVEChannelType GetType();
@@ -54,6 +53,8 @@ public:
     bool GetAutocalibration();
     void SetAutocalibration(bool autocalibration);
 
+    enum TZWAVEChannelState GetState();
+
 private:
     union
     {
@@ -65,6 +66,7 @@ private:
         uint32_t Luminance;
         uint8_t BMotion;
     };
+    enum TZWAVEChannelState State;
     enum TZWAVEChannelType Type;
     uint8_t ChannelNumber;
     uint8_t GroupIndex;

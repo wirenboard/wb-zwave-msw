@@ -434,7 +434,10 @@ void TZWAVESensor::PublishAnalogSensorValue(TZWAVEChannel& channel,
                                             bool inversion,
                                             int32_t threshold)
 {
-    if ((hysteresis != 0) && (abs(value - channel.GetReportedValue()) > hysteresis)) {
+    // Send value without condition if channels value uninitialized on server
+    if ((channel.GetState() == TZWAVEChannelState::ZWAVE_CHANNEL_UNINITIALIZED) ||
+        ((hysteresis != 0) && (abs(value - channel.GetReportedValue()) > hysteresis)))
+    {
         // DEBUG("Channel ");
         // DEBUG(channel.GetType());
         // DEBUG(" send report value ");
@@ -580,39 +583,49 @@ enum TZWAVEProcessResult TZWAVESensor::ProcessNoiseLevelChannel(TZWAVEChannel& c
 
 enum TZWAVEProcessResult TZWAVESensor::ProcessMotionChannel(TZWAVEChannel& channel)
 {
-    uint8_t bMotion;
-
     bool inverting = GetParameterValue(WB_MSW_CONFIG_PARAMETER_MOTION_INVERT);
     uint32_t motionPeriod = (uint32_t)GetParameterValue(WB_MSW_CONFIG_PARAMETER_MOTION_TIME) * 1000;
-    uint32_t currentTime = millis();
 
-    bMotion = channel.GetBMotionValue();
-    if (channel.GetBMotionValue() && ((currentTime - MotionLastTime) >= motionPeriod)) {
+    uint16_t currentMotion;
+    if (!WbMsw->GetMotion(currentMotion)) {
         channel.SetBMotionValue(false);
+        channel.SetReportedValue(false);
+        zunoSendReport(channel.GetChannelNumber());
+        zunoSendToGroupSetValueCommand(channel.GetGroupIndex(), (!inverting) ? WB_MSW_OFF : WB_MSW_ON);
+        return TZWAVEProcessResult::ZWAVE_PROCESS_MODBUS_ERROR;
     }
 
-    if (!channel.GetBMotionValue()) {
-        uint16_t currentMotion;
-        if (!WbMsw->GetMotion(currentMotion)) {
-            return TZWAVEProcessResult::ZWAVE_PROCESS_MODBUS_ERROR;
-        }
+    if (currentMotion == WB_MSW_INPUT_REG_MOTION_VALUE_ERROR) {
+        channel.SetBMotionValue(false);
+        channel.SetReportedValue(false);
+        zunoSendReport(channel.GetChannelNumber());
+        zunoSendToGroupSetValueCommand(channel.GetGroupIndex(), (!inverting) ? WB_MSW_OFF : WB_MSW_ON);
+        return TZWAVEProcessResult::ZWAVE_PROCESS_VALUE_ERROR;
+    }
 
-        if (currentMotion == WB_MSW_INPUT_REG_MOTION_VALUE_ERROR) {
-            return TZWAVEProcessResult::ZWAVE_PROCESS_VALUE_ERROR;
-        }
+    LOG_INT_VALUE("Motion:             ", currentMotion);
+    bool newMotionValue =
+        currentMotion >= (size_t)GetParameterValue(WB_MSW_CONFIG_PARAMETER_MOTION_THRESHOLD) ? true : false;
+    channel.SetBMotionValue(newMotionValue);
 
-        LOG_INT_VALUE("Motion:             ", currentMotion);
-        if (currentMotion >= (size_t)GetParameterValue(WB_MSW_CONFIG_PARAMETER_MOTION_THRESHOLD)) {
+    uint32_t currentTime = millis();
+    if (newMotionValue) {
+        if ((channel.GetState() == TZWAVEChannelState::ZWAVE_CHANNEL_UNINITIALIZED) || (!channel.GetReportedValue())) {
             MotionLastTime = currentTime;
-            channel.SetBMotionValue(true);
+            channel.SetReportedValue(newMotionValue);
             // DEBUG("Channel Motion send report value ");
-            // DEBUG(channel.GetBMotionValue());
+            // DEBUG(channel.GetReportedValue());
             // DEBUG("\n");
             zunoSendReport(channel.GetChannelNumber());
             zunoSendToGroupSetValueCommand(channel.GetGroupIndex(), (!inverting) ? WB_MSW_ON : WB_MSW_OFF);
-        } else if (bMotion) {
+        }
+    } else {
+        if ((channel.GetState() == TZWAVEChannelState::ZWAVE_CHANNEL_UNINITIALIZED) ||
+            (channel.GetReportedValue() && ((currentTime - MotionLastTime) >= motionPeriod)))
+        {
+            channel.SetReportedValue(newMotionValue);
             // DEBUG("Channel Motion send report value ");
-            // DEBUG(channel.GetBMotionValue());
+            // DEBUG(channel.GetReportedValue());
             // DEBUG("\n");
             zunoSendReport(channel.GetChannelNumber());
             zunoSendToGroupSetValueCommand(channel.GetGroupIndex(), (!inverting) ? WB_MSW_OFF : WB_MSW_ON);
