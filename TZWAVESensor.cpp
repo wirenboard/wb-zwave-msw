@@ -74,70 +74,118 @@ TZWAVESensor::TZWAVESensor(TWBMSWSensor* wbMsw): WbMsw(wbMsw)
     MotionLastTime = 0;
 }
 
+bool TZWAVESensor::CheckChannelAvailabilityIfUnknown(
+    enum TWBMSWSensorAvailability& currentAvailability,
+    bool (TWBMSWSensor::*getAvailabilityFunction)(enum TWBMSWSensorAvailability& availability))
+{
+    if (currentAvailability == TWBMSWSensorAvailability::WB_MSW_SENSOR_UNKNOWN) {
+        if ((WbMsw->*getAvailabilityFunction)(currentAvailability) &&
+            currentAvailability == TWBMSWSensorAvailability::WB_MSW_SENSOR_AVAILABLE)
+        {
+            return true;
+        }
+    }
+    return false;
+}
+
 // Function determines number of available Z-Wave device channels (EndPoints) and fills in the structures by channel
 // type
 bool TZWAVESensor::ChannelsInitialize()
 {
-    bool co2Enable;
-    uint16_t motion;
 
     ChannelsCount = 0;
     uint8_t channelNumber = 1;
     size_t groupIndex = CTRL_GROUP_1;
 
-    int16_t temperature;
-    uint16_t humidity, co2, voc, noiseLevel;
-    uint32_t luminance;
+    uint32_t startTime = millis();
+    uint32_t lastTime = startTime;
+    uint32_t timeout = WB_MSW_INPUT_REG_AVAILABILITY_TIMEOUT;
 
-    // Temperature channel
-    if (WbMsw->GetTemperature(temperature) && (temperature != WB_MSW_INPUT_REG_TEMPERATURE_VALUE_ERROR)) {
-        Channels[ChannelsCount].SetTemperatureChannel(channelNumber, groupIndex, temperature);
-        ChannelsCount++;
-        channelNumber++;
-        groupIndex++;
-    }
-    // Humidity channel
-    if (WbMsw->GetHumidity(humidity) && (humidity != WB_MSW_INPUT_REG_HUMIDITY_VALUE_ERROR)) {
-        Channels[ChannelsCount].SetHumidityChannel(channelNumber, groupIndex, humidity);
-        ChannelsCount++;
-        channelNumber++;
-        groupIndex++;
-    }
-    // Lumen channel
-    if (WbMsw->GetLuminance(luminance) && (luminance != WB_MSW_INPUT_REG_LUMEN_VALUE_ERROR)) {
-        Channels[ChannelsCount].SetLuminanceChannel(channelNumber, groupIndex, luminance);
-        ChannelsCount++;
-        channelNumber++;
-        groupIndex++;
-    }
-    if (WbMsw->GetCO2Status(co2Enable) && (co2Enable || WbMsw->SetCO2Status(true)) && (WbMsw->GetCO2(co2))) {
-        if (co2 == WB_MSW_INPUT_REG_CO2_VALUE_ERROR) {
-            co2 = 0;
+    enum TWBMSWSensorAvailability sensorAvailability[TZWAVEChannelType::ZWAVE_CHANNEL_MAX];
+    memset(sensorAvailability, TWBMSWSensorAvailability::WB_MSW_SENSOR_UNKNOWN, sizeof(sensorAvailability));
+    bool unknownSensorsLeft = false;
+
+    // If channel had read unsuccessfully its value set to 0. Else, value set to channel, even if it equal to
+    // VALUE_ERROR. In work sycle values won't be published if VALUE_ERROR was readed.
+    do {
+        lastTime = millis();
+        // Temperature channel
+        if (CheckChannelAvailabilityIfUnknown(sensorAvailability[TZWAVEChannelType::ZWAVE_CHANNEL_TYPE_TEMPERATURE],
+                                              &TWBMSWSensor::GetTemperatureAvailability))
+        {
+            DEBUG("TEMPERATURE CHANNEL AVAILABLE\n");
+            Channels[ChannelsCount].SetTemperatureChannel(channelNumber, groupIndex);
+            ChannelsCount++;
+            channelNumber++;
+            groupIndex++;
+        }
+        // Humidity channel
+        if (CheckChannelAvailabilityIfUnknown(sensorAvailability[TZWAVEChannelType::ZWAVE_CHANNEL_TYPE_HUMIDITY],
+                                              &TWBMSWSensor::GetHumidityAvailability))
+        {
+            DEBUG("HUMIDITY CHANNEL AVAILABLE\n");
+            Channels[ChannelsCount].SetHumidityChannel(channelNumber, groupIndex);
+            ChannelsCount++;
+            channelNumber++;
+            groupIndex++;
+        }
+        // Lumen channel
+        if (CheckChannelAvailabilityIfUnknown(sensorAvailability[TZWAVEChannelType::ZWAVE_CHANNEL_TYPE_LUMEN],
+                                              &TWBMSWSensor::GetLuminanceAvailability))
+        {
+            DEBUG("LUMINANCE CHANNEL AVAILABLE\n");
+            Channels[ChannelsCount].SetLuminanceChannel(channelNumber, groupIndex);
+            ChannelsCount++;
+            channelNumber++;
+            groupIndex++;
+        }
+        if (CheckChannelAvailabilityIfUnknown(sensorAvailability[TZWAVEChannelType::ZWAVE_CHANNEL_TYPE_CO2],
+                                              &TWBMSWSensor::GetCO2Availability))
+        {
+            // Skip channel adding if unable to turn it on
+            bool co2Enable;
+            if (WbMsw->GetCO2Status(co2Enable) && (co2Enable || WbMsw->SetCO2Status(true))) {
+                DEBUG("CO2 CHANNEL AVAILABLE\n");
+                Channels[ChannelsCount].SetCO2Channel(channelNumber, groupIndex);
+                ChannelsCount++;
+                channelNumber++;
+                groupIndex++;
+            }
+        }
+        if (CheckChannelAvailabilityIfUnknown(sensorAvailability[TZWAVEChannelType::ZWAVE_CHANNEL_TYPE_VOC],
+                                              &TWBMSWSensor::GetVocAvailability))
+        {
+            DEBUG("VOC CHANNEL AVAILABLE\n");
+            Channels[ChannelsCount].SetVocChannel(channelNumber, groupIndex);
+            ChannelsCount++;
+            channelNumber++;
+            groupIndex++;
+        }
+        if (CheckChannelAvailabilityIfUnknown(sensorAvailability[TZWAVEChannelType::ZWAVE_CHANNEL_TYPE_NOISE_LEVEL],
+                                              &TWBMSWSensor::GetNoiseLevelAvailability))
+        {
+            DEBUG("NOISE LEVEL CHANNEL AVAILABLE\n");
+            Channels[ChannelsCount].SetNoiseLevelChannel(channelNumber, groupIndex);
+            ChannelsCount++;
+            channelNumber++;
+            groupIndex++;
+        }
+        if (CheckChannelAvailabilityIfUnknown(sensorAvailability[TZWAVEChannelType::ZWAVE_CHANNEL_TYPE_MOTION],
+                                              &TWBMSWSensor::GetMotionAvailability))
+        {
+            DEBUG("MOTION CHANNEL AVAILABLE\n");
+            Channels[ChannelsCount].SetBMotionChannel(channelNumber, groupIndex);
+            ChannelsCount++;
+            channelNumber++;
+            groupIndex++;
         }
 
-        Channels[ChannelsCount].SetCO2Channel(channelNumber, groupIndex, co2);
-        ChannelsCount++;
-        channelNumber++;
-        groupIndex++;
-    }
-    if (WbMsw->GetVoc(voc) && (voc != WB_MSW_INPUT_REG_VOC_VALUE_ERROR)) {
-        Channels[ChannelsCount].SetVocChannel(channelNumber, groupIndex, voc);
-        ChannelsCount++;
-        channelNumber++;
-        groupIndex++;
-    }
-    if (WbMsw->GetNoiseLevel(noiseLevel)) {
-        Channels[ChannelsCount].SetNoiseLevelChannel(channelNumber, groupIndex, noiseLevel);
-        ChannelsCount++;
-        channelNumber++;
-        groupIndex++;
-    }
-    if (WbMsw->GetMotion(motion) && (motion != WB_MSW_INPUT_REG_MOTION_VALUE_ERROR)) {
-        Channels[ChannelsCount].SetBMotionChannel(channelNumber, groupIndex, false);
-        ChannelsCount++;
-        channelNumber++;
-        groupIndex++;
-    }
+        unknownSensorsLeft = false;
+        for (uint8_t i = 0; i < sizeof(sensorAvailability); i++) {
+            unknownSensorsLeft |= (sensorAvailability[i] == TWBMSWSensorAvailability::WB_MSW_SENSOR_UNKNOWN);
+        }
+    } while ((lastTime - startTime <= timeout) && unknownSensorsLeft);
+
     return ChannelsCount;
 }
 

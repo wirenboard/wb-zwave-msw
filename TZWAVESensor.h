@@ -33,6 +33,10 @@ private:
     ZunoCFGParameter_t Parameters[WB_MSW_MAX_CONFIG_PARAM];
     int32_t ParameterValues[WB_MSW_MAX_CONFIG_PARAM];
 
+    bool CheckChannelAvailabilityIfUnknown(
+        enum TWBMSWSensorAvailability& currentAvailability,
+        bool (TWBMSWSensor::*getAvailabilityFunction)(enum TWBMSWSensorAvailability& availability));
+
     TZWAVEChannel* GetChannelByType(enum TZWAVEChannelType type);
     ZunoCFGParameter_t* GetParameterByNumber(size_t paramNumber);
 

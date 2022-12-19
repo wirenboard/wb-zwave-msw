@@ -19,6 +19,14 @@
 #define WBMSW_FIRMWARE_INFO_SIZE 32
 #define WBMSW_FIRMWARE_DATA_SIZE 136
 
+#define WBMSW_REG_TEMPERATURE_AVAIL 0x0170
+#define WBMSW_REG_HUMIDITY_AVAIL 0x0171
+#define WBMSW_REG_LUMINANCE_AVAIL 0x0172
+#define WBMSW_REG_CO2_AVAIL 0x0174
+#define WBMSW_REG_VOC_AVAIL 0x0173
+#define WBMSW_REG_NOIZE_AVAIL 0x0176
+#define WBMSW_REG_MOTION_AVAIL 0x0175
+
 /* Public Constructors */
 TWBMSWSensor::TWBMSWSensor(HardwareSerial* hardwareSerial, uint16_t timeoutMs)
     : ModBusRtuClass(hardwareSerial, timeoutMs)
@@ -189,4 +197,56 @@ bool TWBMSWSensor::FwUpdate(const void* buffer, size_t len, uint16_t timeoutMs)
 
     DEBUG("Write finish\n");
     return true;
+}
+
+enum TWBMSWSensorAvailability TWBMSWSensor::ConvertAvailability(uint16_t availability)
+{
+    switch (availability) {
+        case 0:
+            return TWBMSWSensorAvailability::WB_MSW_SENSOR_UNAVAILABLE;
+        case 1:
+            return TWBMSWSensorAvailability::WB_MSW_SENSOR_AVAILABLE;
+        default:
+            return TWBMSWSensorAvailability::WB_MSW_SENSOR_UNKNOWN;
+    }
+}
+
+bool TWBMSWSensor::ReadAvailabilityRegister(enum TWBMSWSensorAvailability& availability, uint16_t registerAddress)
+{
+    uint16_t availabilityFlag = 1;
+    if (readInputRegisters(Address, registerAddress, 1, &availabilityFlag)) {
+        availability = ConvertAvailability(availabilityFlag);
+        return true;
+    } else {
+        return false;
+    }
+}
+
+bool TWBMSWSensor::GetTemperatureAvailability(enum TWBMSWSensorAvailability& availability)
+{
+    return ReadAvailabilityRegister(availability, WBMSW_REG_TEMPERATURE_AVAIL);
+}
+bool TWBMSWSensor::GetHumidityAvailability(enum TWBMSWSensorAvailability& availability)
+{
+    return ReadAvailabilityRegister(availability, WBMSW_REG_HUMIDITY_AVAIL);
+}
+bool TWBMSWSensor::GetLuminanceAvailability(enum TWBMSWSensorAvailability& availability)
+{
+    return ReadAvailabilityRegister(availability, WBMSW_REG_LUMINANCE_AVAIL);
+}
+bool TWBMSWSensor::GetCO2Availability(enum TWBMSWSensorAvailability& availability)
+{
+    return ReadAvailabilityRegister(availability, WBMSW_REG_CO2_AVAIL);
+}
+bool TWBMSWSensor::GetVocAvailability(enum TWBMSWSensorAvailability& availability)
+{
+    return ReadAvailabilityRegister(availability, WBMSW_REG_VOC_AVAIL);
+}
+bool TWBMSWSensor::GetNoiseLevelAvailability(enum TWBMSWSensorAvailability& availability)
+{
+    return ReadAvailabilityRegister(availability, WBMSW_REG_NOIZE_AVAIL);
+}
+bool TWBMSWSensor::GetMotionAvailability(enum TWBMSWSensorAvailability& availability)
+{
+    return ReadAvailabilityRegister(availability, WBMSW_REG_MOTION_AVAIL);
 }
