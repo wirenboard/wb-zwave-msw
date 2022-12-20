@@ -175,6 +175,7 @@ bool TZWAVESensor::ChannelsInitialize()
         {
             DEBUG("MOTION CHANNEL AVAILABLE\n");
             Channels[ChannelsCount].SetBMotionChannel(channelNumber, groupIndex);
+            MotionChannelPtr = &Channels[ChannelsCount];
             ChannelsCount++;
             channelNumber++;
             groupIndex++;
@@ -634,6 +635,18 @@ enum TZWAVEProcessResult TZWAVESensor::ProcessMotionChannel(TZWAVEChannel& chann
     return TZWAVEProcessResult::ZWAVE_PROCESS_OK;
 }
 
+void TZWAVESensor::MotionChannelReset(TZWAVEChannel* channel)
+{
+    if (channel) {
+        bool inverting = GetParameterValue(WB_MSW_CONFIG_PARAMETER_MOTION_INVERT);
+
+        channel->SetBMotionValue(false);
+        channel->SetReportedValue(false);
+        zunoSendReport(channel->GetChannelNumber());
+        zunoSendToGroupSetValueCommand(channel->GetGroupIndex(), (!inverting) ? WB_MSW_OFF : WB_MSW_ON);
+    }
+}
+
 // Device channel management and firmware data transfer
 enum TZWAVEProcessResult TZWAVESensor::ProcessChannels()
 {
@@ -668,6 +681,7 @@ enum TZWAVEProcessResult TZWAVESensor::ProcessChannels()
                 break;
         }
         if (result == TZWAVEProcessResult::ZWAVE_PROCESS_MODBUS_ERROR) {
+            MotionChannelReset(MotionChannelPtr);
             return result;
         }
     }

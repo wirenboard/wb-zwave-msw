@@ -28,6 +28,7 @@ public:
 private:
     TWBMSWSensor* WbMsw;
     TZWAVEChannel Channels[ZWAVE_CHANNEL_MAX];
+    TZWAVEChannel* MotionChannelPtr;
     uint16_t ChannelsCount;
 
     ZunoCFGParameter_t Parameters[WB_MSW_MAX_CONFIG_PARAM];
@@ -47,6 +48,7 @@ private:
     enum TZWAVEProcessResult ProcessVOCChannel(TZWAVEChannel& channel);
     enum TZWAVEProcessResult ProcessNoiseLevelChannel(TZWAVEChannel& channel);
     enum TZWAVEProcessResult ProcessMotionChannel(TZWAVEChannel& channel);
+    void MotionChannelReset(TZWAVEChannel* channel);
     uint32_t MotionLastTime;
     void PublishAnalogSensorValue(TZWAVEChannel& channel,
                                   int32_t value,
