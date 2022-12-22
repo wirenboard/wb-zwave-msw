@@ -42,7 +42,7 @@ zme_make build  ${file} -S ${core_path}/Z-Uno-G2-Core/hardware/arduino/zunoG2/co
 
 Перед первой прошивкой модуля необходимо в первую очередь обновить [бутлодер](https://github.com/Z-Wave-Me/Z-Uno-G2-Core/tree/master/hardware/arduino/zunoG2/bootloaders).Рекомендуется выполнять загрузку бутлодера командой 
 ```
-./zme_make boot -c ${bootloader_calalogue_path} -d /dev/ttyUSB0
+./zme_make boot -c ${bootloader_catalogue_path} -d /dev/ttyUSB0
 ```
 
 Также возможно загрузить бутлодер, указав конкретный файл
@@ -134,7 +134,7 @@ DONE
 Для прошивки из VSCode нужно открыть основной файл ***.ino** и в верней панели нажать кнопку **"Загрузить"**.
 Для прошивки модуля в автоматическом режиме нужно вызвать команду
 ```
-./zme_make bin_upload /home/wb/WbMsw.bin -d /dev/ttyUSB0
+./zme_make bin_upload ./WbMsw.bin -d /dev/ttyUSB0
 ```
 
 ## Инструкция по отладке
