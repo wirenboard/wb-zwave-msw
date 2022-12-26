@@ -1,7 +1,7 @@
 # Сборка и прошивка проекта для модуля ZWAVE-MSW
 ## Инструментарий
 Основным инструментом для сборки и настройки является утилита **zme_make**, доступная в [архиве с инструментами](https://github.com/Z-Wave-Me/Z-Uno-G2-Core/tree/master/toolchain/linux64), а также в расположении `/Z-Uno2 (Beta)/tools/zme_make` в папке с ZUNO-компонентами при установке расширения ZUNO в VSCode.
-Для автоматической сборки проекта поребуется скачать [Z-Uno-G2-Core](https://github.com/Z-Wave-Me/Z-Uno-G2-Core), [GCC](http://rus.z-wave.me/files/z-uno/g2/tc//arm-none-eabi-gcc-7_2_4-linux64.tar.gz) и [CLANG](http://rus.z-wave.me/files/z-uno/g2/tc//libclang_11_0_1-linux64.tar.gz).
+Для автоматической сборки проекта потребуется скачать [Z-Uno-G2-Core](https://github.com/Z-Wave-Me/Z-Uno-G2-Core), [GCC](http://rus.z-wave.me/files/z-uno/g2/tc/arm-none-eabi-gcc-7_2_4-linux64.tar.gz) и [CLANG](http://rus.z-wave.me/files/z-uno/g2/tc//libclang_11_0_1-linux64.tar.gz).
 
 ## Инструкция по сборке
 ### Настройка сборки VSCode
