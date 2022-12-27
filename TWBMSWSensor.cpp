@@ -216,13 +216,12 @@ enum TWBMSWSensorAvailability TWBMSWSensor::ConvertAvailability(uint16_t availab
 
 bool TWBMSWSensor::ReadAvailabilityRegister(enum TWBMSWSensorAvailability& availability, uint16_t registerAddress)
 {
-    uint16_t availabilityFlag = 1;
+    uint16_t availabilityFlag;
     if (readInputRegisters(Address, registerAddress, 1, &availabilityFlag)) {
         availability = ConvertAvailability(availabilityFlag);
         return true;
-    } else {
-        return false;
     }
+    return false;
 }
 
 bool TWBMSWSensor::GetTemperatureAvailability(enum TWBMSWSensorAvailability& availability)

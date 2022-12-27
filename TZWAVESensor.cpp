@@ -99,7 +99,7 @@ bool TZWAVESensor::ChannelsInitialize()
 
     uint32_t startTime = millis();
     uint32_t lastTime = startTime;
-    uint32_t timeout = WB_MSW_INPUT_REG_AVAILABILITY_TIMEOUT;
+    uint32_t timeout = WB_MSW_INPUT_REG_AVAILABILITY_TIMEOUT_MS;
 
     enum TWBMSWSensorAvailability sensorAvailability[TZWAVEChannelType::ZWAVE_CHANNEL_MAX];
     memset(sensorAvailability, TWBMSWSensorAvailability::WB_MSW_SENSOR_UNKNOWN, sizeof(sensorAvailability));
