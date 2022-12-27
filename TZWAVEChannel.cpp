@@ -5,144 +5,116 @@ TZWAVEChannel::TZWAVEChannel()
 {
     this->ReportedValue = 0;
     this->Triggered = false;
-    this->State = TZWAVEChannelState::ZWAVE_CHANNEL_UNINITIALIZED;
+    this->ValueInitializationState = TZWAVEChannel::State::ZWAVE_CHANNEL_UNINITIALIZED;
+    this->Availability = TWBMSWSensor::Availability::WB_MSW_SENSOR_UNKNOWN;
+    this->Enabled = false;
 }
 
-void TZWAVEChannel::SetTemperatureChannel(uint8_t channelNumber, uint8_t groupIndex)
+void TZWAVEChannel::ChannelInitialize(String name,
+                                      TZWAVEChannel::Type type,
+                                      int32_t errorValue,
+                                      uint8_t hysteresisParameterNumber,
+                                      uint8_t thresholdParameterNumber,
+                                      uint8_t inversionParameterNumber,
+                                      TWBMSWSensor* wbMsw,
+                                      TWBMSWSensor::GetValueCallback readValueCallback,
+                                      TWBMSWSensor::GetAvailabilityCallback readAvailabilityCallback)
 {
-    Type = TZWAVEChannelType::ZWAVE_CHANNEL_TYPE_TEMPERATURE;
-    ChannelNumber = channelNumber;
+    Name = name;
+    ChannelType = type;
+    ErrorValue = errorValue;
+    HysteresisParameterNumber = hysteresisParameterNumber;
+    ThresholdParameterNumber = thresholdParameterNumber;
+    InversionParameterNumber = inversionParameterNumber;
+    WbMsw = wbMsw;
+    ReadValueCallback = readValueCallback;
+    ReadAvailabilityCallback = readAvailabilityCallback;
+}
+
+void TZWAVEChannel::SetChannelNumbers(uint8_t channelDeviceNumber, uint8_t channelServerNumber, uint8_t groupIndex)
+{
+    DeviceChannelNumber = channelDeviceNumber;
+    ServerChannelNumber = channelServerNumber;
     GroupIndex = groupIndex;
 }
-void TZWAVEChannel::SetHumidityChannel(uint8_t channelNumber, uint8_t groupIndex)
+
+String TZWAVEChannel::GetName() const
 {
-    Type = TZWAVEChannelType::ZWAVE_CHANNEL_TYPE_HUMIDITY;
-    ChannelNumber = channelNumber;
-    GroupIndex = groupIndex;
+    return Name;
 }
-void TZWAVEChannel::SetVocChannel(uint8_t channelNumber, uint8_t groupIndex)
+
+void TZWAVEChannel::SetValue(int64_t value)
 {
-    Type = TZWAVEChannelType::ZWAVE_CHANNEL_TYPE_VOC;
-    ChannelNumber = channelNumber;
-    GroupIndex = groupIndex;
-}
-void TZWAVEChannel::SetNoiseLevelChannel(uint8_t channelNumber, uint8_t groupIndex)
-{
-    Type = TZWAVEChannelType::ZWAVE_CHANNEL_TYPE_NOISE_LEVEL;
-    ChannelNumber = channelNumber;
-    GroupIndex = groupIndex;
-}
-void TZWAVEChannel::SetCO2Channel(uint8_t channelNumber, uint8_t groupIndex)
-{
-    Type = TZWAVEChannelType::ZWAVE_CHANNEL_TYPE_CO2;
-    ChannelNumber = channelNumber;
-    GroupIndex = groupIndex;
-    Autocalibration = false;
-}
-void TZWAVEChannel::SetLuminanceChannel(uint8_t channelNumber, uint8_t groupIndex)
-{
-    Type = TZWAVEChannelType::ZWAVE_CHANNEL_TYPE_LUMEN;
-    ChannelNumber = channelNumber;
-    GroupIndex = groupIndex;
-}
-void TZWAVEChannel::SetBMotionChannel(uint8_t channelNumber, uint8_t groupIndex)
-{
-    Type = TZWAVEChannelType::ZWAVE_CHANNEL_TYPE_MOTION;
-    ChannelNumber = channelNumber;
-    GroupIndex = groupIndex;
-}
-void TZWAVEChannel::SetTemperatureValue(int16_t temperature)
-{
-    if (Type == TZWAVEChannelType::ZWAVE_CHANNEL_TYPE_TEMPERATURE) {
-        Temperature = temperature;
-    }
-}
-void TZWAVEChannel::SetHumidityValue(uint16_t humidity)
-{
-    if (Type == TZWAVEChannelType::ZWAVE_CHANNEL_TYPE_HUMIDITY) {
-        Humidity = humidity;
-    }
-}
-void TZWAVEChannel::SetVocValue(uint16_t voc)
-{
-    if (Type == TZWAVEChannelType::ZWAVE_CHANNEL_TYPE_VOC) {
-        Voc = voc;
-    }
-}
-void TZWAVEChannel::SetNoiseLevelValue(uint16_t noiseLevel)
-{
-    if (Type == TZWAVEChannelType::ZWAVE_CHANNEL_TYPE_NOISE_LEVEL) {
-        NoiseLevel = noiseLevel;
-    }
-}
-void TZWAVEChannel::SetCO2Value(uint16_t co2)
-{
-    if (Type == TZWAVEChannelType::ZWAVE_CHANNEL_TYPE_CO2) {
-        CO2 = co2;
-    }
-}
-void TZWAVEChannel::SetLuminanceValue(uint32_t luminance)
-{
-    if (Type == TZWAVEChannelType::ZWAVE_CHANNEL_TYPE_LUMEN) {
-        Luminance = luminance;
-    }
-}
-void TZWAVEChannel::SetBMotionValue(uint8_t bMotion)
-{
-    if (Type == TZWAVEChannelType::ZWAVE_CHANNEL_TYPE_MOTION) {
-        BMotion = bMotion;
-    }
+    Value = value;
 }
 
 void* TZWAVEChannel::GetValuePointer()
 {
-    switch (Type) {
-        case TZWAVEChannelType::ZWAVE_CHANNEL_TYPE_TEMPERATURE:
-            return &Temperature;
-        case TZWAVEChannelType::ZWAVE_CHANNEL_TYPE_HUMIDITY:
-            return &Humidity;
-        case TZWAVEChannelType::ZWAVE_CHANNEL_TYPE_LUMEN:
-            return &Luminance;
-        case TZWAVEChannelType::ZWAVE_CHANNEL_TYPE_CO2:
-            return &CO2;
-        case TZWAVEChannelType::ZWAVE_CHANNEL_TYPE_VOC:
-            return &Voc;
-        case TZWAVEChannelType::ZWAVE_CHANNEL_TYPE_NOISE_LEVEL:
-            return &NoiseLevel;
-        case TZWAVEChannelType::ZWAVE_CHANNEL_TYPE_MOTION:
-            return &BMotion;
-        default:
-            return NULL;
-    }
+    return &Value;
 }
 
-enum TZWAVEChannelType TZWAVEChannel::GetType()
+bool TZWAVEChannel::ReadValueFromSensor(int64_t& value)
 {
-    return Type;
+    return (WbMsw->*ReadValueCallback)(value);
 }
 
-uint8_t TZWAVEChannel::GetChannelNumber()
+int32_t TZWAVEChannel::GetErrorValue() const
 {
-    return ChannelNumber;
+    return ErrorValue;
+}
+bool TZWAVEChannel::GetEnabled() const
+{
+    return Enabled;
+}
+void TZWAVEChannel::Enable()
+{
+    Enabled = true;
+}
+TZWAVEChannel::Type TZWAVEChannel::GetType() const
+{
+    return ChannelType;
 }
 
-uint8_t TZWAVEChannel::GetGroupIndex()
+uint8_t TZWAVEChannel::GetGroupIndex() const
 {
     return GroupIndex;
 }
 
-int32_t TZWAVEChannel::GetReportedValue()
+uint8_t TZWAVEChannel::GetDeviceChannelNumber() const
+{
+    return DeviceChannelNumber;
+}
+
+uint8_t TZWAVEChannel::GetServerChannelNumber() const
+{
+    return ServerChannelNumber;
+}
+
+uint8_t TZWAVEChannel::GetHysteresisParameterNumber() const
+{
+    return HysteresisParameterNumber;
+}
+uint8_t TZWAVEChannel::GetThresholdParameterNumber() const
+{
+    return ThresholdParameterNumber;
+}
+uint8_t TZWAVEChannel::GetInversionParameterNumber() const
+{
+    return InversionParameterNumber;
+}
+
+int64_t TZWAVEChannel::GetReportedValue() const
 {
     return ReportedValue;
 }
 
-void TZWAVEChannel::SetReportedValue(int32_t reportedValue)
+void TZWAVEChannel::SetReportedValue(int64_t reportedValue)
 {
     ReportedValue = reportedValue;
-    State = TZWAVEChannelState::ZWAVE_CHANNEL_INITIALIZED;
+    ValueInitializationState = TZWAVEChannel::State::ZWAVE_CHANNEL_INITIALIZED;
 }
 
-bool TZWAVEChannel::GetTriggered()
+bool TZWAVEChannel::GetTriggered() const
 {
     return Triggered;
 }
@@ -151,7 +123,7 @@ void TZWAVEChannel::SetTriggered(bool triggered)
     Triggered = triggered;
 }
 
-bool TZWAVEChannel::GetAutocalibration()
+bool TZWAVEChannel::GetAutocalibration() const
 {
     return Autocalibration;
 }
@@ -161,7 +133,17 @@ void TZWAVEChannel::SetAutocalibration(bool autocalibration)
     Autocalibration = autocalibration;
 }
 
-enum TZWAVEChannelState TZWAVEChannel::GetState()
+TZWAVEChannel::State TZWAVEChannel::GetState() const
 {
-    return State;
+    return ValueInitializationState;
+}
+
+TWBMSWSensor::Availability TZWAVEChannel::GetAvailability()
+{
+    return Availability;
+}
+
+bool TZWAVEChannel::UpdateAvailability()
+{
+    return (WbMsw->*ReadAvailabilityCallback)(Availability);
 }
