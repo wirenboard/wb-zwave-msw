@@ -40,7 +40,7 @@ TFastModbus FastModbus(&Serial1);
 TZWAVESensor ZwaveSensor(&WbMsw);
 TFWUpdater FwUpdater(&WbMsw);
 
-enum TZUnoState
+enum class TZUnoState
 {
     ZUNO_SCAN_ADDRESS_INITIALIZE,
     ZUNO_SCAN_ADDRESS,
@@ -50,7 +50,7 @@ enum TZUnoState
     ZUNO_POLL_CHANNELS
 };
 
-enum TZUnoState ZUnoState;
+TZUnoState ZUnoState;
 
 // ZUNO callback function return group names. "Dynamic" style is used also
 // Only those groups for which there are corresponding channels are created in the device
@@ -177,7 +177,7 @@ void loop()
             break;
         }
         case TZUnoState::ZUNO_POLL_CHANNELS: {
-            if (ZwaveSensor.ProcessChannels() != TZWAVEProcessResult::ZWAVE_PROCESS_OK) {
+            if (ZwaveSensor.ProcessChannels() != TZWAVESensor::Result::ZWAVE_PROCESS_OK) {
                 WbMsw.ClosePort();
                 ZUnoState = TZUnoState::ZUNO_SCAN_ADDRESS_INITIALIZE;
                 break;

@@ -87,17 +87,27 @@ bool TWBMSWSensor::GetFwVersion(uint16_t& version)
     return true;
 }
 
-bool TWBMSWSensor::GetTemperature(int16_t& temperature)
+bool TWBMSWSensor::GetTemperature(int64_t& temperature)
 {
-    return readInputRegisters(Address, WBMSW_REG_TEMPERATURE, 1, &temperature);
+    int16_t temperatureTmp;
+    if (readInputRegisters(Address, WBMSW_REG_TEMPERATURE, 1, &temperatureTmp)) {
+        temperature = temperatureTmp;
+        return true;
+    }
+    return false;
 }
 
-bool TWBMSWSensor::GetHumidity(uint16_t& humidity)
+bool TWBMSWSensor::GetHumidity(int64_t& humidity)
 {
-    return readInputRegisters(Address, WBMSW_REG_HUMIDITY, 1, &humidity);
+    int16_t humidityTmp;
+    if (readInputRegisters(Address, WBMSW_REG_HUMIDITY, 1, &humidityTmp)) {
+        humidity = humidityTmp;
+        return true;
+    }
+    return false;
 }
 
-bool TWBMSWSensor::GetLuminance(uint32_t& luminance)
+bool TWBMSWSensor::GetLuminance(int64_t& luminance)
 {
     uint16_t lumen[2];
     if (!readInputRegisters(Address, WBMSW_REG_LUMINANCE, (sizeof(lumen) / sizeof(lumen[0])), lumen)) {
@@ -107,9 +117,14 @@ bool TWBMSWSensor::GetLuminance(uint32_t& luminance)
     return true;
 }
 
-bool TWBMSWSensor::GetCO2(uint16_t& co2)
+bool TWBMSWSensor::GetCO2(int64_t& co2)
 {
-    return readInputRegisters(Address, WBMSW_REG_CO2, 1, &co2);
+    uint16_t co2Tmp;
+    if (readInputRegisters(Address, WBMSW_REG_CO2, 1, &co2Tmp)) {
+        co2 = co2Tmp;
+        return true;
+    }
+    return false;
 }
 
 bool TWBMSWSensor::GetCO2Status(bool& status)
@@ -133,19 +148,34 @@ bool TWBMSWSensor::SetCO2Autocalibration(bool status)
     return writeSingleRegisters(Address, WBMSW_REG_CO2_AUTO_CALIB, value);
 }
 
-bool TWBMSWSensor::GetVoc(uint16_t& voc)
+bool TWBMSWSensor::GetVoc(int64_t& voc)
 {
-    return readInputRegisters(Address, WBMSW_REG_VOC, 1, &voc);
+    uint16_t vocTmp;
+    if (readInputRegisters(Address, WBMSW_REG_VOC, 1, &vocTmp)) {
+        voc = vocTmp;
+        return true;
+    }
+    return false;
 }
 
-bool TWBMSWSensor::GetNoiseLevel(uint16_t& noiseLevel)
+bool TWBMSWSensor::GetNoiseLevel(int64_t& noiseLevel)
 {
-    return readInputRegisters(Address, WBMSW_REG_NOIZE, 1, &noiseLevel);
+    int16_t noiseLevelTmp;
+    if (readInputRegisters(Address, WBMSW_REG_NOIZE, 1, &noiseLevelTmp)) {
+        noiseLevel = noiseLevelTmp;
+        return true;
+    }
+    return false;
 }
 
-bool TWBMSWSensor::GetMotion(uint16_t& motion)
+bool TWBMSWSensor::GetMotion(int64_t& motion)
 {
-    return readInputRegisters(Address, WBMSW_REG_MOTION, 1, &motion); // 0x0118 - max
+    uint16_t motionTmp;
+    if (readInputRegisters(Address, WBMSW_REG_MOTION, 1, &motionTmp)) { // 0x0118 - max
+        motion = motionTmp;
+        return true;
+    }
+    return false;
 }
 
 bool TWBMSWSensor::SetFwMode(void)
@@ -202,19 +232,19 @@ bool TWBMSWSensor::FwUpdate(const void* buffer, size_t len, uint16_t timeoutMs)
     return true;
 }
 
-enum TWBMSWSensorAvailability TWBMSWSensor::ConvertAvailability(uint16_t availability)
+TWBMSWSensor::Availability TWBMSWSensor::ConvertAvailability(uint16_t availability) const
 {
     switch (availability) {
         case 0:
-            return TWBMSWSensorAvailability::WB_MSW_SENSOR_UNAVAILABLE;
+            return TWBMSWSensor::Availability::WB_MSW_SENSOR_UNAVAILABLE;
         case 1:
-            return TWBMSWSensorAvailability::WB_MSW_SENSOR_AVAILABLE;
+            return TWBMSWSensor::Availability::WB_MSW_SENSOR_AVAILABLE;
         default:
-            return TWBMSWSensorAvailability::WB_MSW_SENSOR_UNKNOWN;
+            return TWBMSWSensor::Availability::WB_MSW_SENSOR_UNKNOWN;
     }
 }
 
-bool TWBMSWSensor::ReadAvailabilityRegister(enum TWBMSWSensorAvailability& availability, uint16_t registerAddress)
+bool TWBMSWSensor::ReadAvailabilityRegister(TWBMSWSensor::Availability& availability, uint16_t registerAddress)
 {
     uint16_t availabilityFlag;
     if (readInputRegisters(Address, registerAddress, 1, &availabilityFlag)) {
@@ -224,31 +254,31 @@ bool TWBMSWSensor::ReadAvailabilityRegister(enum TWBMSWSensorAvailability& avail
     return false;
 }
 
-bool TWBMSWSensor::GetTemperatureAvailability(enum TWBMSWSensorAvailability& availability)
+bool TWBMSWSensor::GetTemperatureAvailability(TWBMSWSensor::Availability& availability)
 {
     return ReadAvailabilityRegister(availability, WBMSW_REG_TEMPERATURE_AVAIL);
 }
-bool TWBMSWSensor::GetHumidityAvailability(enum TWBMSWSensorAvailability& availability)
+bool TWBMSWSensor::GetHumidityAvailability(TWBMSWSensor::Availability& availability)
 {
     return ReadAvailabilityRegister(availability, WBMSW_REG_HUMIDITY_AVAIL);
 }
-bool TWBMSWSensor::GetLuminanceAvailability(enum TWBMSWSensorAvailability& availability)
+bool TWBMSWSensor::GetLuminanceAvailability(TWBMSWSensor::Availability& availability)
 {
     return ReadAvailabilityRegister(availability, WBMSW_REG_LUMINANCE_AVAIL);
 }
-bool TWBMSWSensor::GetCO2Availability(enum TWBMSWSensorAvailability& availability)
+bool TWBMSWSensor::GetCO2Availability(TWBMSWSensor::Availability& availability)
 {
     return ReadAvailabilityRegister(availability, WBMSW_REG_CO2_AVAIL);
 }
-bool TWBMSWSensor::GetVocAvailability(enum TWBMSWSensorAvailability& availability)
+bool TWBMSWSensor::GetVocAvailability(TWBMSWSensor::Availability& availability)
 {
     return ReadAvailabilityRegister(availability, WBMSW_REG_VOC_AVAIL);
 }
-bool TWBMSWSensor::GetNoiseLevelAvailability(enum TWBMSWSensorAvailability& availability)
+bool TWBMSWSensor::GetNoiseLevelAvailability(TWBMSWSensor::Availability& availability)
 {
     return ReadAvailabilityRegister(availability, WBMSW_REG_NOIZE_AVAIL);
 }
-bool TWBMSWSensor::GetMotionAvailability(enum TWBMSWSensorAvailability& availability)
+bool TWBMSWSensor::GetMotionAvailability(TWBMSWSensor::Availability& availability)
 {
     return ReadAvailabilityRegister(availability, WBMSW_REG_MOTION_AVAIL);
 }
