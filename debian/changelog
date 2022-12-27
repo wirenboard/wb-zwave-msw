@@ -1,3 +1,9 @@
+wb-zwave-msw (1.1) stable; urgency=medium
+
+  * Add device data receiving instruction 
+
+ -- Ekaterina Volkova <ekaterina.volkova@wirenboard.ru>  Tue, 27 Dec 2022 22:08:42 +0300
+
 wb-zwave-msw (1.0) stable; urgency=medium
 
   * Add build and flash instructions 
