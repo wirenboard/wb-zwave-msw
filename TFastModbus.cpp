@@ -97,7 +97,7 @@ uint8_t TFastModbus::ReadFastModbusPacket(uint8_t* buffer, uint8_t bufferLength,
     return fastModbusPacketLength;
 }
 
-bool TFastModbus::CheckFastModbusPacket(uint8_t* packet, uint8_t packetlength)
+bool TFastModbus::CheckFastModbusPacket(const uint8_t* packet, uint8_t packetlength) const
 {
     uint16_t checkCrc = CrcClass::crc16_modbus(packet, packetlength - 2);
     uint16_t crc = (packet[packetlength - 1] << 8) + packet[packetlength - 2];
@@ -129,10 +129,10 @@ bool TFastModbus::CheckFastModbusPacket(uint8_t* packet, uint8_t packetlength)
     return true;
 }
 
-bool TFastModbus::ParseFastModbusPacket(uint8_t* packet,
+bool TFastModbus::ParseFastModbusPacket(const uint8_t* packet,
                                         uint8_t packetlength,
                                         uint8_t* serialNumber,
-                                        uint8_t* modbusAddress)
+                                        uint8_t* modbusAddress) const
 {
     // Check packet subcommand
     switch (packet[FAST_MODBUS_SCAN_SUBCOMMAND_POS]) {
