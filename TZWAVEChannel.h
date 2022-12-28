@@ -59,7 +59,8 @@ public:
     void SetTriggered(bool triggered);
 
     bool GetAutocalibration() const;
-    void SetAutocalibration(bool autocalibration);
+    bool SetAutocalibration(bool autocalibration);
+    bool SetPowerOn();
 
     TZWAVEChannel::State GetState() const;
     TWBMSWSensor::Availability GetAvailability();
