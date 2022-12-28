@@ -160,14 +160,18 @@ bool TZWAVESensor::ChannelsInitialize()
             if (Channels[i].GetAvailability() == TWBMSWSensor::Availability::WB_MSW_SENSOR_UNKNOWN) {
                 Channels[i].UpdateAvailability();
                 if (Channels[i].GetAvailability() == TWBMSWSensor::Availability::WB_MSW_SENSOR_AVAILABLE) {
-                    if (Channels[i].GetType() == TZWAVEChannel::Type::ZWAVE_CHANNEL_TYPE_CO2) {
-                        bool co2Enable;
-                        if (!WbMsw->GetCO2Status(co2Enable) || (!co2Enable && (!WbMsw->SetCO2Status(true))))
-                            break;
+
+                    if ((Channels[i].GetType() == TZWAVEChannel::Type::ZWAVE_CHANNEL_TYPE_CO2) &&
+                        (!Channels[i].SetPowerOn() ||
+                         !Channels[i].SetAutocalibration(GetParameterValue(WB_MSW_CONFIG_PARAMETER_CO2_AUTO))))
+                    {
+                        break;
                     }
+
                     if (Channels[i].GetType() == TZWAVEChannel::Type::ZWAVE_CHANNEL_TYPE_MOTION) {
                         MotionChannelPtr = &Channels[i];
                     }
+
                     DEBUG(Channels[i].GetName());
                     DEBUG(" CHANNEL AVAILABLE\n");
                     Channels[i].Enable();
@@ -499,11 +503,9 @@ TZWAVESensor::Result TZWAVESensor::ProcessCommonChannel(TZWAVEChannel& channel)
 
     if (channel.GetType() == TZWAVEChannel::Type::ZWAVE_CHANNEL_TYPE_CO2) {
         // Check if automatic calibration is needed
-        // Default autocalibration is false;
         uint8_t autocalibration = GetParameterValue(WB_MSW_CONFIG_PARAMETER_CO2_AUTO);
-        if (channel.GetAutocalibration() != autocalibration) {
-            channel.SetAutocalibration(autocalibration);
-            WbMsw->SetCO2Autocalibration(autocalibration);
+        if ((channel.GetAutocalibration() != autocalibration) && !channel.SetAutocalibration(autocalibration)) {
+            return TZWAVESensor::Result::ZWAVE_PROCESS_MODBUS_ERROR;
         }
     }
 
@@ -532,7 +534,7 @@ TZWAVESensor::Result TZWAVESensor::ProcessMotionChannel(TZWAVEChannel& channel)
     uint32_t motionPeriod = (uint32_t)GetParameterValue(WB_MSW_CONFIG_PARAMETER_MOTION_TIME) * 1000;
 
     int64_t currentMotion;
-    if (!WbMsw->GetMotion(currentMotion)) {
+    if (!channel.ReadValueFromSensor(currentMotion)) {
         return TZWAVESensor::Result::ZWAVE_PROCESS_MODBUS_ERROR;
     }
 

@@ -62,14 +62,17 @@ int32_t TZWAVEChannel::GetErrorValue() const
 {
     return ErrorValue;
 }
+
 bool TZWAVEChannel::GetEnabled() const
 {
     return Enabled;
 }
+
 void TZWAVEChannel::Enable()
 {
     Enabled = true;
 }
+
 TZWAVEChannel::Type TZWAVEChannel::GetType() const
 {
     return ChannelType;
@@ -128,9 +131,20 @@ bool TZWAVEChannel::GetAutocalibration() const
     return Autocalibration;
 }
 
-void TZWAVEChannel::SetAutocalibration(bool autocalibration)
+bool TZWAVEChannel::SetAutocalibration(bool autocalibration)
 {
     Autocalibration = autocalibration;
+    return WbMsw->SetCO2Autocalibration(autocalibration);
+}
+
+bool TZWAVEChannel::SetPowerOn()
+{
+    if (ChannelType == TZWAVEChannel::Type::ZWAVE_CHANNEL_TYPE_CO2) {
+        bool co2Enable;
+        if (WbMsw->GetCO2Status(co2Enable) && (co2Enable || WbMsw->SetCO2Status(true)))
+            return true;
+    }
+    return false;
 }
 
 TZWAVEChannel::State TZWAVEChannel::GetState() const
