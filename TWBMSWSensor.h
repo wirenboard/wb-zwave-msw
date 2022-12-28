@@ -10,7 +10,7 @@ public:
     bool OpenPort(size_t speed, uint32_t config, uint8_t rx, uint8_t tx);
     void ClosePort(void);
     void SetModbusAddress(uint8_t address);
-    bool GetFwVersion(uint32_t* version);
+    bool GetFwVersion(uint16_t& version);
     bool GetTemperature(int16_t& temperature);
     bool GetHumidity(uint16_t& humidity);
     bool GetLuminance(uint32_t& luminance);

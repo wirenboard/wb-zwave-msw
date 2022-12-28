@@ -19,6 +19,8 @@
 #define WBMSW_FIRMWARE_INFO_SIZE 32
 #define WBMSW_FIRMWARE_DATA_SIZE 136
 
+#define WBMSW_VERSION_NUMBER_LENGTH 16
+
 /* Public Constructors */
 TWBMSWSensor::TWBMSWSensor(HardwareSerial* hardwareSerial, uint16_t timeoutMs)
     : ModBusRtuClass(hardwareSerial, timeoutMs)
@@ -42,37 +44,39 @@ void TWBMSWSensor::SetModbusAddress(uint8_t address)
     this->Address = address;
 }
 
-bool TWBMSWSensor::GetFwVersion(uint32_t* version)
+bool TWBMSWSensor::GetFwVersion(uint16_t& version)
 {
-    uint16_t fw_v[16];
+    uint16_t versionStr[WBMSW_VERSION_NUMBER_LENGTH];
 
     if (!ModBusRtuClass::readInputRegisters(this->Address,
                                             WBMSW_REG_FW_VERSION,
-                                            (sizeof(fw_v) / sizeof(fw_v[0])),
-                                            &fw_v[0]))
+                                            WBMSW_VERSION_NUMBER_LENGTH,
+                                            versionStr))
     {
         return (false);
     }
 
-    uint32_t out = 0;
-    uint32_t number = 0;
+    DEBUG("FW:                 ");
+    for (size_t i = 0; i < WBMSW_VERSION_NUMBER_LENGTH; i++) {
+        if (versionStr[i] != 0) {
+            DEBUG((char)versionStr[i]);
+        }
+    }
+    DEBUG("\n");
+
     size_t i = 0;
-    size_t count = 0;
-    while (fw_v[i]) {
-        if (fw_v[i] == '.') {
-            out = (out << 8) | number;
-            number = 0;
-            count = 0;
+    size_t j = 0;
+    uint8_t semanticVersion[2];
+    memset(semanticVersion, 0, 2);
+    while ((i < WBMSW_VERSION_NUMBER_LENGTH) && (j < sizeof(semanticVersion))) {
+        if (versionStr[i] == '.') {
+            j++;
         } else {
-            number = number * 10 + (fw_v[i] - '0');
-            count++;
+            semanticVersion[j] = semanticVersion[j] * 10 + (versionStr[i] - '0');
         }
         i++;
     }
-    if (count) {
-        out = (out << 8) | number;
-    }
-    *version = out;
+    version = (semanticVersion[0] << 8) | semanticVersion[1];
     return true;
 }
 

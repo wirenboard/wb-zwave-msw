@@ -134,7 +134,7 @@ void loop()
             break;
         }
         case TZUnoState::ZUNO_SENSOR_INITIALIZE: {
-            uint32_t version;
+            uint16_t version;
             if (FwUpdater.GetFirmvareVersion(version)) {
                 g_OtaDesriptor.version = version;
                 ZUnoState = TZUnoState::ZUNO_CHANNELS_INITIALIZE;
@@ -185,7 +185,7 @@ void loop()
 
             // If a new firmware came on the radio, send it to the bootloder of the WB chip
             if (FwUpdater.CheckNewFirmwareAvailable() && FwUpdater.UpdateFirmware()) {
-                uint32_t version;
+                uint16_t version;
                 FwUpdater.GetFirmvareVersion(version);
                 g_OtaDesriptor.version = version;
             }

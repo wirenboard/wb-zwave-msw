@@ -14,16 +14,9 @@ void TFWUpdater::NewFirmwareNotification(uint32_t newFirmwareSize)
     NewFirmware = true;
 }
 
-bool TFWUpdater::GetFirmvareVersion(uint32_t& version)
+bool TFWUpdater::GetFirmvareVersion(uint16_t& version)
 {
-    if (!WbMsw->GetFwVersion(&version)) {
-        return false;
-    }
-
-    DEBUG("FW:                 ");
-    DEBUG(version, 16);
-    DEBUG("\n");
-    return true;
+    return WbMsw->GetFwVersion(version);
 }
 
 bool TFWUpdater::CheckNewFirmwareAvailable()
