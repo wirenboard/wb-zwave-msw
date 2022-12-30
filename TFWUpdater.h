@@ -6,7 +6,7 @@ class TFWUpdater
 public:
     TFWUpdater(TWBMSWSensor* wbMsw);
     void NewFirmwareNotification(uint32_t newFirmwareSize);
-    bool GetFirmvareVersion(uint32_t& version);
+    bool GetFirmvareVersion(uint16_t& version);
     bool CheckNewFirmwareAvailable();
     bool UpdateFirmware();
 
