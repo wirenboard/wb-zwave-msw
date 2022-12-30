@@ -66,8 +66,7 @@ bool TWBMSWSensor::GetFwVersion(uint16_t& version)
 
     size_t i = 0;
     size_t j = 0;
-    uint8_t semanticVersion[2];
-    memset(semanticVersion, 0, 2);
+    uint8_t semanticVersion[2]={0};
     while ((i < WBMSW_VERSION_NUMBER_LENGTH) && (j < sizeof(semanticVersion))) {
         if (versionStr[i] == '.') {
             j++;
