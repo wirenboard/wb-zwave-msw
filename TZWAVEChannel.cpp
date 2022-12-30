@@ -5,8 +5,8 @@ TZWAVEChannel::TZWAVEChannel()
 {
     this->ReportedValue = 0;
     this->Triggered = false;
-    this->ValueInitializationState = TZWAVEChannel::State::ZWAVE_CHANNEL_UNINITIALIZED;
-    this->Availability = TWBMSWSensor::Availability::WB_MSW_SENSOR_UNKNOWN;
+    this->ValueInitializationState = TZWAVEChannel::State::UNINITIALIZED;
+    this->Availability = TWBMSWSensor::Availability::UNKNOWN;
     this->Enabled = false;
 }
 
@@ -114,7 +114,7 @@ int64_t TZWAVEChannel::GetReportedValue() const
 void TZWAVEChannel::SetReportedValue(int64_t reportedValue)
 {
     ReportedValue = reportedValue;
-    ValueInitializationState = TZWAVEChannel::State::ZWAVE_CHANNEL_INITIALIZED;
+    ValueInitializationState = TZWAVEChannel::State::INITIALIZED;
 }
 
 bool TZWAVEChannel::GetTriggered() const
@@ -139,7 +139,7 @@ bool TZWAVEChannel::SetAutocalibration(bool autocalibration)
 
 bool TZWAVEChannel::SetPowerOn()
 {
-    if (ChannelType == TZWAVEChannel::Type::ZWAVE_CHANNEL_TYPE_CO2) {
+    if (ChannelType == TZWAVEChannel::Type::CO2) {
         bool co2Enable;
         if (WbMsw->GetCO2Status(co2Enable) && (co2Enable || WbMsw->SetCO2Status(true)))
             return true;

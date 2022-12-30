@@ -9,7 +9,7 @@
 #define WBMSW_COIL_CO2_STAUS 0x0003
 #define WBMSW_REG_CO2_AUTO_CALIB 0x005F
 #define WBMSW_REG_VOC 0x000B
-#define WBMSW_REG_NOIZE 0x0003
+#define WBMSW_REG_NOISE 0x0003
 #define WBMSW_REG_MOTION 0x011B
 #define WBMSW_REG_FW_MODE 0x0081
 #define WBMSW_REG_FW_INFO 0x1000
@@ -24,7 +24,7 @@
 #define WBMSW_REG_LUMINANCE_AVAIL 0x0172
 #define WBMSW_REG_CO2_AVAIL 0x0174
 #define WBMSW_REG_VOC_AVAIL 0x0173
-#define WBMSW_REG_NOIZE_AVAIL 0x0176
+#define WBMSW_REG_NOISE_AVAIL 0x0176
 #define WBMSW_REG_MOTION_AVAIL 0x0175
 
 /* Public Constructors */
@@ -158,7 +158,7 @@ bool TWBMSWSensor::GetVoc(int64_t& voc)
 bool TWBMSWSensor::GetNoiseLevel(int64_t& noiseLevel)
 {
     int16_t noiseLevelTmp;
-    if (readInputRegisters(Address, WBMSW_REG_NOIZE, 1, &noiseLevelTmp)) {
+    if (readInputRegisters(Address, WBMSW_REG_NOISE, 1, &noiseLevelTmp)) {
         noiseLevel = noiseLevelTmp;
         return true;
     }
@@ -233,11 +233,11 @@ TWBMSWSensor::Availability TWBMSWSensor::ConvertAvailability(uint16_t availabili
 {
     switch (availability) {
         case 0:
-            return TWBMSWSensor::Availability::WB_MSW_SENSOR_UNAVAILABLE;
+            return TWBMSWSensor::Availability::UNAVAILABLE;
         case 1:
-            return TWBMSWSensor::Availability::WB_MSW_SENSOR_AVAILABLE;
+            return TWBMSWSensor::Availability::AVAILABLE;
         default:
-            return TWBMSWSensor::Availability::WB_MSW_SENSOR_UNKNOWN;
+            return TWBMSWSensor::Availability::UNKNOWN;
     }
 }
 
@@ -273,7 +273,7 @@ bool TWBMSWSensor::GetVocAvailability(TWBMSWSensor::Availability& availability)
 }
 bool TWBMSWSensor::GetNoiseLevelAvailability(TWBMSWSensor::Availability& availability)
 {
-    return ReadAvailabilityRegister(availability, WBMSW_REG_NOIZE_AVAIL);
+    return ReadAvailabilityRegister(availability, WBMSW_REG_NOISE_AVAIL);
 }
 bool TWBMSWSensor::GetMotionAvailability(TWBMSWSensor::Availability& availability)
 {

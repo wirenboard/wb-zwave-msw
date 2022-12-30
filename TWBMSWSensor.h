@@ -8,9 +8,9 @@ class TWBMSWSensor: private ModBusRtuClass
 public:
     enum class Availability
     {
-        WB_MSW_SENSOR_AVAILABLE,
-        WB_MSW_SENSOR_UNAVAILABLE,
-        WB_MSW_SENSOR_UNKNOWN
+        AVAILABLE,
+        UNAVAILABLE,
+        UNKNOWN
     };
 
     typedef bool (TWBMSWSensor::*GetAvailabilityCallback)(TWBMSWSensor::Availability& availability);

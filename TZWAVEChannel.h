@@ -6,19 +6,19 @@ class TZWAVEChannel
 public:
     enum class State
     {
-        ZWAVE_CHANNEL_UNINITIALIZED,
-        ZWAVE_CHANNEL_INITIALIZED
+        UNINITIALIZED,
+        INITIALIZED
     };
 
     enum class Type
     {
-        ZWAVE_CHANNEL_TYPE_TEMPERATURE,
-        ZWAVE_CHANNEL_TYPE_HUMIDITY,
-        ZWAVE_CHANNEL_TYPE_LUMEN,
-        ZWAVE_CHANNEL_TYPE_CO2,
-        ZWAVE_CHANNEL_TYPE_VOC,
-        ZWAVE_CHANNEL_TYPE_NOISE_LEVEL,
-        ZWAVE_CHANNEL_TYPE_MOTION,
+        TEMPERATURE,
+        HUMIDITY,
+        LUMEN,
+        CO2,
+        VOC,
+        NOISE_LEVEL,
+        MOTION,
     };
     static const int CHANNEL_TYPES_COUNT = 7;
 
