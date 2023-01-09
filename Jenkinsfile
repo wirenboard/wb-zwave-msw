@@ -2,7 +2,7 @@ pipeline {
     agent {
         dockerfile {
             filename 'Dockerfile'
-            args '-v $(pwd):/wb-zwave-msw -w /wb-zwave-msw --rm'
+            args '-v ${dir()}:/wb-zwave-msw -w /wb-zwave-msw --rm'
         }
     }
     stages {
