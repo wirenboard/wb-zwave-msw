@@ -4,6 +4,9 @@ ARM_GCC_PATH = /gcc
 ARM_GCC_VERSION = 7.2.1
 LIBCLANG_PATH = /libclang
 
+# zme_make creates ~/ZMEStorage folder with ZUNOToolchain-*.log
+export HOME=$(BUILD_DIR)
+
 all:
 	mkdir -p $(BUILD_DIR)
 	zme_make build WbMsw.ino \
