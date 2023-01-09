@@ -286,11 +286,11 @@ void TZWAVESensor::SetChannelHandlers()
         if (Channels[i].GetEnabled()) {
             uint8_t dataSize;
             switch (Channels[i].GetType()) {
-                case (TZWAVEChannel::Type::LUMEN):
+                case TZWAVEChannel::Type::LUMEN:
                     dataSize = SENSOR_MULTILEVEL_SIZE_FOUR_BYTES;
                     break;
 
-                case (TZWAVEChannel::Type::MOTION):
+                case TZWAVEChannel::Type::MOTION:
                     dataSize = SENSOR_MULTILEVEL_SIZE_ONE_BYTE;
                     break;
 
