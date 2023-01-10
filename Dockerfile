@@ -7,7 +7,7 @@ ENV ARM_GCC_VERSION=7.2.1
 ENV LIBCLANG_PATH=/libclang
 ENV PATH="${PATH}:/zme_make"
 
-RUN apt update && apt install -y make unzip wget && \
+RUN apt-get update && apt-get install -y make unzip wget && \
     wget -O - http://rus.z-wave.me/files/z-uno/g2/tc/arm-none-eabi-gcc-7_2_4-linux64.tar.gz | tar -xz -C / && \
     wget -O - http://rus.z-wave.me/files/z-uno/g2/tc/libclang_11_0_1-linux64.tar.gz | tar -xz -C / && \
     wget -O - https://github.com/Z-Wave-Me/Z-Uno-G2-Core/archive/refs/tags/ZUNO_CORE_BETA_03_00_09_B16.tar.gz | tar -xz -C / && \

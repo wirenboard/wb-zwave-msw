@@ -4,12 +4,10 @@ ARM_GCC_PATH = /gcc
 ARM_GCC_VERSION = 7.2.1
 LIBCLANG_PATH = /libclang
 
-# zme_make creates ~/ZMEStorage folder with ZUNOToolchain-*.log
-export HOME=$(BUILD_DIR)
-
 all:
 	mkdir -p $(BUILD_DIR)
-	zme_make build WbMsw.ino \
+	# zme_make creates ~/ZMEStorage folder with ZUNOToolchain-*.log
+	HOME=$(BUILD_DIR) zme_make build WbMsw.ino \
 		-S $(CORE_PATH)/hardware/arduino/zunoG2/cores \
 		-S $(CORE_PATH)/hardware/arduino/zunoG2/libraries \
 		-S $(ARM_GCC_PATH)/lib/gcc/arm-none-eabi/$(ARM_GCC_VERSION)/include \
