@@ -4,7 +4,12 @@ ARM_GCC_PATH = /gcc
 ARM_GCC_VERSION = 7.2.1
 LIBCLANG_PATH = /libclang
 
+DEB_VERSION := $(shell head -1 debian/changelog | awk '{print $$2}' | sed 's/[\(\)]//g')
+SKETCH_VERSION := $(shell grep SKETCH_VERSION WbMsw.ino | awk -F= '{print $$2}')
+
 all:
+	@echo "Deb version: $(DEB_VERSION)"
+	@echo "Sketch version: $(SKETCH_VERSION)"
 	mkdir -p $(BUILD_DIR)
 	# zme_make creates ~/ZMEStorage folder with ZUNOToolchain-*.log
 	HOME=$(BUILD_DIR) zme_make build WbMsw.ino \
