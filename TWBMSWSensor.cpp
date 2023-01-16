@@ -186,26 +186,29 @@ bool TWBMSWSensor::SetFwMode(void)
 
 bool TWBMSWSensor::FwWriteInfo(uint16_t* info)
 {
-    uint16_t infoData[WBMSW_FIRMWARE_INFO_SIZE / 2];
-    for (size_t i = 0; i < WBMSW_FIRMWARE_INFO_SIZE / 2; i++) {
+    uint16_t infoData[WBMSW_FIRMWARE_INFO_SIZE / sizeof(uint16_t)];
+    for (size_t i = 0; i < WBMSW_FIRMWARE_INFO_SIZE / sizeof(uint16_t); i++) {
         infoData[i] = lowByte(info[i]) << 8 | highByte(info[i]);
     }
-    return writeMultipleRegisters(Address, WBMSW_REG_FW_INFO, WBMSW_FIRMWARE_INFO_SIZE / 2, infoData);
+    return writeMultipleRegisters(Address, WBMSW_REG_FW_INFO, WBMSW_FIRMWARE_INFO_SIZE / sizeof(uint16_t), infoData);
 }
 
 bool TWBMSWSensor::FwWriteData(uint16_t* data)
 {
-    uint16_t firmwareData[WBMSW_FIRMWARE_DATA_SIZE / 2];
-    for (size_t i = 0; i < WBMSW_FIRMWARE_DATA_SIZE / 2; i++) {
+    uint16_t firmwareData[WBMSW_FIRMWARE_DATA_SIZE / sizeof(uint16_t)];
+    for (size_t i = 0; i < WBMSW_FIRMWARE_DATA_SIZE / sizeof(uint16_t); i++) {
         firmwareData[i] = lowByte(data[i]) << 8 | highByte(data[i]);
     }
-    return writeMultipleRegisters(Address, WBMSW_REG_FW_DATA, WBMSW_FIRMWARE_DATA_SIZE / 2, firmwareData);
+    return writeMultipleRegisters(Address,
+                                  WBMSW_REG_FW_DATA,
+                                  WBMSW_FIRMWARE_DATA_SIZE / sizeof(uint16_t),
+                                  firmwareData);
 }
 
 bool TWBMSWSensor::FwUpdate(uint16_t* buffer, size_t length, uint16_t timeoutMs)
 {
     // len in words, WBMSW_FIRMWARE_INFO_SIZE in bytes
-    if (length < WBMSW_FIRMWARE_INFO_SIZE / 2) {
+    if (length < WBMSW_FIRMWARE_INFO_SIZE / sizeof(uint16_t)) {
         return false;
     }
     DEBUG("FW size: ");
@@ -225,16 +228,16 @@ bool TWBMSWSensor::FwUpdate(uint16_t* buffer, size_t length, uint16_t timeoutMs)
         return false;
     }
     DEBUG("Write info\n");
-    data += WBMSW_FIRMWARE_INFO_SIZE / 2;
-    length -= WBMSW_FIRMWARE_INFO_SIZE / 2;
+    data += WBMSW_FIRMWARE_INFO_SIZE / sizeof(uint16_t);
+    length -= WBMSW_FIRMWARE_INFO_SIZE / sizeof(uint16_t);
 
     DEBUG("Write data\n");
     while (length) {
         if (!FwWriteData(data)) {
             return false;
         }
-        data += WBMSW_FIRMWARE_DATA_SIZE / 2;
-        length -= WBMSW_FIRMWARE_DATA_SIZE / 2;
+        data += WBMSW_FIRMWARE_DATA_SIZE / sizeof(uint16_t);
+        length -= WBMSW_FIRMWARE_DATA_SIZE / sizeof(uint16_t);
     }
 
     DEBUG("Write finish\n");

@@ -26,7 +26,7 @@ bool TFWUpdater::CheckNewFirmwareAvailable()
 
 bool TFWUpdater::UpdateFirmware()
 {
-    if (WbMsw->FwUpdate((uint16_t*)WB_MSW_UPDATE_ADDRESS, FirmwareSize / 2)) {
+    if (WbMsw->FwUpdate((uint16_t*)WB_MSW_UPDATE_ADDRESS, FirmwareSize / sizeof(uint16_t))) {
         NewFirmware = false;
         return true;
     }
