@@ -10,6 +10,7 @@ pipeline {
             }
             steps {
                 sh 'make'
+                stash includes: '**/build/WbMsw/*.bin', name: 'fw'
             }
             post {
                 success {
@@ -23,7 +24,8 @@ pipeline {
                 withCredentials([usernamePassword(credentialsId: 'jenkins-github-token',
                                                   passwordVariable: 'GITHUB_TOKEN',
                                                   usernameVariable: 'DUMMY')]) {
-                    sh "wbci-git -v -t $GITHUB_TOKEN publish-release build/WbMsw/*.bin"
+                    unstash 'fw'
+                    sh 'wbci-git -v -t $GITHUB_TOKEN publish-release build/WbMsw/*.bin'
                 }
             }
         }
