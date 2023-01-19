@@ -1,6 +1,7 @@
 
 #include "TWBMSWSensor.h"
 #include "DebugOutput.h"
+#include "WbMsw.h"
 
 #define WBMSW_REG_TEMPERATURE 0x0004
 #define WBMSW_REG_HUMIDITY 0x0005
@@ -74,7 +75,7 @@ bool TWBMSWSensor::GetFwVersion(uint16_t& version)
 
     size_t i = 0;
     size_t j = 0;
-    uint8_t semanticVersion[2]={0};
+    uint8_t semanticVersion[2] = {0};
     while ((i < WBMSW_VERSION_NUMBER_LENGTH) && (j < sizeof(semanticVersion))) {
         if (versionStr[i] == '.') {
             j++;
@@ -183,49 +184,60 @@ bool TWBMSWSensor::SetFwMode(void)
     return writeSingleRegisters(Address, WBMSW_REG_FW_MODE, 1);
 }
 
-bool TWBMSWSensor::FwWriteInfo(uint8_t* info)
+bool TWBMSWSensor::FwWriteInfo(uint16_t* info)
 {
-    return writeMultipleRegisters(Address, WBMSW_REG_FW_INFO, WBMSW_FIRMWARE_INFO_SIZE / 2, info);
+    uint16_t infoData[WBMSW_FIRMWARE_INFO_SIZE / sizeof(uint16_t)];
+    for (size_t i = 0; i < WBMSW_FIRMWARE_INFO_SIZE / sizeof(uint16_t); i++) {
+        infoData[i] = lowByte(info[i]) << 8 | highByte(info[i]);
+    }
+    return writeMultipleRegisters(Address, WBMSW_REG_FW_INFO, WBMSW_FIRMWARE_INFO_SIZE / sizeof(uint16_t), infoData);
 }
 
-bool TWBMSWSensor::FwWriteData(uint8_t* data)
+bool TWBMSWSensor::FwWriteData(uint16_t* data)
 {
-    return writeMultipleRegisters(Address, WBMSW_REG_FW_DATA, WBMSW_FIRMWARE_DATA_SIZE / 2, data);
+    uint16_t firmwareData[WBMSW_FIRMWARE_DATA_SIZE / sizeof(uint16_t)];
+    for (size_t i = 0; i < WBMSW_FIRMWARE_DATA_SIZE / sizeof(uint16_t); i++) {
+        firmwareData[i] = lowByte(data[i]) << 8 | highByte(data[i]);
+    }
+    return writeMultipleRegisters(Address,
+                                  WBMSW_REG_FW_DATA,
+                                  WBMSW_FIRMWARE_DATA_SIZE / sizeof(uint16_t),
+                                  firmwareData);
 }
 
-bool TWBMSWSensor::FwUpdate(const void* buffer, size_t len, uint16_t timeoutMs)
+bool TWBMSWSensor::FwUpdate(uint16_t* buffer, size_t length, uint16_t timeoutMs)
 {
-    uint8_t* data;
-    if (len < WBMSW_FIRMWARE_INFO_SIZE) {
+    // len in words, WBMSW_FIRMWARE_INFO_SIZE in bytes
+    if (length < WBMSW_FIRMWARE_INFO_SIZE / sizeof(uint16_t)) {
         return false;
     }
     DEBUG("FW size: ");
-    DEBUG(len);
+    DEBUG(length * 2);
     DEBUG("\n");
 
     if (!this->SetFwMode()) {
+        DEBUG("ERROR Supposed to be alive, but found in bootloader");
         return false;
     }
-    DEBUG("Wait ");
-    DEBUG(timeoutMs);
-    DEBUG(" ms\n");
 
     delay(timeoutMs);
-    data = (uint8_t*)buffer;
+    uint16_t* data = buffer;
+
     if (!this->FwWriteInfo(data)) {
+        DEBUG("ERROR Unsuccesful info block write");
         return false;
     }
     DEBUG("Write info\n");
-    data += WBMSW_FIRMWARE_INFO_SIZE;
-    len -= WBMSW_FIRMWARE_INFO_SIZE;
+    data += WBMSW_FIRMWARE_INFO_SIZE / sizeof(uint16_t);
+    length -= WBMSW_FIRMWARE_INFO_SIZE / sizeof(uint16_t);
 
     DEBUG("Write data\n");
-    while (len) {
+    while (length) {
         if (!FwWriteData(data)) {
             return false;
         }
-        data += WBMSW_FIRMWARE_DATA_SIZE;
-        len -= WBMSW_FIRMWARE_DATA_SIZE;
+        data += WBMSW_FIRMWARE_DATA_SIZE / sizeof(uint16_t);
+        length -= WBMSW_FIRMWARE_DATA_SIZE / sizeof(uint16_t);
     }
 
     DEBUG("Write finish\n");

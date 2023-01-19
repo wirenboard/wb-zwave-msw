@@ -1,7 +1,7 @@
 #ifndef WB_MSW_H
 #define WB_MSW_H
 
-#define WB_MSW_TIMEOUT 1000
+#define WB_MSW_TIMEOUT 2000
 #define WB_MSW_ON 255
 #define WB_MSW_OFF 0
 
@@ -79,5 +79,8 @@
 #define WB_MSW_UART_MODE SERIAL_8N2
 #define WB_MSW_UART_RX 8 // Z-Uno receiver pin
 #define WB_MSW_UART_TX 7 // Z-uno transmitter pin
+
+#define WB_MSW_UART_BOOTLOADER_BAUD 9600
+#define WB_MSW_UART_BOOTLOADER_MODE SERIAL_8N2
 
 #endif // WB_MSW_H

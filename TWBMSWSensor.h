@@ -31,7 +31,7 @@ public:
     bool GetVoc(int64_t& voc);
     bool GetNoiseLevel(int64_t& noiseLevel);
     bool GetMotion(int64_t& motion);
-    bool FwUpdate(const void* buffer, size_t len, uint16_t timeoutMs = 2000);
+    bool FwUpdate(uint16_t* buffer, size_t length, uint16_t timeoutMs = 2000);
 
     bool GetTemperatureAvailability(TWBMSWSensor::Availability& availability);
     bool GetHumidityAvailability(TWBMSWSensor::Availability& availability);
@@ -43,8 +43,8 @@ public:
 
 private:
     bool SetFwMode(void);
-    bool FwWriteInfo(uint8_t* info);
-    bool FwWriteData(uint8_t* info);
+    bool FwWriteInfo(uint16_t* info);
+    bool FwWriteData(uint16_t* info);
     TWBMSWSensor::Availability ConvertAvailability(uint16_t availability) const;
     bool ReadAvailabilityRegister(TWBMSWSensor::Availability& availability, uint16_t registerAddress);
     uint8_t Address;
