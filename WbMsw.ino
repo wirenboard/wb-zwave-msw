@@ -74,10 +74,10 @@ static void SystemEvent(ZUNOSysEvent_t* ev)
         // A new firmware image for the second chip from the Z-Wave controller has arrived
         case ZUNO_SYS_EVENT_OTA_IMAGE_READY:
             if (ev->params[0] == 0) {
-                FwUpdater.NewFirmwareNotification(ev->params[1]);
-                DEBUG("NEW FIRMWARE AVAILALBE, SIZE ");
+                DEBUG("NEW FIRMWARE AVAILABLE, SIZE=");
                 DEBUG(ev->params[1]);
-                DEBUG("\n");
+                DEBUG(" BYTES\n");
+                FwUpdater.NewFirmwareNotification(ev->params[1]);
             }
             break;
     }
@@ -91,6 +91,8 @@ static void UpdateParameterValue(size_t paramNumber, int32_t value)
 // The function is called at the start of the sketch
 void setup()
 {
+    // Set system event handler (needed for firmware updates)
+    zunoAttachSysHandler(ZUNO_HANDLER_SYSEVENT, 0, (void*)&SystemEvent);
     ZUnoState = TZUnoState::ZUNO_SCAN_ADDRESS_INITIALIZE;
 }
 // Main loop
@@ -169,8 +171,6 @@ void loop()
                 }
                 // Bind handlers for channels fields
                 ZwaveSensor.SetChannelHandlers();
-                // Set system event handler (needed for firmware updates)
-                zunoAttachSysHandler(ZUNO_HANDLER_SYSEVENT, 0, (void*)&SystemEvent);
                 // Set parameter changing event handler (needed for firmware updates)
                 zunoAttachSysHandler(ZUNO_HANDLER_ZW_CFG, 0, (void*)&UpdateParameterValue);
 
