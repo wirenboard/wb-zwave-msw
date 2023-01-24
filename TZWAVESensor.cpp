@@ -149,8 +149,8 @@ bool TZWAVESensor::ChannelsInitialize()
                                   WB_MSW_CONFIG_PARAMETER_MOTION_THRESHOLD,
                                   WB_MSW_CONFIG_PARAMETER_MOTION_INVERT,
                                   WbMsw,
-                                  &TWBMSWSensor::GetNoiseLevel,
-                                  &TWBMSWSensor::GetNoiseLevelAvailability);
+                                  &TWBMSWSensor::GetMotion,
+                                  &TWBMSWSensor::GetMotionAvailability);
 
     bool unknownSensorsLeft = false;
 
