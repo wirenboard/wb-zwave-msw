@@ -26,13 +26,13 @@ public:
     void ChannelInitialize(String name,
                            TZWAVEChannel::Type type,
                            int32_t errorValue,
-							uint8_t ReportThresHoldParameterNumber,
-							uint8_t LevelSendBasicParameterNumber,
-							uint8_t HysteresisBasicParameterNumber,
-							uint8_t OnCommandsParameterNumber,
-							uint8_t OffCommandsParameterNumber,
-							uint8_t OnOffCommandsRuleParameterNumber,
-							uint16_t multiple,
+                            uint8_t ReportThresHoldParameterNumber,
+                            uint8_t LevelSendBasicParameterNumber,
+                            uint8_t HysteresisBasicParameterNumber,
+                            uint8_t OnCommandsParameterNumber,
+                            uint8_t OffCommandsParameterNumber,
+                            uint8_t OnOffCommandsRuleParameterNumber,
+                            uint16_t multiple,
                            TWBMSWSensor* wbMsw,
                            TWBMSWSensor::GetValueCallback readValueCallback,
                            TWBMSWSensor::GetAvailabilityCallback readAvailabilityCallback);
@@ -52,13 +52,13 @@ public:
     uint8_t GetDeviceChannelNumber() const;
     uint8_t GetServerChannelNumber() const;
 
-	inline uint8_t GetReportThresHoldParameterNumber(void) {return (this->_ReportThresHoldParameterNumber);};
-	inline uint8_t GetLevelSendBasicParameterNumber(void) {return (this->_LevelSendBasicParameterNumber);};
-	inline uint8_t GetHysteresisBasicParameterNumber(void) {return (this->_HysteresisBasicParameterNumber);};
-	inline uint8_t GetOnCommandsParameterNumber(void) {return (this->_OnCommandsParameterNumber);};
-	inline uint8_t GetOffCommandsParameterNumber(void) {return (this->_OffCommandsParameterNumber);};
-	inline uint8_t GetOnOffCommandsRuleParameterNumber(void) {return (this->_OnOffCommandsRuleParameterNumber);};
-	inline uint16_t GetMultiple(void) {return (this->_multiple);};
+    inline uint8_t GetReportThresHoldParameterNumber(void) {return (this->_ReportThresHoldParameterNumber);};
+    inline uint8_t GetLevelSendBasicParameterNumber(void) {return (this->_LevelSendBasicParameterNumber);};
+    inline uint8_t GetHysteresisBasicParameterNumber(void) {return (this->_HysteresisBasicParameterNumber);};
+    inline uint8_t GetOnCommandsParameterNumber(void) {return (this->_OnCommandsParameterNumber);};
+    inline uint8_t GetOffCommandsParameterNumber(void) {return (this->_OffCommandsParameterNumber);};
+    inline uint8_t GetOnOffCommandsRuleParameterNumber(void) {return (this->_OnOffCommandsRuleParameterNumber);};
+    inline uint16_t GetMultiple(void) {return (this->_multiple);};
 
     int64_t GetReportedValue() const;
     void SetReportedValue(int64_t reportedValue);

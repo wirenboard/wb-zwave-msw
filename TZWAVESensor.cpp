@@ -6,165 +6,165 @@
 
 TZWAVESensor::TZWAVESensor(TWBMSWSensor* wbMsw): WbMsw(wbMsw)
 {
-	// Available device parameters description
-	// Channels in the device are created dynamically, so parameters are described in "dynamic" style
-	ZunoCFGParameter_t parameters[WB_MSW_MAX_CONFIG_PARAM] = {
+    // Available device parameters description
+    // Channels in the device are created dynamically, so parameters are described in "dynamic" style
+    ZunoCFGParameter_t parameters[WB_MSW_MAX_CONFIG_PARAM] = {
 
-		// Temperature channel settings
-		#define WB_MSW_CONFIG_PARAMETER_TEMPERATURE_MULTIPLE			1
-		ZUNO_CONFIG_PARAMETER_INFO("Temperature Report Threshold",
-									"0 - Reports disabled. Send Report if the temperature has changed after the last report. Value in 0.01C (100 = 1C).",
-									0, 4000, 100),//64
-		ZUNO_CONFIG_PARAMETER_INFO_SIGN("Temperature Level to send Basic Set",
-										"Send Basic Set if the temperature has crossed the level up or down + hysteresis. Value in 0.01C (100 = 1C).",
-										-4000, 8000, 4000),//65
-		ZUNO_CONFIG_PARAMETER_INFO("Temperature Hysteresis to send Basic Set",
-									"Value in 0.01C (100 = 1C).",
-									10, 2000, 50),//66
-		ZUNO_CONFIG_PARAMETER_INFO("Temperature ON command",
-									"Send Basic Set command.",
-									0, 255, 255),//67
-		ZUNO_CONFIG_PARAMETER_INFO("Temperature OFF command",
-									"Send Basic Set command.",
-									0, 255, 0),//68
-		ZUNO_CONFIG_PARAMETER_INFO("Temperature ON/OFF commands rules",
-									"1 - Send ON if the temperature is greater than Level. Send OFF if the temperature is less than Level. 2 - Send ON if the temperature is greater than Level. Do not send OFF. 3 - Do not send ON. Send OFF if the temperature is less than Level.",
-									1, 3, 1),//69
+        // Temperature channel settings
+        #define WB_MSW_CONFIG_PARAMETER_TEMPERATURE_MULTIPLE			1
+        ZUNO_CONFIG_PARAMETER_INFO("Temperature Report Threshold",
+                                    "0 - Reports disabled. Send Report if the temperature has changed after the last report. Value in 0.01C (100 = 1C).",
+                                    0, 4000, 100),//64
+        ZUNO_CONFIG_PARAMETER_INFO_SIGN("Temperature Level to send Basic Set",
+                                        "Send Basic Set if the temperature has crossed the level up or down + hysteresis. Value in 0.01C (100 = 1C).",
+                                        -4000, 8000, 4000),//65
+        ZUNO_CONFIG_PARAMETER_INFO("Temperature Hysteresis to send Basic Set",
+                                    "Value in 0.01C (100 = 1C).",
+                                    10, 2000, 50),//66
+        ZUNO_CONFIG_PARAMETER_INFO("Temperature ON command",
+                                    "Send Basic Set command.",
+                                    0, 255, 255),//67
+        ZUNO_CONFIG_PARAMETER_INFO("Temperature OFF command",
+                                    "Send Basic Set command.",
+                                    0, 255, 0),//68
+        ZUNO_CONFIG_PARAMETER_INFO("Temperature ON/OFF commands rules",
+                                    "1 - Send ON if the temperature is greater than Level. Send OFF if the temperature is less than Level. 2 - Send ON if the temperature is greater than Level. Do not send OFF. 3 - Do not send ON. Send OFF if the temperature is less than Level.",
+                                    1, 3, 1),//69
 
-		// Humidity sensor settings
-		#define WB_MSW_CONFIG_PARAMETER_HUMIDITY_MULTIPLE				100
-		ZUNO_CONFIG_PARAMETER_INFO("Humidity Report Threshold",
-									"0 - Reports disabled. Send Report if the humidity has changed after the last report. Value in %.",
-									0, 90, 5),//70
-		ZUNO_CONFIG_PARAMETER_INFO("Humidity Level to send Basic Set",
-									"Send Basic Set if the humidity has crossed the level up or down + hysteresis. Value in %.",
-									5, 95, 60),//71
-		ZUNO_CONFIG_PARAMETER_INFO("Humidity Hysteresis to send Basic Set",
-									"Value in %.",
-									1, 50, 2),//72
-		ZUNO_CONFIG_PARAMETER_INFO("Humidity ON command",
-									"Send Basic Set command.",
-									0, 255, 255),//73
-		ZUNO_CONFIG_PARAMETER_INFO("Humidity OFF command",
-									"Send Basic Set command.",
-									0, 255, 0),//74
-		ZUNO_CONFIG_PARAMETER_INFO("Humidity ON/OFF commands rules",
-									"1 - Send ON if the humidity is greater than Level. Send OFF if the humidity is less than Level. 2 - Send ON if the humidity is greater than Level. Do not send OFF. 3 - Do not send ON. Send OFF if the humidity is less than Level.",
-									1, 3, 1),//75
+        // Humidity sensor settings
+        #define WB_MSW_CONFIG_PARAMETER_HUMIDITY_MULTIPLE				100
+        ZUNO_CONFIG_PARAMETER_INFO("Humidity Report Threshold",
+                                    "0 - Reports disabled. Send Report if the humidity has changed after the last report. Value in %.",
+                                    0, 90, 5),//70
+        ZUNO_CONFIG_PARAMETER_INFO("Humidity Level to send Basic Set",
+                                    "Send Basic Set if the humidity has crossed the level up or down + hysteresis. Value in %.",
+                                    5, 95, 60),//71
+        ZUNO_CONFIG_PARAMETER_INFO("Humidity Hysteresis to send Basic Set",
+                                    "Value in %.",
+                                    1, 50, 2),//72
+        ZUNO_CONFIG_PARAMETER_INFO("Humidity ON command",
+                                    "Send Basic Set command.",
+                                    0, 255, 255),//73
+        ZUNO_CONFIG_PARAMETER_INFO("Humidity OFF command",
+                                    "Send Basic Set command.",
+                                    0, 255, 0),//74
+        ZUNO_CONFIG_PARAMETER_INFO("Humidity ON/OFF commands rules",
+                                    "1 - Send ON if the humidity is greater than Level. Send OFF if the humidity is less than Level. 2 - Send ON if the humidity is greater than Level. Do not send OFF. 3 - Do not send ON. Send OFF if the humidity is less than Level.",
+                                    1, 3, 1),//75
 
-		// Lumen sensor settings
-		#define WB_MSW_CONFIG_PARAMETER_LUMEN_MULTIPLE					100
-		ZUNO_CONFIG_PARAMETER_INFO("Luminance Report Threshold",
-									"0 - Reports disabled. Send Report if the luminance has changed after the last report. Value in lux.",
-									0, 100000, 100),//76
-		ZUNO_CONFIG_PARAMETER_INFO("Luminance Level to send Basic Set",
-									"Send Basic Set if the luminance has crossed the level up or down + hysteresis. Value in lux.",
-									0, 100000, 200),//77
-		ZUNO_CONFIG_PARAMETER_INFO("Luminance Hysteresis to send Basic Set",
-									"Value in lux.",
-									1, 50000, 50),//78
-		ZUNO_CONFIG_PARAMETER_INFO("Luminance ON command",
-									"Send Basic Set command.",
-									0, 255, 255),//79
-		ZUNO_CONFIG_PARAMETER_INFO("Luminance OFF command",
-									"Send Basic Set command.",
-									0, 255, 0),//80
-		ZUNO_CONFIG_PARAMETER_INFO("Luminance ON/OFF commands rules",
-									"1 - Send ON if the luminance is greater than Level. Send OFF if the luminance is less than Level. 2 - Send ON if the luminance is greater than Level. Do not send OFF. 3 - Do not send ON. Send OFF if the luminance is less than Level.",
-									1, 3, 1),//81
+        // Lumen sensor settings
+        #define WB_MSW_CONFIG_PARAMETER_LUMEN_MULTIPLE					100
+        ZUNO_CONFIG_PARAMETER_INFO("Luminance Report Threshold",
+                                    "0 - Reports disabled. Send Report if the luminance has changed after the last report. Value in lux.",
+                                    0, 100000, 100),//76
+        ZUNO_CONFIG_PARAMETER_INFO("Luminance Level to send Basic Set",
+                                    "Send Basic Set if the luminance has crossed the level up or down + hysteresis. Value in lux.",
+                                    0, 100000, 200),//77
+        ZUNO_CONFIG_PARAMETER_INFO("Luminance Hysteresis to send Basic Set",
+                                    "Value in lux.",
+                                    1, 50000, 50),//78
+        ZUNO_CONFIG_PARAMETER_INFO("Luminance ON command",
+                                    "Send Basic Set command.",
+                                    0, 255, 255),//79
+        ZUNO_CONFIG_PARAMETER_INFO("Luminance OFF command",
+                                    "Send Basic Set command.",
+                                    0, 255, 0),//80
+        ZUNO_CONFIG_PARAMETER_INFO("Luminance ON/OFF commands rules",
+                                    "1 - Send ON if the luminance is greater than Level. Send OFF if the luminance is less than Level. 2 - Send ON if the luminance is greater than Level. Do not send OFF. 3 - Do not send ON. Send OFF if the luminance is less than Level.",
+                                    1, 3, 1),//81
 
-		// CO2 sensor settings
-		#define WB_MSW_CONFIG_PARAMETER_CO2_MULTIPLE					1
-		ZUNO_CONFIG_PARAMETER_INFO("CO2 Report Threshold",
-									"0 - Reports disabled. Send Report if the CO2 has changed after the last report. Value in ppm.",
-									0, 5000, 100),//82
-		ZUNO_CONFIG_PARAMETER_INFO("CO2 Level to send Basic Set",
-									"Send Basic Set if the CO2 has crossed the level up or down + hysteresis. Value in ppm.",
-									400, 5000, 1500),//83
-		ZUNO_CONFIG_PARAMETER_INFO("CO2 Hysteresis to send Basic Set",
-									"Value in ppm.",
-									1, 2500, 50),//84
-		ZUNO_CONFIG_PARAMETER_INFO("CO2 ON command",
-									"Send Basic Set command.",
-									0, 255, 255),//85
-		ZUNO_CONFIG_PARAMETER_INFO("CO2 OFF command",
-									"Send Basic Set command.",
-									0, 255, 0),//86
-		ZUNO_CONFIG_PARAMETER_INFO("CO2 ON/OFF commands rules",
-									"1 - Send ON if the CO2 is greater than Level. Send OFF if the CO2 is less than Level. 2 - Send ON if the CO2 is greater than Level. Do not send OFF. 3 - Do not send ON. Send OFF if the CO2 is less than Level.",
-									1, 3, 1),//87
-		ZUNO_CONFIG_PARAMETER_INFO("CO2 auto",
-									"CO2 auto",
-									false, true, true),//88
+        // CO2 sensor settings
+        #define WB_MSW_CONFIG_PARAMETER_CO2_MULTIPLE					1
+        ZUNO_CONFIG_PARAMETER_INFO("CO2 Report Threshold",
+                                    "0 - Reports disabled. Send Report if the CO2 has changed after the last report. Value in ppm.",
+                                    0, 5000, 100),//82
+        ZUNO_CONFIG_PARAMETER_INFO("CO2 Level to send Basic Set",
+                                    "Send Basic Set if the CO2 has crossed the level up or down + hysteresis. Value in ppm.",
+                                    400, 5000, 1500),//83
+        ZUNO_CONFIG_PARAMETER_INFO("CO2 Hysteresis to send Basic Set",
+                                    "Value in ppm.",
+                                    1, 2500, 50),//84
+        ZUNO_CONFIG_PARAMETER_INFO("CO2 ON command",
+                                    "Send Basic Set command.",
+                                    0, 255, 255),//85
+        ZUNO_CONFIG_PARAMETER_INFO("CO2 OFF command",
+                                    "Send Basic Set command.",
+                                    0, 255, 0),//86
+        ZUNO_CONFIG_PARAMETER_INFO("CO2 ON/OFF commands rules",
+                                    "1 - Send ON if the CO2 is greater than Level. Send OFF if the CO2 is less than Level. 2 - Send ON if the CO2 is greater than Level. Do not send OFF. 3 - Do not send ON. Send OFF if the CO2 is less than Level.",
+                                    1, 3, 1),//87
+        ZUNO_CONFIG_PARAMETER_INFO("CO2 auto",
+                                    "CO2 auto",
+                                    false, true, true),//88
 
-		// VOC sensor settings
-		#define WB_MSW_CONFIG_PARAMETER_VOC_MULTIPLE					1
-		ZUNO_CONFIG_PARAMETER_INFO("VOC Report Threshold",
-									"0 - Reports disabled. Send Report if the VOC has changed after the last report. Value in ppb.",
-									0, 60000, 50),
-		ZUNO_CONFIG_PARAMETER_INFO("VOC Level to send Basic Set",
-									"Send Basic Set if the VOC has crossed the level up or down + hysteresis. Value in ppb.",
-									0, 60000, 660),
-		ZUNO_CONFIG_PARAMETER_INFO("VOC Hysteresis to send Basic Set",
-									"Value in ppb.",
-									1, 30000, 10),
-		ZUNO_CONFIG_PARAMETER_INFO("VOC ON command",
-									"Send Basic Set command.",
-									0, 255, 255),
-		ZUNO_CONFIG_PARAMETER_INFO("VOC OFF command",
-									"Send Basic Set command.",
-									0, 255, 0),
-		ZUNO_CONFIG_PARAMETER_INFO("VOC ON/OFF commands rules",
-									"1 - Send ON if the VOC is greater than Level. Send OFF if the VOC is less than Level. 2 - Send ON if the VOC is greater than Level. Do not send OFF. 3 - Do not send ON. Send OFF if the VOC is less than Level.",
-									1, 3, 1),
+        // VOC sensor settings
+        #define WB_MSW_CONFIG_PARAMETER_VOC_MULTIPLE					1
+        ZUNO_CONFIG_PARAMETER_INFO("VOC Report Threshold",
+                                    "0 - Reports disabled. Send Report if the VOC has changed after the last report. Value in ppb.",
+                                    0, 60000, 50),
+        ZUNO_CONFIG_PARAMETER_INFO("VOC Level to send Basic Set",
+                                    "Send Basic Set if the VOC has crossed the level up or down + hysteresis. Value in ppb.",
+                                    0, 60000, 660),
+        ZUNO_CONFIG_PARAMETER_INFO("VOC Hysteresis to send Basic Set",
+                                    "Value in ppb.",
+                                    1, 30000, 10),
+        ZUNO_CONFIG_PARAMETER_INFO("VOC ON command",
+                                    "Send Basic Set command.",
+                                    0, 255, 255),
+        ZUNO_CONFIG_PARAMETER_INFO("VOC OFF command",
+                                    "Send Basic Set command.",
+                                    0, 255, 0),
+        ZUNO_CONFIG_PARAMETER_INFO("VOC ON/OFF commands rules",
+                                    "1 - Send ON if the VOC is greater than Level. Send OFF if the VOC is less than Level. 2 - Send ON if the VOC is greater than Level. Do not send OFF. 3 - Do not send ON. Send OFF if the VOC is less than Level.",
+                                    1, 3, 1),
 
-		// Noise level sensor settings
-		#define WB_MSW_CONFIG_PARAMETER_NOISE_LEVEL_MULTIPLE					100
-		ZUNO_CONFIG_PARAMETER_INFO("Noise Report Threshold",
-									"0 - Reports disabled. Send Report if the noise has changed after the last report. Value in dB.",
-									0, 105, 10),
-		ZUNO_CONFIG_PARAMETER_INFO("Noise Level to send Basic Set",
-									"Send Basic Set if the noise has crossed the level up or down + hysteresis. Value in dB.",
-									38, 105, 80),
-		ZUNO_CONFIG_PARAMETER_INFO("Noise Hysteresis to send Basic Set",
-									"Value in dB.",
-									1, 50, 5),
-		ZUNO_CONFIG_PARAMETER_INFO("Noise ON command",
-									"Send Basic Set command.",
-									0, 255, 255),
-		ZUNO_CONFIG_PARAMETER_INFO("Noise OFF command",
-									"Send Basic Set command.",
-									0, 255, 0),
-		ZUNO_CONFIG_PARAMETER_INFO("Noise ON/OFF commands rules",
-									"1 - Send ON if the noise is greater than Level. Send OFF if the noise is less than Level. 2 - Send ON if the noise is greater than Level. Do not send OFF. 3 - Do not send ON. Send OFF if the noise is less than Level.",
-									1, 3, 1),
+        // Noise level sensor settings
+        #define WB_MSW_CONFIG_PARAMETER_NOISE_LEVEL_MULTIPLE					100
+        ZUNO_CONFIG_PARAMETER_INFO("Noise Report Threshold",
+                                    "0 - Reports disabled. Send Report if the noise has changed after the last report. Value in dB.",
+                                    0, 105, 10),
+        ZUNO_CONFIG_PARAMETER_INFO("Noise Level to send Basic Set",
+                                    "Send Basic Set if the noise has crossed the level up or down + hysteresis. Value in dB.",
+                                    38, 105, 80),
+        ZUNO_CONFIG_PARAMETER_INFO("Noise Hysteresis to send Basic Set",
+                                    "Value in dB.",
+                                    1, 50, 5),
+        ZUNO_CONFIG_PARAMETER_INFO("Noise ON command",
+                                    "Send Basic Set command.",
+                                    0, 255, 255),
+        ZUNO_CONFIG_PARAMETER_INFO("Noise OFF command",
+                                    "Send Basic Set command.",
+                                    0, 255, 0),
+        ZUNO_CONFIG_PARAMETER_INFO("Noise ON/OFF commands rules",
+                                    "1 - Send ON if the noise is greater than Level. Send OFF if the noise is less than Level. 2 - Send ON if the noise is greater than Level. Do not send OFF. 3 - Do not send ON. Send OFF if the noise is less than Level.",
+                                    1, 3, 1),
 
-		// Motion sensor settings
-		#define WB_MSW_CONFIG_PARAMETER_MOTION_MULTIPLE							1
-		#define WB_MSW_CONFIG_PARAMETER_MOTION_ON								300
-		#define WB_MSW_CONFIG_PARAMETER_MOTION_OFF								250
-		#define WB_MSW_CONFIG_PARAMETER_MOTION_HYSTERESIS						10
-		ZUNO_CONFIG_PARAMETER_INFO("Motion delay to send OFF command",
-									"Value in seconds.",
-									0, 100000, 60),
-		ZUNO_CONFIG_PARAMETER_INFO("Motion ON command",
-									"Send Basic Set command.",
-									0, 255, 255),
-		ZUNO_CONFIG_PARAMETER_INFO("Motion OFF command",
-									"Send Basic Set command.",
-									0, 255, 0),
-		ZUNO_CONFIG_PARAMETER_INFO("Motion ON/OFF commands rules",
-									"1 - Send ON if the motion is detected. Send OFF if the motion is idle. 2 - Send ON if the motion is detected. Do not send OFF. 3 - Do not send ON. Send OFF if the motion is idle.",
-									1, 3, 1),
-	};
+        // Motion sensor settings
+        #define WB_MSW_CONFIG_PARAMETER_MOTION_MULTIPLE							1
+        #define WB_MSW_CONFIG_PARAMETER_MOTION_ON								300
+        #define WB_MSW_CONFIG_PARAMETER_MOTION_OFF								250
+        #define WB_MSW_CONFIG_PARAMETER_MOTION_HYSTERESIS						10
+        ZUNO_CONFIG_PARAMETER_INFO("Motion delay to send OFF command",
+                                    "Value in seconds.",
+                                    0, 100000, 60),
+        ZUNO_CONFIG_PARAMETER_INFO("Motion ON command",
+                                    "Send Basic Set command.",
+                                    0, 255, 255),
+        ZUNO_CONFIG_PARAMETER_INFO("Motion OFF command",
+                                    "Send Basic Set command.",
+                                    0, 255, 0),
+        ZUNO_CONFIG_PARAMETER_INFO("Motion ON/OFF commands rules",
+                                    "1 - Send ON if the motion is detected. Send OFF if the motion is idle. 2 - Send ON if the motion is detected. Do not send OFF. 3 - Do not send ON. Send OFF if the motion is idle.",
+                                    1, 3, 1),
+    };
     memcpy(Parameters, parameters, sizeof(parameters));
     MotionLastTime = 0;
-	this->_MotionLastTime_wait_Off = false;
-	#ifdef LOGGING_DBG
-	this->_debug_ms_next = 0x0;
-	this->_debug_ms = 0x0;
-	this->_debug_ms_step = 1000;
-	#endif
+    this->_MotionLastTime_wait_Off = false;
+    #ifdef LOGGING_DBG
+    this->_debug_ms_next = 0x0;
+    this->_debug_ms = 0x0;
+    this->_debug_ms_step = 1000;
+    #endif
 }
 
 // Function determines number of available Z-Wave device channels (EndPoints) and fills in the structures by channel
@@ -178,13 +178,13 @@ bool TZWAVESensor::ChannelsInitialize()
     Channels[0].ChannelInitialize("Temperature",
                                   TZWAVEChannel::Type::TEMPERATURE,
                                   WB_MSW_INPUT_REG_TEMPERATURE_VALUE_ERROR,
-								WB_MSW_CONFIG_PARAMETER_TEMPERATURE_REPORT_THRESHOLD,
-								WB_MSW_CONFIG_PARAMETER_TEMPERATURE_LEVEL_SEND_BASIC,
-								WB_MSW_CONFIG_PARAMETER_TEMPERATURE_HYSTERESIS_SEND_BASIC,
-								WB_MSW_CONFIG_PARAMETER_TEMPERATURE_ON_COMMANDS,
-								WB_MSW_CONFIG_PARAMETER_TEMPERATURE_OFF_COMMANDS,
-								WB_MSW_CONFIG_PARAMETER_TEMPERATURE_ON_OFF_COMMANDS_RULE,
-								WB_MSW_CONFIG_PARAMETER_TEMPERATURE_MULTIPLE,
+                                WB_MSW_CONFIG_PARAMETER_TEMPERATURE_REPORT_THRESHOLD,
+                                WB_MSW_CONFIG_PARAMETER_TEMPERATURE_LEVEL_SEND_BASIC,
+                                WB_MSW_CONFIG_PARAMETER_TEMPERATURE_HYSTERESIS_SEND_BASIC,
+                                WB_MSW_CONFIG_PARAMETER_TEMPERATURE_ON_COMMANDS,
+                                WB_MSW_CONFIG_PARAMETER_TEMPERATURE_OFF_COMMANDS,
+                                WB_MSW_CONFIG_PARAMETER_TEMPERATURE_ON_OFF_COMMANDS_RULE,
+                                WB_MSW_CONFIG_PARAMETER_TEMPERATURE_MULTIPLE,
                                   WbMsw,
                                   &TWBMSWSensor::GetTemperature,
                                   &TWBMSWSensor::GetTemperatureAvailability);
@@ -192,13 +192,13 @@ bool TZWAVESensor::ChannelsInitialize()
     Channels[1].ChannelInitialize("Humidity",
                                   TZWAVEChannel::Type::HUMIDITY,
                                   WB_MSW_INPUT_REG_HUMIDITY_VALUE_ERROR,
-								WB_MSW_CONFIG_PARAMETER_HUMIDITY_REPORT_THRESHOLD,
-								WB_MSW_CONFIG_PARAMETER_HUMIDITY_LEVEL_SEND_BASIC,
-								WB_MSW_CONFIG_PARAMETER_HUMIDITY_HYSTERESIS_SEND_BASIC,
-								WB_MSW_CONFIG_PARAMETER_HUMIDITY_ON_COMMANDS,
-								WB_MSW_CONFIG_PARAMETER_HUMIDITY_OFF_COMMANDS,
-								WB_MSW_CONFIG_PARAMETER_HUMIDITY_ON_OFF_COMMANDS_RULE,
-								WB_MSW_CONFIG_PARAMETER_HUMIDITY_MULTIPLE,
+                                WB_MSW_CONFIG_PARAMETER_HUMIDITY_REPORT_THRESHOLD,
+                                WB_MSW_CONFIG_PARAMETER_HUMIDITY_LEVEL_SEND_BASIC,
+                                WB_MSW_CONFIG_PARAMETER_HUMIDITY_HYSTERESIS_SEND_BASIC,
+                                WB_MSW_CONFIG_PARAMETER_HUMIDITY_ON_COMMANDS,
+                                WB_MSW_CONFIG_PARAMETER_HUMIDITY_OFF_COMMANDS,
+                                WB_MSW_CONFIG_PARAMETER_HUMIDITY_ON_OFF_COMMANDS_RULE,
+                                WB_MSW_CONFIG_PARAMETER_HUMIDITY_MULTIPLE,
                                   WbMsw,
                                   &TWBMSWSensor::GetHumidity,
                                   &TWBMSWSensor::GetHumidityAvailability);
@@ -206,13 +206,13 @@ bool TZWAVESensor::ChannelsInitialize()
     Channels[2].ChannelInitialize("Luminance",
                                   TZWAVEChannel::Type::LUMEN,
                                   WB_MSW_INPUT_REG_LUMEN_VALUE_ERROR,
-								WB_MSW_CONFIG_PARAMETER_LUMEN_REPORT_THRESHOLD,
-								WB_MSW_CONFIG_PARAMETER_LUMEN_LEVEL_SEND_BASIC,
-								WB_MSW_CONFIG_PARAMETER_LUMEN_HYSTERESIS_SEND_BASIC,
-								WB_MSW_CONFIG_PARAMETER_LUMEN_ON_COMMANDS,
-								WB_MSW_CONFIG_PARAMETER_LUMEN_OFF_COMMANDS,
-								WB_MSW_CONFIG_PARAMETER_LUMEN_ON_OFF_COMMANDS_RULE,
-								WB_MSW_CONFIG_PARAMETER_LUMEN_MULTIPLE,
+                                WB_MSW_CONFIG_PARAMETER_LUMEN_REPORT_THRESHOLD,
+                                WB_MSW_CONFIG_PARAMETER_LUMEN_LEVEL_SEND_BASIC,
+                                WB_MSW_CONFIG_PARAMETER_LUMEN_HYSTERESIS_SEND_BASIC,
+                                WB_MSW_CONFIG_PARAMETER_LUMEN_ON_COMMANDS,
+                                WB_MSW_CONFIG_PARAMETER_LUMEN_OFF_COMMANDS,
+                                WB_MSW_CONFIG_PARAMETER_LUMEN_ON_OFF_COMMANDS_RULE,
+                                WB_MSW_CONFIG_PARAMETER_LUMEN_MULTIPLE,
                                   WbMsw,
                                   &TWBMSWSensor::GetLuminance,
                                   &TWBMSWSensor::GetLuminanceAvailability);
@@ -220,13 +220,13 @@ bool TZWAVESensor::ChannelsInitialize()
     Channels[3].ChannelInitialize("CO2",
                                   TZWAVEChannel::Type::CO2,
                                   WB_MSW_INPUT_REG_CO2_VALUE_ERROR,
-								WB_MSW_CONFIG_PARAMETER_CO2_REPORT_THRESHOLD,
-								WB_MSW_CONFIG_PARAMETER_CO2_LEVEL_SEND_BASIC,
-								WB_MSW_CONFIG_PARAMETER_CO2_HYSTERESIS_SEND_BASIC,
-								WB_MSW_CONFIG_PARAMETER_CO2_ON_COMMANDS,
-								WB_MSW_CONFIG_PARAMETER_CO2_OFF_COMMANDS,
-								WB_MSW_CONFIG_PARAMETER_CO2_ON_OFF_COMMANDS_RULE,
-								WB_MSW_CONFIG_PARAMETER_CO2_MULTIPLE,
+                                WB_MSW_CONFIG_PARAMETER_CO2_REPORT_THRESHOLD,
+                                WB_MSW_CONFIG_PARAMETER_CO2_LEVEL_SEND_BASIC,
+                                WB_MSW_CONFIG_PARAMETER_CO2_HYSTERESIS_SEND_BASIC,
+                                WB_MSW_CONFIG_PARAMETER_CO2_ON_COMMANDS,
+                                WB_MSW_CONFIG_PARAMETER_CO2_OFF_COMMANDS,
+                                WB_MSW_CONFIG_PARAMETER_CO2_ON_OFF_COMMANDS_RULE,
+                                WB_MSW_CONFIG_PARAMETER_CO2_MULTIPLE,
                                   WbMsw,
                                   &TWBMSWSensor::GetCO2,
                                   &TWBMSWSensor::GetCO2Availability);
@@ -234,13 +234,13 @@ bool TZWAVESensor::ChannelsInitialize()
     Channels[4].ChannelInitialize("VOC",
                                   TZWAVEChannel::Type::VOC,
                                   WB_MSW_INPUT_REG_VOC_VALUE_ERROR,
-								WB_MSW_CONFIG_PARAMETER_VOC_REPORT_THRESHOLD,
-								WB_MSW_CONFIG_PARAMETER_VOC_LEVEL_SEND_BASIC,
-								WB_MSW_CONFIG_PARAMETER_VOC_HYSTERESIS_SEND_BASIC,
-								WB_MSW_CONFIG_PARAMETER_VOC_ON_COMMANDS,
-								WB_MSW_CONFIG_PARAMETER_VOC_OFF_COMMANDS,
-								WB_MSW_CONFIG_PARAMETER_VOC_ON_OFF_COMMANDS_RULE,
-								WB_MSW_CONFIG_PARAMETER_VOC_MULTIPLE,
+                                WB_MSW_CONFIG_PARAMETER_VOC_REPORT_THRESHOLD,
+                                WB_MSW_CONFIG_PARAMETER_VOC_LEVEL_SEND_BASIC,
+                                WB_MSW_CONFIG_PARAMETER_VOC_HYSTERESIS_SEND_BASIC,
+                                WB_MSW_CONFIG_PARAMETER_VOC_ON_COMMANDS,
+                                WB_MSW_CONFIG_PARAMETER_VOC_OFF_COMMANDS,
+                                WB_MSW_CONFIG_PARAMETER_VOC_ON_OFF_COMMANDS_RULE,
+                                WB_MSW_CONFIG_PARAMETER_VOC_MULTIPLE,
                                   WbMsw,
                                   &TWBMSWSensor::GetVoc,
                                   &TWBMSWSensor::GetVocAvailability);
@@ -248,13 +248,13 @@ bool TZWAVESensor::ChannelsInitialize()
     Channels[5].ChannelInitialize("NoiseLevel",
                                   TZWAVEChannel::Type::NOISE_LEVEL,
                                   0,
-								WB_MSW_CONFIG_PARAMETER_NOISE_LEVEL_REPORT_THRESHOLD,
-								WB_MSW_CONFIG_PARAMETER_NOISE_LEVEL_LEVEL_SEND_BASIC,
-								WB_MSW_CONFIG_PARAMETER_NOISE_LEVEL_HYSTERESIS_SEND_BASIC,
-								WB_MSW_CONFIG_PARAMETER_NOISE_LEVEL_ON_COMMANDS,
-								WB_MSW_CONFIG_PARAMETER_NOISE_LEVEL_OFF_COMMANDS,
-								WB_MSW_CONFIG_PARAMETER_NOISE_LEVEL_ON_OFF_COMMANDS_RULE,
-								WB_MSW_CONFIG_PARAMETER_NOISE_LEVEL_MULTIPLE,
+                                WB_MSW_CONFIG_PARAMETER_NOISE_LEVEL_REPORT_THRESHOLD,
+                                WB_MSW_CONFIG_PARAMETER_NOISE_LEVEL_LEVEL_SEND_BASIC,
+                                WB_MSW_CONFIG_PARAMETER_NOISE_LEVEL_HYSTERESIS_SEND_BASIC,
+                                WB_MSW_CONFIG_PARAMETER_NOISE_LEVEL_ON_COMMANDS,
+                                WB_MSW_CONFIG_PARAMETER_NOISE_LEVEL_OFF_COMMANDS,
+                                WB_MSW_CONFIG_PARAMETER_NOISE_LEVEL_ON_OFF_COMMANDS_RULE,
+                                WB_MSW_CONFIG_PARAMETER_NOISE_LEVEL_MULTIPLE,
                                   WbMsw,
                                   &TWBMSWSensor::GetNoiseLevel,
                                   &TWBMSWSensor::GetNoiseLevelAvailability);
@@ -262,13 +262,13 @@ bool TZWAVESensor::ChannelsInitialize()
     Channels[6].ChannelInitialize("Motion",
                                   TZWAVEChannel::Type::MOTION,
                                   WB_MSW_INPUT_REG_MOTION_VALUE_ERROR,
-								0,
-								0,
-								0,
-								WB_MSW_CONFIG_PARAMETER_MOTION_ON_COMMANDS,
-								WB_MSW_CONFIG_PARAMETER_MOTION_OFF_COMMANDS,
-								WB_MSW_CONFIG_PARAMETER_MOTION_ON_OFF_COMMANDS_RULE,
-								WB_MSW_CONFIG_PARAMETER_MOTION_MULTIPLE,
+                                0,
+                                0,
+                                0,
+                                WB_MSW_CONFIG_PARAMETER_MOTION_ON_COMMANDS,
+                                WB_MSW_CONFIG_PARAMETER_MOTION_OFF_COMMANDS,
+                                WB_MSW_CONFIG_PARAMETER_MOTION_ON_OFF_COMMANDS_RULE,
+                                WB_MSW_CONFIG_PARAMETER_MOTION_MULTIPLE,
                                   WbMsw,
                                   &TWBMSWSensor::GetMotion,
                                   &TWBMSWSensor::GetMotionAvailability);
@@ -830,11 +830,11 @@ TZWAVESensor::Result TZWAVESensor::ProcessMotionChannel(TZWAVEChannel& channel)
 // Device channel management and firmware data transfer
 TZWAVESensor::Result TZWAVESensor::ProcessChannels()
 {
-	#ifdef LOGGING_DBG
-	this->_debug_ms = millis();
-	if (this->_debug_ms > this->_debug_ms_next)
-		DEBUG("--------------------Measurements-----------------------\n");
-	#endif
+    #ifdef LOGGING_DBG
+    this->_debug_ms = millis();
+    if (this->_debug_ms > this->_debug_ms_next)
+        DEBUG("--------------------Measurements-----------------------\n");
+    #endif
     // Check all channels of available sensors
     TZWAVESensor::Result result;
     for (size_t i = 0; i < TZWAVEChannel::CHANNEL_TYPES_COUNT; i++) {
@@ -850,16 +850,16 @@ TZWAVESensor::Result TZWAVESensor::ProcessChannels()
         }
         if (result == TZWAVESensor::Result::ZWAVE_PROCESS_MODBUS_ERROR) {
             // MotionChannelReset(MotionChannelPtr);
-			#ifdef LOGGING_DBG
-			if (this->_debug_ms > this->_debug_ms_next)
-				this->_debug_ms_next = this->_debug_ms + this->_debug_ms_step;
-			#endif
+            #ifdef LOGGING_DBG
+            if (this->_debug_ms > this->_debug_ms_next)
+                this->_debug_ms_next = this->_debug_ms + this->_debug_ms_step;
+            #endif
             return result;
         }
     }
-	#ifdef LOGGING_DBG
-	if (this->_debug_ms > this->_debug_ms_next)
-		this->_debug_ms_next = this->_debug_ms + this->_debug_ms_step;
-	#endif
+    #ifdef LOGGING_DBG
+    if (this->_debug_ms > this->_debug_ms_next)
+        this->_debug_ms_next = this->_debug_ms + this->_debug_ms_step;
+    #endif
     return TZWAVESensor::Result::ZWAVE_PROCESS_OK;
 }

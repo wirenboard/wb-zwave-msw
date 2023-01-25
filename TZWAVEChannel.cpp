@@ -13,13 +13,13 @@ TZWAVEChannel::TZWAVEChannel()
 void TZWAVEChannel::ChannelInitialize(String name,
                                       TZWAVEChannel::Type type,
                                       int32_t errorValue,
-									uint8_t ReportThresHoldParameterNumber,
-									uint8_t LevelSendBasicParameterNumber,
-									uint8_t HysteresisBasicParameterNumber,
-									uint8_t OnCommandsParameterNumber,
-									uint8_t OffCommandsParameterNumber,
-									uint8_t OnOffCommandsRuleParameterNumber,
-									uint16_t multiple,
+                                    uint8_t ReportThresHoldParameterNumber,
+                                    uint8_t LevelSendBasicParameterNumber,
+                                    uint8_t HysteresisBasicParameterNumber,
+                                    uint8_t OnCommandsParameterNumber,
+                                    uint8_t OffCommandsParameterNumber,
+                                    uint8_t OnOffCommandsRuleParameterNumber,
+                                    uint16_t multiple,
                                       TWBMSWSensor* wbMsw,
                                       TWBMSWSensor::GetValueCallback readValueCallback,
                                       TWBMSWSensor::GetAvailabilityCallback readAvailabilityCallback)
@@ -27,13 +27,13 @@ void TZWAVEChannel::ChannelInitialize(String name,
     Name = name;
     ChannelType = type;
     ErrorValue = errorValue;
-	this->_ReportThresHoldParameterNumber = ReportThresHoldParameterNumber;
-	this->_LevelSendBasicParameterNumber = LevelSendBasicParameterNumber;
-	this->_HysteresisBasicParameterNumber = HysteresisBasicParameterNumber;
-	this->_OnCommandsParameterNumber = OnCommandsParameterNumber;
-	this->_OffCommandsParameterNumber = OffCommandsParameterNumber;
-	this->_OnOffCommandsRuleParameterNumber = OnOffCommandsRuleParameterNumber;
-	this->_multiple = multiple;
+    this->_ReportThresHoldParameterNumber = ReportThresHoldParameterNumber;
+    this->_LevelSendBasicParameterNumber = LevelSendBasicParameterNumber;
+    this->_HysteresisBasicParameterNumber = HysteresisBasicParameterNumber;
+    this->_OnCommandsParameterNumber = OnCommandsParameterNumber;
+    this->_OffCommandsParameterNumber = OffCommandsParameterNumber;
+    this->_OnOffCommandsRuleParameterNumber = OnOffCommandsRuleParameterNumber;
+    this->_multiple = multiple;
     WbMsw = wbMsw;
     ReadValueCallback = readValueCallback;
     ReadAvailabilityCallback = readAvailabilityCallback;
