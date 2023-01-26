@@ -37,20 +37,17 @@ private:
 
     TZWAVESensor::Result ProcessCommonChannel(TZWAVEChannel& channel);
     TZWAVESensor::Result ProcessMotionChannel(TZWAVEChannel& channel);
-    // void MotionChannelReset(TZWAVEChannel* channel);
+    void MotionChannelReset(TZWAVEChannel* channel);
     uint32_t MotionLastTime;
-	bool _MotionLastTime_wait_Off;
+	bool MotionLastTimeWaitOff;
     void PublishAnalogSensorValue(TZWAVEChannel& channel,
                                   int64_t value,
-									int32_t Report_ThresHold,
-									int32_t Level_Send_Basic,
-									int32_t Hysteresis_Basic,
-									int32_t On_Commands,
-									int32_t Off_Commands,
-									int32_t On_Off_Commands_Rule);
-	#ifdef LOGGING_DBG
-	uint32_t			_debug_ms;
-	uint32_t			_debug_ms_next;
-	uint32_t			_debug_ms_step;
-	#endif
+                                  int32_t reportThresHold,
+                                  int32_t levelSendBasic,
+                                  int32_t hysteresisBasic,
+                                  int32_t onCommands,
+                                  int32_t offCommands,
+                                  int32_t onOffCommandsRule);
+    void PublishMotionValue(TZWAVEChannel *channel,
+                                  int64_t value);
 };

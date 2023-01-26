@@ -26,13 +26,13 @@ public:
     void ChannelInitialize(String name,
                            TZWAVEChannel::Type type,
                            int32_t errorValue,
-                            uint8_t ReportThresHoldParameterNumber,
-                            uint8_t LevelSendBasicParameterNumber,
-                            uint8_t HysteresisBasicParameterNumber,
-                            uint8_t OnCommandsParameterNumber,
-                            uint8_t OffCommandsParameterNumber,
-                            uint8_t OnOffCommandsRuleParameterNumber,
-                            uint16_t multiple,
+                            uint8_t reportThresHoldParameterNumber,
+                            uint8_t levelSendBasicParameterNumber,
+                            uint8_t hysteresisBasicParameterNumber,
+                            uint8_t onCommandsParameterNumber,
+                            uint8_t offCommandsParameterNumber,
+                            uint8_t onOffCommandsRuleParameterNumber,
+                            uint16_t multiplier,
                            TWBMSWSensor* wbMsw,
                            TWBMSWSensor::GetValueCallback readValueCallback,
                            TWBMSWSensor::GetAvailabilityCallback readAvailabilityCallback);
@@ -52,13 +52,13 @@ public:
     uint8_t GetDeviceChannelNumber() const;
     uint8_t GetServerChannelNumber() const;
 
-    inline uint8_t GetReportThresHoldParameterNumber(void) {return (this->_ReportThresHoldParameterNumber);};
-    inline uint8_t GetLevelSendBasicParameterNumber(void) {return (this->_LevelSendBasicParameterNumber);};
-    inline uint8_t GetHysteresisBasicParameterNumber(void) {return (this->_HysteresisBasicParameterNumber);};
-    inline uint8_t GetOnCommandsParameterNumber(void) {return (this->_OnCommandsParameterNumber);};
-    inline uint8_t GetOffCommandsParameterNumber(void) {return (this->_OffCommandsParameterNumber);};
-    inline uint8_t GetOnOffCommandsRuleParameterNumber(void) {return (this->_OnOffCommandsRuleParameterNumber);};
-    inline uint16_t GetMultiple(void) {return (this->_multiple);};
+    inline uint8_t GetReportThresHoldParameterNumber(void) {return (ReportThresHoldParameterNumber);};
+    inline uint8_t GetLevelSendBasicParameterNumber(void) {return (LevelSendBasicParameterNumber);};
+    inline uint8_t GetHysteresisBasicParameterNumber(void) {return (HysteresisBasicParameterNumber);};
+    inline uint8_t GetOnCommandsParameterNumber(void) {return (OnCommandsParameterNumber);};
+    inline uint8_t GetOffCommandsParameterNumber(void) {return (OffCommandsParameterNumber);};
+    inline uint8_t GetOnOffCommandsRuleParameterNumber(void) {return (OnOffCommandsRuleParameterNumber);};
+    inline uint16_t GetMultiplier(void) {return (Multiplier);};
 
     int64_t GetReportedValue() const;
     void SetReportedValue(int64_t reportedValue);
@@ -94,11 +94,11 @@ private:
     TWBMSWSensor::GetAvailabilityCallback ReadAvailabilityCallback;
     TWBMSWSensor::GetValueCallback ReadValueCallback;
 
-	uint8_t					_ReportThresHoldParameterNumber;
-	uint8_t					_LevelSendBasicParameterNumber;
-	uint8_t					_HysteresisBasicParameterNumber;
-	uint8_t					_OnCommandsParameterNumber;
-	uint8_t					_OffCommandsParameterNumber;
-	uint8_t					_OnOffCommandsRuleParameterNumber;
-	uint16_t				_multiple;
+    uint8_t ReportThresHoldParameterNumber;
+    uint8_t LevelSendBasicParameterNumber;
+    uint8_t HysteresisBasicParameterNumber;
+    uint8_t OnCommandsParameterNumber;
+    uint8_t OffCommandsParameterNumber;
+    uint8_t OnOffCommandsRuleParameterNumber;
+    uint16_t Multiplier;
 };

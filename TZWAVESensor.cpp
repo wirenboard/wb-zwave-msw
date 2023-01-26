@@ -4,6 +4,17 @@
 #include "WbMsw.h"
 #include <string.h>
 
+#define WB_MSW_CONFIG_PARAMETER_TEMPERATURE_MULTIPLE 1
+#define WB_MSW_CONFIG_PARAMETER_HUMIDITY_MULTIPLE 100
+#define WB_MSW_CONFIG_PARAMETER_LUMEN_MULTIPLE 100
+#define WB_MSW_CONFIG_PARAMETER_CO2_MULTIPLE 1
+#define WB_MSW_CONFIG_PARAMETER_VOC_MULTIPLE 1
+#define WB_MSW_CONFIG_PARAMETER_NOISE_LEVEL_MULTIPLE 100
+#define WB_MSW_CONFIG_PARAMETER_MOTION_MULTIPLE 1
+#define WB_MSW_CONFIG_PARAMETER_MOTION_ON 300
+#define WB_MSW_CONFIG_PARAMETER_MOTION_OFF 250
+#define WB_MSW_CONFIG_PARAMETER_MOTION_HYSTERESIS 10
+
 TZWAVESensor::TZWAVESensor(TWBMSWSensor* wbMsw): WbMsw(wbMsw)
 {
     // Available device parameters description
@@ -11,7 +22,6 @@ TZWAVESensor::TZWAVESensor(TWBMSWSensor* wbMsw): WbMsw(wbMsw)
     ZunoCFGParameter_t parameters[WB_MSW_MAX_CONFIG_PARAM] = {
 
         // Temperature channel settings
-        #define WB_MSW_CONFIG_PARAMETER_TEMPERATURE_MULTIPLE			1
         ZUNO_CONFIG_PARAMETER_INFO("Temperature Report Threshold",
                                     "0 - Reports disabled. Send Report if the temperature has changed after the last report. Value in 0.01C (100 = 1C).",
                                     0, 4000, 100),//64
@@ -32,7 +42,6 @@ TZWAVESensor::TZWAVESensor(TWBMSWSensor* wbMsw): WbMsw(wbMsw)
                                     1, 3, 1),//69
 
         // Humidity sensor settings
-        #define WB_MSW_CONFIG_PARAMETER_HUMIDITY_MULTIPLE				100
         ZUNO_CONFIG_PARAMETER_INFO("Humidity Report Threshold",
                                     "0 - Reports disabled. Send Report if the humidity has changed after the last report. Value in %.",
                                     0, 90, 5),//70
@@ -53,7 +62,6 @@ TZWAVESensor::TZWAVESensor(TWBMSWSensor* wbMsw): WbMsw(wbMsw)
                                     1, 3, 1),//75
 
         // Lumen sensor settings
-        #define WB_MSW_CONFIG_PARAMETER_LUMEN_MULTIPLE					100
         ZUNO_CONFIG_PARAMETER_INFO("Luminance Report Threshold",
                                     "0 - Reports disabled. Send Report if the luminance has changed after the last report. Value in lux.",
                                     0, 100000, 100),//76
@@ -74,7 +82,6 @@ TZWAVESensor::TZWAVESensor(TWBMSWSensor* wbMsw): WbMsw(wbMsw)
                                     1, 3, 1),//81
 
         // CO2 sensor settings
-        #define WB_MSW_CONFIG_PARAMETER_CO2_MULTIPLE					1
         ZUNO_CONFIG_PARAMETER_INFO("CO2 Report Threshold",
                                     "0 - Reports disabled. Send Report if the CO2 has changed after the last report. Value in ppm.",
                                     0, 5000, 100),//82
@@ -98,7 +105,6 @@ TZWAVESensor::TZWAVESensor(TWBMSWSensor* wbMsw): WbMsw(wbMsw)
                                     false, true, true),//88
 
         // VOC sensor settings
-        #define WB_MSW_CONFIG_PARAMETER_VOC_MULTIPLE					1
         ZUNO_CONFIG_PARAMETER_INFO("VOC Report Threshold",
                                     "0 - Reports disabled. Send Report if the VOC has changed after the last report. Value in ppb.",
                                     0, 60000, 50),
@@ -119,7 +125,6 @@ TZWAVESensor::TZWAVESensor(TWBMSWSensor* wbMsw): WbMsw(wbMsw)
                                     1, 3, 1),
 
         // Noise level sensor settings
-        #define WB_MSW_CONFIG_PARAMETER_NOISE_LEVEL_MULTIPLE					100
         ZUNO_CONFIG_PARAMETER_INFO("Noise Report Threshold",
                                     "0 - Reports disabled. Send Report if the noise has changed after the last report. Value in dB.",
                                     0, 105, 10),
@@ -140,10 +145,6 @@ TZWAVESensor::TZWAVESensor(TWBMSWSensor* wbMsw): WbMsw(wbMsw)
                                     1, 3, 1),
 
         // Motion sensor settings
-        #define WB_MSW_CONFIG_PARAMETER_MOTION_MULTIPLE							1
-        #define WB_MSW_CONFIG_PARAMETER_MOTION_ON								300
-        #define WB_MSW_CONFIG_PARAMETER_MOTION_OFF								250
-        #define WB_MSW_CONFIG_PARAMETER_MOTION_HYSTERESIS						10
         ZUNO_CONFIG_PARAMETER_INFO("Motion delay to send OFF command",
                                     "Value in seconds.",
                                     0, 100000, 60),
@@ -159,12 +160,7 @@ TZWAVESensor::TZWAVESensor(TWBMSWSensor* wbMsw): WbMsw(wbMsw)
     };
     memcpy(Parameters, parameters, sizeof(parameters));
     MotionLastTime = 0;
-    this->_MotionLastTime_wait_Off = false;
-    #ifdef LOGGING_DBG
-    this->_debug_ms_next = 0x0;
-    this->_debug_ms = 0x0;
-    this->_debug_ms_step = 1000;
-    #endif
+    MotionLastTimeWaitOff = false;
 }
 
 // Function determines number of available Z-Wave device channels (EndPoints) and fills in the structures by channel
@@ -526,71 +522,71 @@ TZWAVEChannel* TZWAVESensor::GetChannelByType(TZWAVEChannel::Type type)
 const ZunoCFGParameter_t* TZWAVESensor::GetParameterIfChannelExists(size_t paramNumber)
 {
     switch (paramNumber) {
-		case WB_MSW_CONFIG_PARAMETER_TEMPERATURE_REPORT_THRESHOLD:
-		case WB_MSW_CONFIG_PARAMETER_TEMPERATURE_LEVEL_SEND_BASIC:
-		case WB_MSW_CONFIG_PARAMETER_TEMPERATURE_HYSTERESIS_SEND_BASIC:
-		case WB_MSW_CONFIG_PARAMETER_TEMPERATURE_ON_COMMANDS:
-		case WB_MSW_CONFIG_PARAMETER_TEMPERATURE_OFF_COMMANDS:
-		case WB_MSW_CONFIG_PARAMETER_TEMPERATURE_ON_OFF_COMMANDS_RULE:
+        case WB_MSW_CONFIG_PARAMETER_TEMPERATURE_REPORT_THRESHOLD:
+        case WB_MSW_CONFIG_PARAMETER_TEMPERATURE_LEVEL_SEND_BASIC:
+        case WB_MSW_CONFIG_PARAMETER_TEMPERATURE_HYSTERESIS_SEND_BASIC:
+        case WB_MSW_CONFIG_PARAMETER_TEMPERATURE_ON_COMMANDS:
+        case WB_MSW_CONFIG_PARAMETER_TEMPERATURE_OFF_COMMANDS:
+        case WB_MSW_CONFIG_PARAMETER_TEMPERATURE_ON_OFF_COMMANDS_RULE:
             if (!GetChannelByType(TZWAVEChannel::Type::TEMPERATURE)) {
                 return (ZUNO_CFG_PARAMETER_UNKNOWN);
             }
             break;
-		case WB_MSW_CONFIG_PARAMETER_HUMIDITY_REPORT_THRESHOLD:
-		case WB_MSW_CONFIG_PARAMETER_HUMIDITY_LEVEL_SEND_BASIC:
-		case WB_MSW_CONFIG_PARAMETER_HUMIDITY_HYSTERESIS_SEND_BASIC:
-		case WB_MSW_CONFIG_PARAMETER_HUMIDITY_ON_COMMANDS:
-		case WB_MSW_CONFIG_PARAMETER_HUMIDITY_OFF_COMMANDS:
-		case WB_MSW_CONFIG_PARAMETER_HUMIDITY_ON_OFF_COMMANDS_RULE:
+        case WB_MSW_CONFIG_PARAMETER_HUMIDITY_REPORT_THRESHOLD:
+        case WB_MSW_CONFIG_PARAMETER_HUMIDITY_LEVEL_SEND_BASIC:
+        case WB_MSW_CONFIG_PARAMETER_HUMIDITY_HYSTERESIS_SEND_BASIC:
+        case WB_MSW_CONFIG_PARAMETER_HUMIDITY_ON_COMMANDS:
+        case WB_MSW_CONFIG_PARAMETER_HUMIDITY_OFF_COMMANDS:
+        case WB_MSW_CONFIG_PARAMETER_HUMIDITY_ON_OFF_COMMANDS_RULE:
             if (!GetChannelByType(TZWAVEChannel::Type ::HUMIDITY)) {
                 return (ZUNO_CFG_PARAMETER_UNKNOWN);
             }
             break;
-		case WB_MSW_CONFIG_PARAMETER_LUMEN_REPORT_THRESHOLD:
-		case WB_MSW_CONFIG_PARAMETER_LUMEN_LEVEL_SEND_BASIC:
-		case WB_MSW_CONFIG_PARAMETER_LUMEN_HYSTERESIS_SEND_BASIC:
-		case WB_MSW_CONFIG_PARAMETER_LUMEN_ON_COMMANDS:
-		case WB_MSW_CONFIG_PARAMETER_LUMEN_OFF_COMMANDS:
-		case WB_MSW_CONFIG_PARAMETER_LUMEN_ON_OFF_COMMANDS_RULE:
+        case WB_MSW_CONFIG_PARAMETER_LUMEN_REPORT_THRESHOLD:
+        case WB_MSW_CONFIG_PARAMETER_LUMEN_LEVEL_SEND_BASIC:
+        case WB_MSW_CONFIG_PARAMETER_LUMEN_HYSTERESIS_SEND_BASIC:
+        case WB_MSW_CONFIG_PARAMETER_LUMEN_ON_COMMANDS:
+        case WB_MSW_CONFIG_PARAMETER_LUMEN_OFF_COMMANDS:
+        case WB_MSW_CONFIG_PARAMETER_LUMEN_ON_OFF_COMMANDS_RULE:
             if (!GetChannelByType(TZWAVEChannel::Type::LUMEN)) {
                 return (ZUNO_CFG_PARAMETER_UNKNOWN);
             }
             break;
-		case WB_MSW_CONFIG_PARAMETER_CO2_REPORT_THRESHOLD:
-		case WB_MSW_CONFIG_PARAMETER_CO2_LEVEL_SEND_BASIC:
-		case WB_MSW_CONFIG_PARAMETER_CO2_HYSTERESIS_SEND_BASIC:
-		case WB_MSW_CONFIG_PARAMETER_CO2_ON_COMMANDS:
-		case WB_MSW_CONFIG_PARAMETER_CO2_OFF_COMMANDS:
-		case WB_MSW_CONFIG_PARAMETER_CO2_ON_OFF_COMMANDS_RULE:
-		case WB_MSW_CONFIG_PARAMETER_CO2_AUTO:
+        case WB_MSW_CONFIG_PARAMETER_CO2_REPORT_THRESHOLD:
+        case WB_MSW_CONFIG_PARAMETER_CO2_LEVEL_SEND_BASIC:
+        case WB_MSW_CONFIG_PARAMETER_CO2_HYSTERESIS_SEND_BASIC:
+        case WB_MSW_CONFIG_PARAMETER_CO2_ON_COMMANDS:
+        case WB_MSW_CONFIG_PARAMETER_CO2_OFF_COMMANDS:
+        case WB_MSW_CONFIG_PARAMETER_CO2_ON_OFF_COMMANDS_RULE:
+        case WB_MSW_CONFIG_PARAMETER_CO2_AUTO:
             if (!GetChannelByType(TZWAVEChannel::Type::CO2)) {
                 return (ZUNO_CFG_PARAMETER_UNKNOWN);
             }
             break;
-		case WB_MSW_CONFIG_PARAMETER_VOC_REPORT_THRESHOLD:
-		case WB_MSW_CONFIG_PARAMETER_VOC_LEVEL_SEND_BASIC:
-		case WB_MSW_CONFIG_PARAMETER_VOC_HYSTERESIS_SEND_BASIC:
-		case WB_MSW_CONFIG_PARAMETER_VOC_ON_COMMANDS:
-		case WB_MSW_CONFIG_PARAMETER_VOC_OFF_COMMANDS:
-		case WB_MSW_CONFIG_PARAMETER_VOC_ON_OFF_COMMANDS_RULE:
+        case WB_MSW_CONFIG_PARAMETER_VOC_REPORT_THRESHOLD:
+        case WB_MSW_CONFIG_PARAMETER_VOC_LEVEL_SEND_BASIC:
+        case WB_MSW_CONFIG_PARAMETER_VOC_HYSTERESIS_SEND_BASIC:
+        case WB_MSW_CONFIG_PARAMETER_VOC_ON_COMMANDS:
+        case WB_MSW_CONFIG_PARAMETER_VOC_OFF_COMMANDS:
+        case WB_MSW_CONFIG_PARAMETER_VOC_ON_OFF_COMMANDS_RULE:
             if (!GetChannelByType(TZWAVEChannel::Type::VOC)) {
                 return (ZUNO_CFG_PARAMETER_UNKNOWN);
             }
             break;
-		case WB_MSW_CONFIG_PARAMETER_NOISE_LEVEL_REPORT_THRESHOLD:
-		case WB_MSW_CONFIG_PARAMETER_NOISE_LEVEL_LEVEL_SEND_BASIC:
-		case WB_MSW_CONFIG_PARAMETER_NOISE_LEVEL_HYSTERESIS_SEND_BASIC:
-		case WB_MSW_CONFIG_PARAMETER_NOISE_LEVEL_ON_COMMANDS:
-		case WB_MSW_CONFIG_PARAMETER_NOISE_LEVEL_OFF_COMMANDS:
-		case WB_MSW_CONFIG_PARAMETER_NOISE_LEVEL_ON_OFF_COMMANDS_RULE:
+        case WB_MSW_CONFIG_PARAMETER_NOISE_LEVEL_REPORT_THRESHOLD:
+        case WB_MSW_CONFIG_PARAMETER_NOISE_LEVEL_LEVEL_SEND_BASIC:
+        case WB_MSW_CONFIG_PARAMETER_NOISE_LEVEL_HYSTERESIS_SEND_BASIC:
+        case WB_MSW_CONFIG_PARAMETER_NOISE_LEVEL_ON_COMMANDS:
+        case WB_MSW_CONFIG_PARAMETER_NOISE_LEVEL_OFF_COMMANDS:
+        case WB_MSW_CONFIG_PARAMETER_NOISE_LEVEL_ON_OFF_COMMANDS_RULE:
             if (!GetChannelByType(TZWAVEChannel::Type::NOISE_LEVEL)) {
                 return (ZUNO_CFG_PARAMETER_UNKNOWN);
             }
             break;
-		case WB_MSW_CONFIG_PARAMETER_MOTION_DELAY_SEND_OFF_COMMANDS:
-		case WB_MSW_CONFIG_PARAMETER_MOTION_ON_COMMANDS:
-		case WB_MSW_CONFIG_PARAMETER_MOTION_OFF_COMMANDS:
-		case WB_MSW_CONFIG_PARAMETER_MOTION_ON_OFF_COMMANDS_RULE:
+        case WB_MSW_CONFIG_PARAMETER_MOTION_DELAY_SEND_OFF_COMMANDS:
+        case WB_MSW_CONFIG_PARAMETER_MOTION_ON_COMMANDS:
+        case WB_MSW_CONFIG_PARAMETER_MOTION_OFF_COMMANDS:
+        case WB_MSW_CONFIG_PARAMETER_MOTION_ON_OFF_COMMANDS_RULE:
             if (!GetChannelByType(TZWAVEChannel::Type::MOTION)) {
                 return (ZUNO_CFG_PARAMETER_UNKNOWN);
             }
@@ -604,99 +600,108 @@ const ZunoCFGParameter_t* TZWAVESensor::GetParameterIfChannelExists(size_t param
 
 void TZWAVESensor::PublishAnalogSensorValue(TZWAVEChannel& channel,
                                             int64_t value,
-											int32_t Report_ThresHold,
-											int32_t Level_Send_Basic,
-											int32_t Hysteresis_Basic,
-											int32_t On_Commands,
-											int32_t Off_Commands,
-											int32_t On_Off_Commands_Rule)
+                                            int32_t reportThresHold,
+                                            int32_t levelSendBasic,
+                                            int32_t hysteresisBasic,
+                                            int32_t onCommands,
+                                            int32_t offCommands,
+                                            int32_t onOffCommandsRule)
 {
-	uint16_t								multiple;
-	uint8_t									group_index;
-	bool									triggered;
+    uint16_t multiplier;
+    uint8_t groupIndex;
+    bool triggered;
 
-	multiple = channel.GetMultiple();
-	Report_ThresHold = Report_ThresHold * multiple;
-	// Send value without condition if channels value uninitialized on server
-	if ((channel.GetState() == TZWAVEChannel::State::UNINITIALIZED) ||
-		((Report_ThresHold != 0) && (abs(value - channel.GetReportedValue()) > Report_ThresHold)))
-	{
-		// DEBUG("Channel ");
-		// DEBUG(channel.GetType());
-		// DEBUG(" send report value ");
-		// DEBUG(value);
-		// DEBUG("\n");
-		channel.SetReportedValue(value); // Remember last sent value
-		zunoSendReport(channel.GetServerChannelNumber());
-	}
-	Level_Send_Basic = Level_Send_Basic * multiple;
-	Hysteresis_Basic = Hysteresis_Basic * multiple;
-	group_index = channel.GetGroupIndex();
-	triggered = channel.GetTriggered();
-	switch (On_Off_Commands_Rule) {
-		case 0x1:
-			if ((Level_Send_Basic + Hysteresis_Basic) >= value && triggered == false) {
-				channel.SetTriggered(true);
-				zunoSendToGroupSetValueCommand(group_index, On_Commands);
-			}
-			else if ((Level_Send_Basic - Hysteresis_Basic) <= value && triggered == true) {
-				channel.SetTriggered(false);
-				zunoSendToGroupSetValueCommand(group_index, Off_Commands);
-			}
-			break ;
-		case 0x2:
-			if ((Level_Send_Basic + Hysteresis_Basic) >= value && triggered == false) {
-				channel.SetTriggered(true);
-				zunoSendToGroupSetValueCommand(group_index, On_Commands);
-			}
-			else if ((Level_Send_Basic - Hysteresis_Basic) <= value && triggered == true) {
-				channel.SetTriggered(false);
-			}
-			break ;
-		case 0x3:
-			if ((Level_Send_Basic + Hysteresis_Basic) >= value && triggered == false) {
-				channel.SetTriggered(true);
-			}
-			else if ((Level_Send_Basic - Hysteresis_Basic) <= value && triggered == true) {
-				channel.SetTriggered(false);
-				zunoSendToGroupSetValueCommand(group_index, Off_Commands);
-			}
-			break ;
-	}
+    multiplier = channel.GetMultiplier();
+    reportThresHold = reportThresHold * multiplier;
+    // Send value without condition if channels value uninitialized on server
+    if ((channel.GetState() == TZWAVEChannel::State::UNINITIALIZED) ||
+        ((reportThresHold != 0) && (abs(value - channel.GetReportedValue()) > reportThresHold)))
+    {
+        // DEBUG("Channel ");
+        // DEBUG(channel.GetType());
+        // DEBUG(" send report value ");
+        // DEBUG(value);
+        // DEBUG("\n");
+        channel.SetReportedValue(value); // Remember last sent value
+        zunoSendReport(channel.GetServerChannelNumber());
+    }
+    levelSendBasic = levelSendBasic * multiplier;
+    hysteresisBasic = hysteresisBasic * multiplier;
+    groupIndex = channel.GetGroupIndex();
+    triggered = channel.GetTriggered();
+    if (triggered) {
+        if ((levelSendBasic - hysteresisBasic) <= value) {
+            channel.SetTriggered(false);
+            if (onOffCommandsRule == 1 || onOffCommandsRule == 3) {
+                zunoSendToGroupSetValueCommand(groupIndex, offCommands);
+            }
+        }
+    }
+    else {
+        if ((levelSendBasic + hysteresisBasic) >= value) {
+            channel.SetTriggered(true);
+            if (onOffCommandsRule == 1 || onOffCommandsRule == 2) {
+                zunoSendToGroupSetValueCommand(groupIndex, onCommands);
+            }
+        }
+    }
 }
 
-#ifdef LOGGING_DBG
-static void _debugMessage(TZWAVEChannel& channel, int64_t currentValue) {
-	const char									space[] = "                         ";
-	size_t										len;
-	String										str1;
+void TZWAVESensor::PublishMotionValue(TZWAVEChannel* channel,
+                                        int64_t value)
+{
+    int32_t onCommands;
+    int32_t offCommands;
+    int32_t onOffCommandsRule;
+    bool triggered;
+    uint8_t groupIndex;
+    uint32_t motionPeriod;
+    uint32_t currentTime;
 
-	str1 = channel.GetName();
-	len = str1.length();
-	if (len >= (sizeof(space) - 0x1))
-		len = 0x1;
-	else
-		len =  (sizeof(space) - 0x1) - len;
-	LOGGING_UART.print(str1);
-	LOGGING_UART.write((uint8_t *)&space[0x0], len);
-	if (channel.GetType() == TZWAVEChannel::Type::VOC || channel.GetType() == TZWAVEChannel::Type::CO2 || channel.GetType() == TZWAVEChannel::Type::MOTION)
-		LOGGING_UART.fixPrint( currentValue, 0);
-	else
-		LOGGING_UART.fixPrint( currentValue, 2);
-	LOGGING_UART.print("\n");
+    onCommands = GetParameterValue(channel->GetOnCommandsParameterNumber());
+    onOffCommandsRule = GetParameterValue(channel->GetOnOffCommandsRuleParameterNumber());
+    triggered = channel->GetTriggered();
+    groupIndex =channel->GetGroupIndex();
+    currentTime = millis();
+    if (triggered) {
+        if ((WB_MSW_CONFIG_PARAMETER_MOTION_OFF) <= value) {
+            channel->SetTriggered(false);
+            if (onOffCommandsRule == 1 || onOffCommandsRule == 3) {
+                MotionLastTime = currentTime;
+                MotionLastTimeWaitOff = true;
+            }
+        }
+    }
+    else {
+        if ((WB_MSW_CONFIG_PARAMETER_MOTION_ON) >= value) {
+            channel->SetTriggered(true);
+            if (onOffCommandsRule == 1 || onOffCommandsRule == 2) {
+                zunoSendToGroupSetValueCommand(groupIndex, onCommands);
+            }
+        }
+    }
+    if (MotionLastTimeWaitOff) {
+        if (onOffCommandsRule == 1 || onOffCommandsRule == 3) {
+            motionPeriod = (uint32_t)GetParameterValue(WB_MSW_CONFIG_PARAMETER_MOTION_DELAY_SEND_OFF_COMMANDS) * 1000;
+            if ((MotionLastTime + motionPeriod) <= currentTime) {
+                MotionLastTimeWaitOff = false;
+                offCommands = GetParameterValue(channel->GetOffCommandsParameterNumber());
+                zunoSendToGroupSetValueCommand(groupIndex, offCommands);
+            }
+        }
+    }
 }
-#endif
 
 // Processing of various types of sensors
 TZWAVESensor::Result TZWAVESensor::ProcessCommonChannel(TZWAVEChannel& channel)
 {
     int64_t currentValue;
-	int32_t					Report_ThresHold;
-	int32_t					Level_Send_Basic;
-	int32_t					Hysteresis_Basic;
-	int32_t					On_Commands;
-	int32_t					Off_Commands;
-	int32_t					On_Off_Commands_Rule;
+    int32_t reportThresHold;
+    int32_t levelSendBasic;
+    int32_t hysteresisBasic;
+    int32_t onCommands;
+    int32_t offCommands;
+    int32_t onOffCommandsRule;
 
     if (channel.GetType() == TZWAVEChannel::Type::CO2) {
         // Check if automatic calibration is needed
@@ -705,136 +710,67 @@ TZWAVESensor::Result TZWAVESensor::ProcessCommonChannel(TZWAVEChannel& channel)
             return TZWAVESensor::Result::ZWAVE_PROCESS_MODBUS_ERROR;
         }
     }
-
     if (!channel.ReadValueFromSensor(currentValue)) {
         return TZWAVESensor::Result::ZWAVE_PROCESS_MODBUS_ERROR;
     }
     if ((channel.GetType() != TZWAVEChannel::Type::NOISE_LEVEL) && (currentValue == channel.GetErrorValue())) {
         return TZWAVESensor::Result::ZWAVE_PROCESS_VALUE_ERROR;
     }
-	#ifdef LOGGING_DBG
-	if (this->_debug_ms > this->_debug_ms_next)
-		_debugMessage(channel, currentValue);
-	#endif
+    DEBUG(channel.GetName());
+    LOG_FIXEDPOINT_VALUE("        ", currentValue, 2);
     channel.SetValue(currentValue);
-	Report_ThresHold = GetParameterValue(channel.GetReportThresHoldParameterNumber());
-	Level_Send_Basic = GetParameterValue(channel.GetLevelSendBasicParameterNumber());
-	Hysteresis_Basic = GetParameterValue(channel.GetHysteresisBasicParameterNumber());
-	On_Commands = GetParameterValue(channel.GetOnCommandsParameterNumber());
-	Off_Commands = GetParameterValue(channel.GetOffCommandsParameterNumber());
-	On_Off_Commands_Rule = GetParameterValue(channel.GetOnOffCommandsRuleParameterNumber());
-    PublishAnalogSensorValue(channel, currentValue, Report_ThresHold, Level_Send_Basic, Hysteresis_Basic, On_Commands, Off_Commands, On_Off_Commands_Rule);
+    reportThresHold = GetParameterValue(channel.GetReportThresHoldParameterNumber());
+    levelSendBasic = GetParameterValue(channel.GetLevelSendBasicParameterNumber());
+    hysteresisBasic = GetParameterValue(channel.GetHysteresisBasicParameterNumber());
+    onCommands = GetParameterValue(channel.GetOnCommandsParameterNumber());
+    offCommands = GetParameterValue(channel.GetOffCommandsParameterNumber());
+    onOffCommandsRule = GetParameterValue(channel.GetOnOffCommandsRuleParameterNumber());
+    PublishAnalogSensorValue(channel, currentValue, reportThresHold, levelSendBasic, hysteresisBasic, onCommands, offCommands, onOffCommandsRule);
     return TZWAVESensor::Result::ZWAVE_PROCESS_OK;
 }
 
 TZWAVESensor::Result TZWAVESensor::ProcessMotionChannel(TZWAVEChannel& channel)
 {
-	int64_t									value;
-	int32_t									On_Commands;
-	int32_t									Off_Commands;
-	int32_t									On_Off_Commands_Rule;
-	bool									triggered;
-	uint8_t									group_index;
-	uint32_t								motionPeriod;
-	uint32_t								currentTime;
+    int64_t value;
+
 
     if (!channel.ReadValueFromSensor(value)) {
         return TZWAVESensor::Result::ZWAVE_PROCESS_MODBUS_ERROR;
     }
     if (value == WB_MSW_INPUT_REG_MOTION_VALUE_ERROR) {
-        // MotionChannelReset(&channel);
+        MotionChannelReset(&channel);
         return TZWAVESensor::Result::ZWAVE_PROCESS_VALUE_ERROR;
     }
-	#ifdef LOGGING_DBG
-	if (this->_debug_ms > this->_debug_ms_next)
-		_debugMessage(channel, value);
-	#endif
-	if ((channel.GetState() == TZWAVEChannel::State::UNINITIALIZED) ||
-		((abs(value - channel.GetReportedValue()) > WB_MSW_CONFIG_PARAMETER_MOTION_HYSTERESIS)))
-	{
-		// DEBUG("Channel ");
-		// DEBUG(channel.GetType());
-		// DEBUG(" send report value ");
-		// DEBUG(value);
-		// DEBUG("\n");
-		channel.SetReportedValue(value); // Remember last sent value
-		zunoSendReport(channel.GetServerChannelNumber());
-	}
-	On_Commands = GetParameterValue(channel.GetOnCommandsParameterNumber());
-	On_Off_Commands_Rule = GetParameterValue(channel.GetOnOffCommandsRuleParameterNumber());
-	triggered = channel.GetTriggered();
-	group_index =channel.GetGroupIndex();
-	currentTime = millis();
-	switch (On_Off_Commands_Rule) {
-		case 0x1:
-			if ((WB_MSW_CONFIG_PARAMETER_MOTION_ON) >= value && triggered == false) {
-				channel.SetTriggered(true);
-				zunoSendToGroupSetValueCommand(group_index, On_Commands);
-			}
-			else if ((WB_MSW_CONFIG_PARAMETER_MOTION_OFF) <= value && triggered == true) {
-				channel.SetTriggered(false);
-				this->MotionLastTime = currentTime;
-				this->_MotionLastTime_wait_Off = true;
-			}
-			break ;
-		case 0x2:
-			if ((WB_MSW_CONFIG_PARAMETER_MOTION_ON) >= value && triggered == false) {
-				channel.SetTriggered(true);
-				zunoSendToGroupSetValueCommand(group_index, On_Commands);
-			}
-			else if ((WB_MSW_CONFIG_PARAMETER_MOTION_OFF) <= value && triggered == true) {
-				channel.SetTriggered(false);
-			}
-			break ;
-		case 0x3:
-			if ((WB_MSW_CONFIG_PARAMETER_MOTION_ON) >= value && triggered == false) {
-				channel.SetTriggered(true);
-			}
-			else if ((WB_MSW_CONFIG_PARAMETER_MOTION_OFF) <= value && triggered == true) {
-				channel.SetTriggered(false);
-				this->MotionLastTime = currentTime;
-				this->_MotionLastTime_wait_Off = true;
-			}
-			break ;
-	}
-	switch (On_Off_Commands_Rule) {
-		case 0x1:
-		case 0x3:
-			if (this->_MotionLastTime_wait_Off == true)
-			{
-				motionPeriod = (uint32_t)GetParameterValue(WB_MSW_CONFIG_PARAMETER_MOTION_DELAY_SEND_OFF_COMMANDS) * 1000;
-				if ((this->MotionLastTime + motionPeriod) <= currentTime)
-				{
-					this->_MotionLastTime_wait_Off = false;
-					Off_Commands = GetParameterValue(channel.GetOffCommandsParameterNumber());
-					zunoSendToGroupSetValueCommand(group_index, Off_Commands);
-				}
-			}
-			break ;
-	}
-	return (TZWAVESensor::Result::ZWAVE_PROCESS_OK);
+    LOG_INT_VALUE("Motion:             ", (long)value);
+    if ((channel.GetState() == TZWAVEChannel::State::UNINITIALIZED) ||
+        ((abs(value - channel.GetReportedValue()) > WB_MSW_CONFIG_PARAMETER_MOTION_HYSTERESIS)))
+    {
+        // DEBUG("Channel ");
+        // DEBUG(channel.GetType());
+        // DEBUG(" send report value ");
+        // DEBUG(value);
+        // DEBUG("\n");
+        channel.SetReportedValue(value); // Remember last sent value
+        zunoSendReport(channel.GetServerChannelNumber());
+    }
+    PublishMotionValue(&channel, value);
+    return (TZWAVESensor::Result::ZWAVE_PROCESS_OK);
 }
 
-// void TZWAVESensor::MotionChannelReset(TZWAVEChannel* channel)
-// {
-//     if (channel) {
-//         bool inverting = GetParameterValue(WB_MSW_CONFIG_PARAMETER_MOTION_INVERT);
-
-//         channel->SetValue(false);
-//         channel->SetReportedValue(false);
-//         zunoSendReport(channel->GetServerChannelNumber());
-//         zunoSendToGroupSetValueCommand(channel->GetGroupIndex(), (!inverting) ? WB_MSW_OFF : WB_MSW_ON);
-//     }
-// }
+void TZWAVESensor::MotionChannelReset(TZWAVEChannel* channel)
+{
+    if (channel) {
+        channel->SetValue(false);
+        channel->SetReportedValue(false);
+        zunoSendReport(channel->GetServerChannelNumber());
+        PublishMotionValue(channel, false);
+    }
+}
 
 // Device channel management and firmware data transfer
 TZWAVESensor::Result TZWAVESensor::ProcessChannels()
 {
-    #ifdef LOGGING_DBG
-    this->_debug_ms = millis();
-    if (this->_debug_ms > this->_debug_ms_next)
-        DEBUG("--------------------Measurements-----------------------\n");
-    #endif
+    DEBUG("--------------------Measurements-----------------------\n");
     // Check all channels of available sensors
     TZWAVESensor::Result result;
     for (size_t i = 0; i < TZWAVEChannel::CHANNEL_TYPES_COUNT; i++) {
@@ -849,17 +785,9 @@ TZWAVESensor::Result TZWAVESensor::ProcessChannels()
             }
         }
         if (result == TZWAVESensor::Result::ZWAVE_PROCESS_MODBUS_ERROR) {
-            // MotionChannelReset(MotionChannelPtr);
-            #ifdef LOGGING_DBG
-            if (this->_debug_ms > this->_debug_ms_next)
-                this->_debug_ms_next = this->_debug_ms + this->_debug_ms_step;
-            #endif
+            MotionChannelReset(MotionChannelPtr);
             return result;
         }
     }
-    #ifdef LOGGING_DBG
-    if (this->_debug_ms > this->_debug_ms_next)
-        this->_debug_ms_next = this->_debug_ms + this->_debug_ms_step;
-    #endif
     return TZWAVESensor::Result::ZWAVE_PROCESS_OK;
 }
