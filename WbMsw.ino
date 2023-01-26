@@ -19,13 +19,16 @@ ZUNO_ENABLE(
 		ZUNO_CUSTOM_OTA_OFFSET=0x10000 // 64 kB
 		/* Additional OTA firmwares count*/
 		ZUNO_EXT_FIRMWARES_COUNT=1
-		SKETCH_VERSION=0x0103
+		SKETCH_VERSION=0x0104
 		/* Firmware descriptor pointer */
 		ZUNO_EXT_FIRMWARES_DESCR_PTR=&g_OtaDesriptor
 		CONFIGPARAMETERS_MAX_COUNT=41//expands the number of parameters available - number + 0x1
 		// DBG_CONSOLE_BAUDRATE=921600//speed uart dbg
 		LOGGING_DBG // Comment out if debugging information is not needed
+		//LOGGING_DBG // Comment out if debugging information is not needed
 					// Debugging information being printed with RTOS system console output to UART0 (TX0) by default
+        DBG_CONSOLE_PIN=0xFF
+        //DBG_CONSOLE_BAUDRATE=115200
 		//LOGGING_UART=Serial
 
 	);
