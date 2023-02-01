@@ -72,6 +72,12 @@ const ZunoCFGParameter_t* zunoCFGParameter(size_t paramNumber)
 // Static function where system events arrive
 static void SystemEvent(ZUNOSysEvent_t* ev)
 {
+    size_t i;
+    ssize_t value;
+    ssize_t defaultValue;
+    size_t paramNumber;
+    const ZunoCFGParameter_t *parameters;
+
     switch (ev->event) {
         // A new firmware image for the second chip from the Z-Wave controller has arrived
         case ZUNO_SYS_EVENT_OTA_IMAGE_READY:
@@ -81,6 +87,21 @@ static void SystemEvent(ZUNOSysEvent_t* ev)
                 DEBUG(" BYTES\n");
                 FwUpdater.NewFirmwareNotification(ev->params[1]);
             }
+            break;
+        case ZUNO_SYS_EVENT_LEARNSTATUS:
+            if((ev->params[0] == INCLUSION_STATUS_SUCESS) && (ev->params[1] == 0)) {
+                i = 0x0;
+                while (i < WB_MSW_MAX_CONFIG_PARAM) {
+                    value = zunoLoadCFGParam(i + WB_MSW_CONFIG_PARAMETER_FIRST);
+                    paramNumber = i + WB_MSW_CONFIG_PARAMETER_FIRST;
+                    parameters = ZwaveSensor.GetParameterByNumber(paramNumber);
+                    defaultValue = parameters->defaultValue;
+                    if (defaultValue != value) {
+                        zunoSaveCFGParam(paramNumber, defaultValue);
+                    }
+                    i++;
+                }
+                }
             break;
     }
 }

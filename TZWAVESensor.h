@@ -23,6 +23,7 @@ public:
     int32_t GetParameterValue(size_t paramNumber);
 
     TZWAVESensor::Result ProcessChannels();
+    ZunoCFGParameter_t* GetParameterByNumber(size_t paramNumber);
 
 private:
     TWBMSWSensor* WbMsw;
@@ -33,7 +34,6 @@ private:
     int32_t ParameterValues[WB_MSW_MAX_CONFIG_PARAM];
 
     TZWAVEChannel* GetChannelByType(TZWAVEChannel::Type type);
-    ZunoCFGParameter_t* GetParameterByNumber(size_t paramNumber);
 
     TZWAVESensor::Result ProcessCommonChannel(TZWAVEChannel& channel);
     TZWAVESensor::Result ProcessMotionChannel(TZWAVEChannel& channel);
