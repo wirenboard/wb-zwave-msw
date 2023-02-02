@@ -13,6 +13,7 @@
 #define WB_MSW_CONFIG_PARAMETER_MOTION_MULTIPLIER 1
 #define WB_MSW_CONFIG_PARAMETER_MOTION_ON 300
 #define WB_MSW_CONFIG_PARAMETER_MOTION_OFF 250
+#define WB_MSW_CONFIG_PARAMETER_CO2_AUTO_VALUE true
 
 TZWAVESensor::TZWAVESensor(TWBMSWSensor* wbMsw): WbMsw(wbMsw)
 {
@@ -34,99 +35,101 @@ TZWAVESensor::TZWAVESensor(TWBMSWSensor* wbMsw): WbMsw(wbMsw)
                                     "1 - Send ON if the motion is detected. Send OFF if the motion is idle. 2 - Send ON if the motion is detected. Do not send OFF. 3 - Do not send ON. Send OFF if the motion is idle.",
                                     1, 3, 1),
 
+        // Intrusion sensor settings
+        ZUNO_CONFIG_PARAMETER_INFO("Intrusion Noise Level",
+                                    " Send Alarm if the noise more level. Value in dB.",
+                                    38, 105, 80),
+
         // Temperature channel settings
         ZUNO_CONFIG_PARAMETER_INFO("Temperature Report Threshold",
                                     "0 - Reports disabled. Send Report if the temperature has changed after the last report. Value in 0.01C (100 = 1C).",
-                                    0, 4000, 100),//64
+                                    0, 4000, 100),
         ZUNO_CONFIG_PARAMETER_INFO_SIGN("Temperature Level to send Basic Set",
                                         "Send Basic Set if the temperature has crossed the level up or down + hysteresis. Value in 0.01C (100 = 1C).",
-                                        -4000, 8000, 4000),//65
+                                        -4000, 8000, 4000),
         ZUNO_CONFIG_PARAMETER_INFO("Temperature Hysteresis to send Basic Set",
                                     "Value in 0.01C (100 = 1C).",
-                                    10, 2000, 50),//66
+                                    10, 2000, 50),
         ZUNO_CONFIG_PARAMETER_INFO("Temperature ON command",
                                     "Send Basic Set command.",
-                                    0, 255, 255),//67
+                                    0, 255, 255),
         ZUNO_CONFIG_PARAMETER_INFO("Temperature OFF command",
                                     "Send Basic Set command.",
-                                    0, 255, 0),//68
+                                    0, 255, 0),
         ZUNO_CONFIG_PARAMETER_INFO("Temperature ON/OFF commands rules",
                                     "1 - Send ON if the temperature is greater than Level. Send OFF if the temperature is less than Level. 2 - Send ON if the temperature is greater than Level. Do not send OFF. 3 - Do not send ON. Send OFF if the temperature is less than Level.",
-                                    1, 3, 1),//69
+                                    1, 3, 1),
 
         // Humidity sensor settings
         ZUNO_CONFIG_PARAMETER_INFO("Humidity Report Threshold",
                                     "0 - Reports disabled. Send Report if the humidity has changed after the last report. Value in %.",
-                                    0, 90, 5),//70
+                                    0, 90, 5),
         ZUNO_CONFIG_PARAMETER_INFO("Humidity Level to send Basic Set",
                                     "Send Basic Set if the humidity has crossed the level up or down + hysteresis. Value in %.",
-                                    5, 95, 60),//71
+                                    5, 95, 60),
         ZUNO_CONFIG_PARAMETER_INFO("Humidity Hysteresis to send Basic Set",
                                     "Value in %.",
-                                    1, 50, 2),//72
+                                    1, 50, 2),
         ZUNO_CONFIG_PARAMETER_INFO("Humidity ON command",
                                     "Send Basic Set command.",
-                                    0, 255, 255),//73
+                                    0, 255, 255),
         ZUNO_CONFIG_PARAMETER_INFO("Humidity OFF command",
                                     "Send Basic Set command.",
-                                    0, 255, 0),//74
+                                    0, 255, 0),
         ZUNO_CONFIG_PARAMETER_INFO("Humidity ON/OFF commands rules",
                                     "1 - Send ON if the humidity is greater than Level. Send OFF if the humidity is less than Level. 2 - Send ON if the humidity is greater than Level. Do not send OFF. 3 - Do not send ON. Send OFF if the humidity is less than Level.",
-                                    1, 3, 1),//75
+                                    1, 3, 1),
 
         // Lumen sensor settings
         ZUNO_CONFIG_PARAMETER_INFO("Luminance Report Threshold",
                                     "0 - Reports disabled. Send Report if the luminance has changed after the last report. Value in lux.",
-                                    0, 100000, 100),//76
+                                    0, 100000, 100),
         ZUNO_CONFIG_PARAMETER_INFO("Luminance Level to send Basic Set",
                                     "Send Basic Set if the luminance has crossed the level up or down + hysteresis. Value in lux.",
-                                    0, 100000, 200),//77
+                                    0, 100000, 200),
         ZUNO_CONFIG_PARAMETER_INFO("Luminance Hysteresis to send Basic Set",
                                     "Value in lux.",
-                                    1, 50000, 50),//78
+                                    1, 50000, 50),
         ZUNO_CONFIG_PARAMETER_INFO("Luminance ON command",
                                     "Send Basic Set command.",
-                                    0, 255, 255),//79
+                                    0, 255, 255),
         ZUNO_CONFIG_PARAMETER_INFO("Luminance OFF command",
                                     "Send Basic Set command.",
-                                    0, 255, 0),//80
+                                    0, 255, 0),
         ZUNO_CONFIG_PARAMETER_INFO("Luminance ON/OFF commands rules",
                                     "1 - Send ON if the luminance is greater than Level. Send OFF if the luminance is less than Level. 2 - Send ON if the luminance is greater than Level. Do not send OFF. 3 - Do not send ON. Send OFF if the luminance is less than Level.",
-                                    1, 3, 1),//81
+                                    1, 3, 1),
 
         // CO2 sensor settings
         ZUNO_CONFIG_PARAMETER_INFO("CO2 Report Threshold",
                                     "0 - Reports disabled. Send Report if the CO2 has changed after the last report. Value in ppm.",
-                                    0, 5000, 100),//82
+                                    0, 5000, 100),
         ZUNO_CONFIG_PARAMETER_INFO("CO2 Level to send Basic Set",
                                     "Send Basic Set if the CO2 has crossed the level up or down + hysteresis. Value in ppm.",
-                                    400, 5000, 1500),//83
+                                    400, 5000, 1500),
         ZUNO_CONFIG_PARAMETER_INFO("CO2 Hysteresis to send Basic Set",
                                     "Value in ppm.",
-                                    1, 2500, 50),//84
+                                    1, 2500, 50),
         ZUNO_CONFIG_PARAMETER_INFO("CO2 ON command",
                                     "Send Basic Set command.",
-                                    0, 255, 255),//85
+                                    0, 255, 255),
         ZUNO_CONFIG_PARAMETER_INFO("CO2 OFF command",
                                     "Send Basic Set command.",
-                                    0, 255, 0),//86
+                                    0, 255, 0),
         ZUNO_CONFIG_PARAMETER_INFO("CO2 ON/OFF commands rules",
                                     "1 - Send ON if the CO2 is greater than Level. Send OFF if the CO2 is less than Level. 2 - Send ON if the CO2 is greater than Level. Do not send OFF. 3 - Do not send ON. Send OFF if the CO2 is less than Level.",
-                                    1, 3, 1),//87
-        ZUNO_CONFIG_PARAMETER_INFO("CO2 auto",
-                                    "CO2 auto",
-                                    false, true, true),//88
+                                    1, 3, 1),
 
         // VOC sensor settings
         ZUNO_CONFIG_PARAMETER_INFO("VOC Report Threshold",
                                     "0 - Reports disabled. Send Report if the VOC has changed after the last report. Value in ppb.",
-                                    0, 60000, 50),
+                                    0, 60000, 200),
         ZUNO_CONFIG_PARAMETER_INFO("VOC Level to send Basic Set",
                                     "Send Basic Set if the VOC has crossed the level up or down + hysteresis. Value in ppb.",
                                     0, 60000, 660),
         ZUNO_CONFIG_PARAMETER_INFO("VOC Hysteresis to send Basic Set",
                                     "Value in ppb.",
-                                    1, 30000, 10),
+                                    1, 30000, 200),
         ZUNO_CONFIG_PARAMETER_INFO("VOC ON command",
                                     "Send Basic Set command.",
                                     0, 255, 255),
@@ -184,7 +187,21 @@ bool TZWAVESensor::ChannelsInitialize()
                                   &TWBMSWSensor::GetMotion,
                                   &TWBMSWSensor::GetMotionAvailability);
 
-    Channels[1].ChannelInitialize("Temperature",
+    Channels[1].ChannelInitialize("Intrusion",
+                                  TZWAVEChannel::Type::INTRUSION,
+                                  0,
+                                WB_MSW_CONFIG_PARAMETER_INTRUSION_REPORT_THRESHOLD,
+                                0,
+                                0,
+                                0,
+                                0,
+                                0,
+                                WB_MSW_CONFIG_PARAMETER_NOISE_LEVEL_MULTIPLIER,
+                                  WbMsw,
+                                  &TWBMSWSensor::GetNoiseLevel,
+                                  &TWBMSWSensor::GetNoiseLevelAvailability);
+
+    Channels[2].ChannelInitialize("Temperature",
                                   TZWAVEChannel::Type::TEMPERATURE,
                                   WB_MSW_INPUT_REG_TEMPERATURE_VALUE_ERROR,
                                 WB_MSW_CONFIG_PARAMETER_TEMPERATURE_REPORT_THRESHOLD,
@@ -198,7 +215,7 @@ bool TZWAVESensor::ChannelsInitialize()
                                   &TWBMSWSensor::GetTemperature,
                                   &TWBMSWSensor::GetTemperatureAvailability);
 
-    Channels[2].ChannelInitialize("Humidity",
+    Channels[3].ChannelInitialize("Humidity",
                                   TZWAVEChannel::Type::HUMIDITY,
                                   WB_MSW_INPUT_REG_HUMIDITY_VALUE_ERROR,
                                 WB_MSW_CONFIG_PARAMETER_HUMIDITY_REPORT_THRESHOLD,
@@ -212,7 +229,7 @@ bool TZWAVESensor::ChannelsInitialize()
                                   &TWBMSWSensor::GetHumidity,
                                   &TWBMSWSensor::GetHumidityAvailability);
 
-    Channels[3].ChannelInitialize("Luminance",
+    Channels[4].ChannelInitialize("Luminance",
                                   TZWAVEChannel::Type::LUMEN,
                                   WB_MSW_INPUT_REG_LUMEN_VALUE_ERROR,
                                 WB_MSW_CONFIG_PARAMETER_LUMEN_REPORT_THRESHOLD,
@@ -226,7 +243,7 @@ bool TZWAVESensor::ChannelsInitialize()
                                   &TWBMSWSensor::GetLuminance,
                                   &TWBMSWSensor::GetLuminanceAvailability);
 
-    Channels[4].ChannelInitialize("CO2",
+    Channels[5].ChannelInitialize("CO2",
                                   TZWAVEChannel::Type::CO2,
                                   WB_MSW_INPUT_REG_CO2_VALUE_ERROR,
                                 WB_MSW_CONFIG_PARAMETER_CO2_REPORT_THRESHOLD,
@@ -240,7 +257,7 @@ bool TZWAVESensor::ChannelsInitialize()
                                   &TWBMSWSensor::GetCO2,
                                   &TWBMSWSensor::GetCO2Availability);
 
-    Channels[5].ChannelInitialize("VOC",
+    Channels[6].ChannelInitialize("VOC",
                                   TZWAVEChannel::Type::VOC,
                                   WB_MSW_INPUT_REG_VOC_VALUE_ERROR,
                                 WB_MSW_CONFIG_PARAMETER_VOC_REPORT_THRESHOLD,
@@ -254,7 +271,7 @@ bool TZWAVESensor::ChannelsInitialize()
                                   &TWBMSWSensor::GetVoc,
                                   &TWBMSWSensor::GetVocAvailability);
 
-    Channels[6].ChannelInitialize("NoiseLevel",
+    Channels[7].ChannelInitialize("NoiseLevel",
                                   TZWAVEChannel::Type::NOISE_LEVEL,
                                   0,
                                 WB_MSW_CONFIG_PARAMETER_NOISE_LEVEL_REPORT_THRESHOLD,
@@ -279,7 +296,7 @@ bool TZWAVESensor::ChannelsInitialize()
 
                     if ((Channels[i].GetType() == TZWAVEChannel::Type::CO2) &&
                         (!Channels[i].SetPowerOn() ||
-                         !Channels[i].SetAutocalibration(GetParameterValue(WB_MSW_CONFIG_PARAMETER_CO2_AUTO))))
+                         !Channels[i].SetAutocalibration(WB_MSW_CONFIG_PARAMETER_CO2_AUTO_VALUE)))
                     {
                         break;
                     }
@@ -288,6 +305,9 @@ bool TZWAVESensor::ChannelsInitialize()
                         MotionChannelPtr = &Channels[i];
                     }
 
+                    if (Channels[i].GetType() == TZWAVEChannel::Type::INTRUSION) {
+                        IntrusionChannelPtr = &Channels[i];
+                    }
                     DEBUG(Channels[i].GetName());
                     DEBUG(" CHANNEL AVAILABLE\n");
                     Channels[i].Enable();
@@ -384,6 +404,10 @@ void TZWAVESensor::ChannelsSetup()
                     zunoSetZWChannel(Channels[i].GetDeviceChannelNumber(), Channels[i].GetServerChannelNumber());
                     zunoAddAssociation(ZUNO_ASSOC_BASIC_SET_NUMBER, 0);
                     break;
+                case TZWAVEChannel::Type::INTRUSION:
+                    zunoAddChannel(ZUNO_SENSOR_BINARY_CHANNEL_NUMBER, ZUNO_SENSOR_BINARY_TYPE_GENERAL_PURPOSE, 0);
+                    zunoSetZWChannel(Channels[i].GetDeviceChannelNumber(), Channels[i].GetServerChannelNumber());
+                    break;
                 default:
                     break;
             }
@@ -406,6 +430,7 @@ void TZWAVESensor::SetChannelHandlers()
                     dataSize = SENSOR_MULTILEVEL_SIZE_FOUR_BYTES;
                     break;
 
+                case TZWAVEChannel::Type::INTRUSION:
                 case TZWAVEChannel::Type::MOTION:
                     dataSize = SENSOR_MULTILEVEL_SIZE_ONE_BYTE;
                     break;
@@ -557,7 +582,6 @@ const ZunoCFGParameter_t* TZWAVESensor::GetParameterIfChannelExists(size_t param
         case WB_MSW_CONFIG_PARAMETER_CO2_ON_COMMANDS:
         case WB_MSW_CONFIG_PARAMETER_CO2_OFF_COMMANDS:
         case WB_MSW_CONFIG_PARAMETER_CO2_ON_OFF_COMMANDS_RULE:
-        case WB_MSW_CONFIG_PARAMETER_CO2_AUTO:
             if (!GetChannelByType(TZWAVEChannel::Type::CO2)) {
                 return (ZUNO_CFG_PARAMETER_UNKNOWN);
             }
@@ -590,6 +614,11 @@ const ZunoCFGParameter_t* TZWAVESensor::GetParameterIfChannelExists(size_t param
                 return (ZUNO_CFG_PARAMETER_UNKNOWN);
             }
             break;
+        case WB_MSW_CONFIG_PARAMETER_INTRUSION_REPORT_THRESHOLD:
+            if (!GetChannelByType(TZWAVEChannel::Type::INTRUSION)) {
+                return (ZUNO_CFG_PARAMETER_UNKNOWN);
+            }
+            break;
         default:
             return (ZUNO_CFG_PARAMETER_UNKNOWN);
             break;
@@ -613,8 +642,8 @@ void TZWAVESensor::PublishAnalogSensorValue(TZWAVEChannel& channel,
     multiplier = channel.GetMultiplier();
     reportThresHold = reportThresHold * multiplier;
     // Send value without condition if channels value uninitialized on server
-    if ((channel.GetState() == TZWAVEChannel::State::UNINITIALIZED) ||
-        ((reportThresHold != 0) && (abs(value - channel.GetReportedValue()) > reportThresHold)))
+    if ((reportThresHold != 0) && ((channel.GetState() == TZWAVEChannel::State::UNINITIALIZED) ||
+        (abs(value - channel.GetReportedValue()) > reportThresHold)))
     {
         // DEBUG("Channel ");
         // DEBUG(channel.GetType());
@@ -642,6 +671,33 @@ void TZWAVESensor::PublishAnalogSensorValue(TZWAVEChannel& channel,
             if (onOffCommandsRule == 1 || onOffCommandsRule == 2) {
                 zunoSendToGroupSetValueCommand(groupIndex, onCommands);
             }
+        }
+    }
+}
+
+void TZWAVESensor::PublishIntrusionValue(TZWAVEChannel* channel,
+                                        int64_t value)
+{
+    int32_t reportThresHold;
+    bool flag;
+
+    reportThresHold = GetParameterValue(channel->GetReportThresHoldParameterNumber());
+    if (value >= (reportThresHold * channel->GetMultiplier())) {
+        flag = true;
+    }
+    else {
+        flag = false;
+    }
+    channel->SetValue(flag);
+    if (channel->GetState() == TZWAVEChannel::State::UNINITIALIZED)
+    {
+        channel->SetReportedValue(flag); // Remember last sent value
+        zunoSendReport(channel->GetServerChannelNumber());
+    }
+    else {
+        if (channel->GetReportedValue() != flag) {
+            channel->SetReportedValue(flag); // Remember last sent value
+            zunoSendReport(channel->GetServerChannelNumber());
         }
     }
 }
@@ -711,7 +767,7 @@ TZWAVESensor::Result TZWAVESensor::ProcessCommonChannel(TZWAVEChannel& channel)
 
     if (channel.GetType() == TZWAVEChannel::Type::CO2) {
         // Check if automatic calibration is needed
-        uint8_t autocalibration = GetParameterValue(WB_MSW_CONFIG_PARAMETER_CO2_AUTO);
+        uint8_t autocalibration = WB_MSW_CONFIG_PARAMETER_CO2_AUTO_VALUE;
         if ((channel.GetAutocalibration() != autocalibration) && !channel.SetAutocalibration(autocalibration)) {
             return TZWAVESensor::Result::ZWAVE_PROCESS_MODBUS_ERROR;
         }
@@ -719,8 +775,13 @@ TZWAVESensor::Result TZWAVESensor::ProcessCommonChannel(TZWAVEChannel& channel)
     if (!channel.ReadValueFromSensor(currentValue)) {
         return TZWAVESensor::Result::ZWAVE_PROCESS_MODBUS_ERROR;
     }
-    if ((channel.GetType() != TZWAVEChannel::Type::NOISE_LEVEL) && (currentValue == channel.GetErrorValue())) {
-        return TZWAVESensor::Result::ZWAVE_PROCESS_VALUE_ERROR;
+    if ((channel.GetType() != TZWAVEChannel::Type::NOISE_LEVEL)) {
+        if (currentValue == channel.GetErrorValue()) {
+            return TZWAVESensor::Result::ZWAVE_PROCESS_VALUE_ERROR;
+        }
+    }
+    else {
+        PublishIntrusionValue(IntrusionChannelPtr, currentValue);
     }
     DEBUG(channel.GetName());
     LOG_FIXEDPOINT_VALUE("        ", currentValue, 2);
@@ -778,6 +839,9 @@ TZWAVESensor::Result TZWAVESensor::ProcessChannels()
     for (size_t i = 0; i < TZWAVEChannel::CHANNEL_TYPES_COUNT; i++) {
         if (Channels[i].GetEnabled()) {
             switch (Channels[i].GetType()) {
+                case TZWAVEChannel::Type::INTRUSION:
+                    result = TZWAVESensor::Result::ZWAVE_PROCESS_OK;
+                    break;
                 case TZWAVEChannel::Type::MOTION:
                     result = ProcessMotionChannel(Channels[i]);
                     break;

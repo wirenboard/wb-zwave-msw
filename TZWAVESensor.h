@@ -29,6 +29,7 @@ private:
     TWBMSWSensor* WbMsw;
     TZWAVEChannel Channels[TZWAVEChannel::CHANNEL_TYPES_COUNT];
     TZWAVEChannel* MotionChannelPtr;
+    TZWAVEChannel* IntrusionChannelPtr;
 
     ZunoCFGParameter_t Parameters[WB_MSW_MAX_CONFIG_PARAM];
     int32_t ParameterValues[WB_MSW_MAX_CONFIG_PARAM];
@@ -49,5 +50,7 @@ private:
                                   int32_t offCommands,
                                   int32_t onOffCommandsRule);
     void PublishMotionValue(TZWAVEChannel *channel,
+                                  int64_t value);
+    void PublishIntrusionValue(TZWAVEChannel *channel,
                                   int64_t value);
 };
