@@ -164,7 +164,6 @@ TZWAVESensor::TZWAVESensor(TWBMSWSensor* wbMsw): WbMsw(wbMsw)
                                     1, 3, 1)
     };
     memcpy(Parameters, parameters, sizeof(parameters));
-    MotionLastTime = 0;
     MotionLastTimeWaitOff = false;
     IntrusionLastTimeWaitOff = false;
 }

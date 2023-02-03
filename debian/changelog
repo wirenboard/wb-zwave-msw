@@ -1,3 +1,11 @@
+wb-zwave-msw (1.6) stable; urgency=medium
+
+  * Add channel Intrusion
+  * Remove CO2 auto config parameter
+  * Rethought the location of the config parameters and some trigger rules
+
+ -- amatilda <kpk@z-wave.me> Thu Jan 26 17:37:18 2023 +0300
+
 wb-zwave-msw (1.5) stable; urgency=medium
 
   * Merge
