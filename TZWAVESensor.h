@@ -40,7 +40,9 @@ private:
     TZWAVESensor::Result ProcessMotionChannel(TZWAVEChannel& channel);
     void MotionChannelReset(TZWAVEChannel* channel);
     uint32_t MotionLastTime;
-	bool MotionLastTimeWaitOff;
+    uint32_t IntrusionLastTime;
+    bool MotionLastTimeWaitOff;
+    bool IntrusionLastTimeWaitOff;
     void PublishAnalogSensorValue(TZWAVEChannel& channel,
                                   int64_t value,
                                   int32_t reportThresHold,

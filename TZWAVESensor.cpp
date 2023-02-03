@@ -39,6 +39,9 @@ TZWAVESensor::TZWAVESensor(TWBMSWSensor* wbMsw): WbMsw(wbMsw)
         ZUNO_CONFIG_PARAMETER_INFO("Intrusion Noise Level",
                                     " Send Alarm if the noise more level. Value in dB.",
                                     38, 105, 80),
+        ZUNO_CONFIG_PARAMETER_INFO("Intrusion delay to send OFF command",
+                                    "Value in seconds.",
+                                    0, 100000, 5),
 
         // Temperature channel settings
         ZUNO_CONFIG_PARAMETER_INFO("Temperature Report Threshold",
@@ -163,6 +166,7 @@ TZWAVESensor::TZWAVESensor(TWBMSWSensor* wbMsw): WbMsw(wbMsw)
     memcpy(Parameters, parameters, sizeof(parameters));
     MotionLastTime = 0;
     MotionLastTimeWaitOff = false;
+    IntrusionLastTimeWaitOff = false;
 }
 
 // Function determines number of available Z-Wave device channels (EndPoints) and fills in the structures by channel
@@ -615,6 +619,7 @@ const ZunoCFGParameter_t* TZWAVESensor::GetParameterIfChannelExists(size_t param
             }
             break;
         case WB_MSW_CONFIG_PARAMETER_INTRUSION_REPORT_THRESHOLD:
+        case WB_MSW_CONFIG_PARAMETER_INTRUSION_DELAY_SEND_OFF_COMMANDS:
             if (!GetChannelByType(TZWAVEChannel::Type::INTRUSION)) {
                 return (ZUNO_CFG_PARAMETER_UNKNOWN);
             }
@@ -678,25 +683,43 @@ void TZWAVESensor::PublishAnalogSensorValue(TZWAVEChannel& channel,
 void TZWAVESensor::PublishIntrusionValue(TZWAVEChannel* channel,
                                         int64_t value)
 {
-    int32_t reportThresHold;
-    bool flag;
+    uint32_t intrusionPeriod;
+    int64_t reportThresHold;
+    uint32_t currentTime;
 
-    reportThresHold = GetParameterValue(channel->GetReportThresHoldParameterNumber());
-    if (value >= (reportThresHold * channel->GetMultiplier())) {
-        flag = true;
-    }
-    else {
-        flag = false;
-    }
-    channel->SetValue(flag);
+    reportThresHold = GetParameterValue(channel->GetReportThresHoldParameterNumber()) * channel->GetMultiplier();
     if (channel->GetState() == TZWAVEChannel::State::UNINITIALIZED)
     {
-        channel->SetReportedValue(flag); // Remember last sent value
+        channel->SetTriggered(false);
+        channel->SetValue(false);
+        channel->SetReportedValue(false); // Remember last sent value
         zunoSendReport(channel->GetServerChannelNumber());
     }
+    currentTime = millis();
+    if (channel->GetTriggered()) {
+        if (value < (reportThresHold)) {
+            channel->SetTriggered(false);
+            IntrusionLastTime = currentTime;
+            IntrusionLastTimeWaitOff = true;
+        }
+    }
     else {
-        if (channel->GetReportedValue() != flag) {
-            channel->SetReportedValue(flag); // Remember last sent value
+        if (value > (reportThresHold)) {
+            channel->SetTriggered(true);
+            if (!channel->GetReportedValue()) {
+                channel->SetValue(true);
+                channel->SetReportedValue(true); // Remember last sent value
+                zunoSendReport(channel->GetServerChannelNumber());
+                IntrusionLastTimeWaitOff = false;
+            }
+        }
+    }
+    if (IntrusionLastTimeWaitOff) {
+        intrusionPeriod = (uint32_t)GetParameterValue(WB_MSW_CONFIG_PARAMETER_INTRUSION_DELAY_SEND_OFF_COMMANDS) * 1000;
+        if ((IntrusionLastTime + intrusionPeriod) <= currentTime) {
+            IntrusionLastTimeWaitOff = false;
+            channel->SetValue(false);
+            channel->SetReportedValue(false); // Remember last sent value
             zunoSendReport(channel->GetServerChannelNumber());
         }
     }
@@ -708,16 +731,14 @@ void TZWAVESensor::PublishMotionValue(TZWAVEChannel* channel,
     int32_t onCommands;
     int32_t offCommands;
     int32_t onOffCommandsRule;
-    bool triggered;
     uint8_t groupIndex;
     uint32_t motionPeriod;
     uint32_t currentTime;
 
     onOffCommandsRule = GetParameterValue(channel->GetOnOffCommandsRuleParameterNumber());
-    triggered = channel->GetTriggered();
-    groupIndex =channel->GetGroupIndex();
+    groupIndex = channel->GetGroupIndex();
     currentTime = millis();
-    if (triggered) {
+    if (channel->GetTriggered()) {
         if (value <= (WB_MSW_CONFIG_PARAMETER_MOTION_OFF)) {
             channel->SetTriggered(false);
             MotionLastTime = currentTime;
@@ -816,7 +837,9 @@ TZWAVESensor::Result TZWAVESensor::ProcessMotionChannel(TZWAVEChannel& channel)
         // DEBUG(" send report value ");
         // DEBUG(value);
         // DEBUG("\n");
-        channel.SetReportedValue(value); // Remember last sent value
+        channel.SetTriggered(false);
+        channel.SetValue(false);
+        channel.SetReportedValue(false); // Remember last sent value
         zunoSendReport(channel.GetServerChannelNumber());
     }
     PublishMotionValue(&channel, value);
