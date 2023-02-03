@@ -4,7 +4,7 @@ wb-zwave-msw (1.6) stable; urgency=medium
   * Remove CO2 auto config parameter
   * Rethought the location of the config parameters and some trigger rules
 
- -- amatilda <kpk@z-wave.me> Thu Jan 26 17:37:18 2023 +0300
+ -- amatilda <kpk@z-wave.me> Fri Feb 3 16:22:17 2023 +0300
 
 wb-zwave-msw (1.5) stable; urgency=medium
 
