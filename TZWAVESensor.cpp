@@ -35,14 +35,6 @@ TZWAVESensor::TZWAVESensor(TWBMSWSensor* wbMsw): WbMsw(wbMsw)
                                     "1 - Send ON if the motion is detected. Send OFF if the motion is idle. 2 - Send ON if the motion is detected. Do not send OFF. 3 - Do not send ON. Send OFF if the motion is idle.",
                                     1, 3, 1),
 
-        // Intrusion sensor settings
-        ZUNO_CONFIG_PARAMETER_INFO("Intrusion Noise Level",
-                                    " Send Alarm if the noise more level. Value in dB.",
-                                    38, 105, 80),
-        ZUNO_CONFIG_PARAMETER_INFO("Intrusion delay to send OFF command",
-                                    "Value in seconds.",
-                                    0, 100000, 5),
-
         // Temperature channel settings
         ZUNO_CONFIG_PARAMETER_INFO("Temperature Report Threshold",
                                     "0 - Reports disabled. Send Report if the temperature has changed after the last report. Value in 0.01C (100 = 1C).",
@@ -161,7 +153,16 @@ TZWAVESensor::TZWAVESensor(TWBMSWSensor* wbMsw): WbMsw(wbMsw)
                                     0, 255, 0),
         ZUNO_CONFIG_PARAMETER_INFO("Noise ON/OFF commands rules",
                                     "1 - Send ON if the noise is greater than Level. Send OFF if the noise is less than Level. 2 - Send ON if the noise is greater than Level. Do not send OFF. 3 - Do not send ON. Send OFF if the noise is less than Level.",
-                                    1, 3, 1)
+                                    1, 3, 1),
+
+        // Intrusion sensor settings
+        ZUNO_CONFIG_PARAMETER_INFO("Intrusion Noise Level",
+                                    " Send Alarm if the noise more level. Value in dB.",
+                                    38, 105, 80),
+        ZUNO_CONFIG_PARAMETER_INFO("Intrusion delay to send OFF command",
+                                    "Value in seconds.",
+                                    0, 100000, 5)
+
     };
     memcpy(Parameters, parameters, sizeof(parameters));
     MotionLastTimeWaitOff = false;
@@ -330,9 +331,14 @@ bool TZWAVESensor::ChannelsInitialize()
     size_t groupIndex = CTRL_GROUP_1;
     for (int i = 0; i < TZWAVEChannel::CHANNEL_TYPES_COUNT; i++) {
         if (Channels[i].GetEnabled()) {
-            Channels[i].SetChannelNumbers(channelDeviceNumber, channelDeviceNumber + 1, groupIndex);
+            if (Channels[i].GetType() == TZWAVEChannel::Type::INTRUSION) {
+                Channels[i].SetChannelNumbers(channelDeviceNumber, channelDeviceNumber + 1, 0xFF);
+            }
+            else {
+                Channels[i].SetChannelNumbers(channelDeviceNumber, channelDeviceNumber + 1, groupIndex);
+                groupIndex++;
+            }
             channelDeviceNumber++;
-            groupIndex++;
             channelsCount++;
         }
     }
