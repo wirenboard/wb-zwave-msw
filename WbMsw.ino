@@ -19,10 +19,12 @@ ZUNO_ENABLE(
 		ZUNO_CUSTOM_OTA_OFFSET=0x10000 // 64 kB
 		/* Additional OTA firmwares count*/
 		ZUNO_EXT_FIRMWARES_COUNT=1
-		SKETCH_VERSION=0x0104
+		SKETCH_VERSION=0x0106
 		/* Firmware descriptor pointer */
 		ZUNO_EXT_FIRMWARES_DESCR_PTR=&g_OtaDesriptor
-		//LOGGING_DBG // Comment out if debugging information is not needed
+		CONFIGPARAMETERS_MAX_COUNT=44//expands the number of parameters available - number + 0x1
+		// DBG_CONSOLE_BAUDRATE=921600//speed uart dbg
+		// LOGGING_DBG // Comment out if debugging information is not needed
 					// Debugging information being printed with RTOS system console output to UART0 (TX0) by default
         DBG_CONSOLE_PIN=0xFF
         //DBG_CONSOLE_BAUDRATE=115200
@@ -70,6 +72,12 @@ const ZunoCFGParameter_t* zunoCFGParameter(size_t paramNumber)
 // Static function where system events arrive
 static void SystemEvent(ZUNOSysEvent_t* ev)
 {
+    size_t i;
+    ssize_t value;
+    ssize_t defaultValue;
+    size_t paramNumber;
+    const ZunoCFGParameter_t *parameters;
+
     switch (ev->event) {
         // A new firmware image for the second chip from the Z-Wave controller has arrived
         case ZUNO_SYS_EVENT_OTA_IMAGE_READY:
@@ -79,6 +87,21 @@ static void SystemEvent(ZUNOSysEvent_t* ev)
                 DEBUG(" BYTES\n");
                 FwUpdater.NewFirmwareNotification(ev->params[1]);
             }
+            break;
+        case ZUNO_SYS_EVENT_LEARNSTATUS:
+            if((ev->params[0] == INCLUSION_STATUS_SUCESS) && (ev->params[1] == 0)) {
+                i = 0x0;
+                while (i < WB_MSW_MAX_CONFIG_PARAM) {
+                    value = zunoLoadCFGParam(i + WB_MSW_CONFIG_PARAMETER_FIRST);
+                    paramNumber = i + WB_MSW_CONFIG_PARAMETER_FIRST;
+                    parameters = ZwaveSensor.GetParameterByNumber(paramNumber);
+                    defaultValue = parameters->defaultValue;
+                    if (defaultValue != value) {
+                        zunoSaveCFGParam(paramNumber, defaultValue);
+                    }
+                    i++;
+                }
+                }
             break;
     }
 }

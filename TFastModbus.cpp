@@ -150,6 +150,7 @@ bool TFastModbus::ParseFastModbusPacket(const uint8_t* packet,
             DEBUG("\n");
             return false;
     }
+    (void)packetlength;
 }
 
 bool TFastModbus::ReadNewDeviceData(uint8_t* serialNumber, uint8_t* modbusAddress, uint16_t timeoutMs)

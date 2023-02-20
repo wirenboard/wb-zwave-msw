@@ -13,9 +13,13 @@ TZWAVEChannel::TZWAVEChannel()
 void TZWAVEChannel::ChannelInitialize(String name,
                                       TZWAVEChannel::Type type,
                                       int32_t errorValue,
-                                      uint8_t hysteresisParameterNumber,
-                                      uint8_t thresholdParameterNumber,
-                                      uint8_t inversionParameterNumber,
+                                    uint8_t reportThresHoldParameterNumber,
+                                    uint8_t levelSendBasicParameterNumber,
+                                    uint8_t hysteresisBasicParameterNumber,
+                                    uint8_t onCommandsParameterNumber,
+                                    uint8_t offCommandsParameterNumber,
+                                    uint8_t onOffCommandsRuleParameterNumber,
+                                    uint16_t multiplier,
                                       TWBMSWSensor* wbMsw,
                                       TWBMSWSensor::GetValueCallback readValueCallback,
                                       TWBMSWSensor::GetAvailabilityCallback readAvailabilityCallback)
@@ -23,9 +27,13 @@ void TZWAVEChannel::ChannelInitialize(String name,
     Name = name;
     ChannelType = type;
     ErrorValue = errorValue;
-    HysteresisParameterNumber = hysteresisParameterNumber;
-    ThresholdParameterNumber = thresholdParameterNumber;
-    InversionParameterNumber = inversionParameterNumber;
+    ReportThresHoldParameterNumber = reportThresHoldParameterNumber;
+    LevelSendBasicParameterNumber = levelSendBasicParameterNumber;
+    HysteresisBasicParameterNumber = hysteresisBasicParameterNumber;
+    OnCommandsParameterNumber = onCommandsParameterNumber;
+    OffCommandsParameterNumber = offCommandsParameterNumber;
+    OnOffCommandsRuleParameterNumber = onOffCommandsRuleParameterNumber;
+    Multiplier = multiplier;
     WbMsw = wbMsw;
     ReadValueCallback = readValueCallback;
     ReadAvailabilityCallback = readAvailabilityCallback;
@@ -91,19 +99,6 @@ uint8_t TZWAVEChannel::GetDeviceChannelNumber() const
 uint8_t TZWAVEChannel::GetServerChannelNumber() const
 {
     return ServerChannelNumber;
-}
-
-uint8_t TZWAVEChannel::GetHysteresisParameterNumber() const
-{
-    return HysteresisParameterNumber;
-}
-uint8_t TZWAVEChannel::GetThresholdParameterNumber() const
-{
-    return ThresholdParameterNumber;
-}
-uint8_t TZWAVEChannel::GetInversionParameterNumber() const
-{
-    return InversionParameterNumber;
 }
 
 int64_t TZWAVEChannel::GetReportedValue() const
