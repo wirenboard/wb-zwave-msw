@@ -55,31 +55,31 @@ public:
 
     inline uint8_t GetReportThresHoldParameterNumber(void)
     {
-        return (ReportThresHoldParameterNumber);
+        return ReportThresHoldParameterNumber;
     };
     inline uint8_t GetLevelSendBasicParameterNumber(void)
     {
-        return (LevelSendBasicParameterNumber);
+        return LevelSendBasicParameterNumber;
     };
     inline uint8_t GetHysteresisBasicParameterNumber(void)
     {
-        return (HysteresisBasicParameterNumber);
+        return HysteresisBasicParameterNumber;
     };
     inline uint8_t GetOnCommandsParameterNumber(void)
     {
-        return (OnCommandsParameterNumber);
+        return OnCommandsParameterNumber;
     };
     inline uint8_t GetOffCommandsParameterNumber(void)
     {
-        return (OffCommandsParameterNumber);
+        return OffCommandsParameterNumber;
     };
     inline uint8_t GetOnOffCommandsRuleParameterNumber(void)
     {
-        return (OnOffCommandsRuleParameterNumber);
+        return OnOffCommandsRuleParameterNumber;
     };
     inline uint16_t GetMultiplier(void)
     {
-        return (Multiplier);
+        return Multiplier;
     };
 
     int64_t GetReportedValue() const;
