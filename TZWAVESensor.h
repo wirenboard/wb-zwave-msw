@@ -51,8 +51,6 @@ private:
                                   int32_t onCommands,
                                   int32_t offCommands,
                                   int32_t onOffCommandsRule);
-    void PublishMotionValue(TZWAVEChannel *channel,
-                                  int64_t value);
-    void PublishIntrusionValue(TZWAVEChannel *channel,
-                                  int64_t value);
+    void PublishMotionValue(TZWAVEChannel* channel, int64_t value);
+    void PublishIntrusionValue(TZWAVEChannel* channel, int64_t value);
 };
