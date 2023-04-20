@@ -41,6 +41,10 @@ public:
     bool GetNoiseLevelAvailability(TWBMSWSensor::Availability& availability);
     bool GetMotionAvailability(TWBMSWSensor::Availability& availability);
 
+    bool BuzzerAviable(TWBMSWSensor::Availability& availability);
+    bool BuzzerStart(void);
+    bool BuzzerStop(void);
+
 private:
     bool SetFwMode(void);
     bool FwWriteInfo(uint16_t* info);

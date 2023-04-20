@@ -5,6 +5,7 @@
 #include "TWBMSWSensor.h"
 #include "TZWAVESensor.h"
 #include "WbMsw.h"
+#include "ZWCCSoundSwitch.h"
 
 //  Project global macros definitions for accurate protocol configuration
 // DO NOT MOVE ZUNO_ENABLE FROM THIS PLACE
@@ -15,16 +16,19 @@ ZUNO_ENABLE(
 		WITH_CC_CONFIGURATION
 		WITH_CC_SENSOR_MULTILEVEL
 		WITH_CC_NOTIFICATION
+		WITH_CC_SOUND_SWITCH
+		WITH_CC_BASIC
 		// SKETCH_FLAGS=(HEADER_FLAGS_NOSKETCH_OTA)
 		ZUNO_CUSTOM_OTA_OFFSET=0x10000 // 64 kB
 		/* Additional OTA firmwares count*/
 		ZUNO_EXT_FIRMWARES_COUNT=1
-		SKETCH_VERSION=0x0106
+		SKETCH_VERSION=0x0107
 		/* Firmware descriptor pointer */
 		ZUNO_EXT_FIRMWARES_DESCR_PTR=&g_OtaDesriptor
-		CONFIGPARAMETERS_MAX_COUNT=44//expands the number of parameters available - number + 0x1
+		CONFIGPARAMETERS_MAX_COUNT=43//expands the number of parameters available
 		// DBG_CONSOLE_BAUDRATE=921600//speed uart dbg
 		// LOGGING_DBG // Comment out if debugging information is not needed
+		SYSTHREAD_INT_ONLY
 					// Debugging information being printed with RTOS system console output to UART0 (TX0) by default
         DBG_CONSOLE_PIN=0xFF
         //DBG_CONSOLE_BAUDRATE=115200
@@ -118,9 +122,13 @@ void setup()
     zunoAttachSysHandler(ZUNO_HANDLER_SYSEVENT, 0, (void*)&SystemEvent);
     ZUnoState = TZUnoState::ZUNO_SCAN_ADDRESS_INITIALIZE;
 }
+
+static void SoundSwitchLoop(void);
+
 // Main loop
 void loop()
 {
+    SoundSwitchLoop();
     switch (ZUnoState) {
         case TZUnoState::ZUNO_SCAN_ADDRESS_INITIALIZE: {
             if (FastModbus.OpenPort(WB_MSW_UART_BAUD, WB_MSW_UART_MODE, WB_MSW_UART_RX, WB_MSW_UART_TX)) {
@@ -222,4 +230,62 @@ void loop()
             break;
         }
     }
+}
+
+ZUNO_SETUP_SOUND_SWITCH_TONE_DURATION(THREE_SIGNALS,
+    ZUNO_SETUP_SOUND_SWITCH_TONE_DURATION_SET(750, 400),
+    ZUNO_SETUP_SOUND_SWITCH_TONE_DURATION_SET(300, 300),
+    ZUNO_SETUP_SOUND_SWITCH_TONE_DURATION_SET(300, 1000)
+);
+
+ZUNO_SETUP_SOUND_SWITCH_TONE_DURATION(TWO_SIGNALS,
+    ZUNO_SETUP_SOUND_SWITCH_TONE_DURATION_SET(500, 500),
+    ZUNO_SETUP_SOUND_SWITCH_TONE_DURATION_SET(500, 500)
+);
+
+ZUNO_SETUP_SOUND_SWITCH_TONE_DURATION(ONE_SIGNALS,
+    ZUNO_SETUP_SOUND_SWITCH_TONE_DURATION_SET(10000, 0)
+);
+
+ZUNO_SETUP_SOUND_SWITCH(255,
+    ZUNO_SETUP_SOUND_SWITCH_TONE("Three signals", THREE_SIGNALS),
+    ZUNO_SETUP_SOUND_SWITCH_TONE("Two signals", TWO_SIGNALS),
+    ZUNO_SETUP_SOUND_SWITCH_TONE("One signals", ONE_SIGNALS)
+);
+
+static bool SoundSwitchStateOld = false;
+static bool SoundSwitchStateNew = false;
+
+static void SoundSwitchLoop(void)
+{
+    if (SoundSwitchStateNew != SoundSwitchStateOld)
+    {
+        SoundSwitchStateOld = SoundSwitchStateNew;
+        if (SoundSwitchStateOld == true) {
+            WbMsw.BuzzerStart();
+        }
+        else{
+            WbMsw.BuzzerStop();
+        }
+    }
+}
+
+void zunoSoundSwitchStop(uint8_t channel)
+{
+    SoundSwitchStateNew = false;
+    (void)channel;
+}
+
+void zunoSoundSwitchPlay(uint8_t channel, uint8_t volume, size_t freq)
+{
+    SoundSwitchStateNew = true;
+    (void)channel;
+    (void)volume;
+    (void)freq;
+}
+
+const ZunoSoundSwitchParameterArray_t *zunoSoundSwitchGetParameterArrayUser(size_t channel)
+{
+    return &_switch_cc_parameter_array_255;
+    (void)channel;
 }

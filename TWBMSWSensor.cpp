@@ -28,6 +28,8 @@
 #define WBMSW_REG_NOISE_AVAIL 0x0176
 #define WBMSW_REG_MOTION_AVAIL 0x0175
 
+#define WBMSW_COIL_BUZZER 0x0000
+
 #define WBMSW_VERSION_NUMBER_LENGTH 16
 
 /* Public Constructors */
@@ -293,4 +295,17 @@ bool TWBMSWSensor::GetNoiseLevelAvailability(TWBMSWSensor::Availability& availab
 bool TWBMSWSensor::GetMotionAvailability(TWBMSWSensor::Availability& availability)
 {
     return ReadAvailabilityRegister(availability, WBMSW_REG_MOTION_AVAIL);
+}
+bool TWBMSWSensor::BuzzerAviable(TWBMSWSensor::Availability& availability)
+{
+    availability = TWBMSWSensor::Availability::AVAILABLE;
+    return true;
+}
+bool TWBMSWSensor::BuzzerStart(void)
+{
+    return writeSingleCoils(Address, WBMSW_COIL_BUZZER, 0x1);
+}
+bool TWBMSWSensor::BuzzerStop(void)
+{
+    return writeSingleCoils(Address, WBMSW_COIL_BUZZER, 0x0);
 }

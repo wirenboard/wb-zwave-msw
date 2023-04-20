@@ -20,8 +20,9 @@ public:
         NOISE_LEVEL,
         MOTION,
         INTRUSION,
+        BUZZER,
     };
-    static const int CHANNEL_TYPES_COUNT = 8;
+    static const int CHANNEL_TYPES_COUNT = 9;
 
     TZWAVEChannel();
     void ChannelInitialize(String name,
