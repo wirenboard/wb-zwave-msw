@@ -1,3 +1,9 @@
+wb-zwave-msw (1.6) stable; urgency=medium
+
+  * Add channel Sound Switch
+
+ -- amatilda <kpk@z-wave.me> Thu Apr 20 10:02:40 2023 +0300
+
 wb-zwave-msw (1.5) stable; urgency=medium
 
   * Add channel Intrusion
