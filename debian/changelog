@@ -1,3 +1,9 @@
+wb-zwave-msw (1.7) stable; urgency=medium
+
+  * Add sending a test message
+
+ -- amatilda <kpk@z-wave.me> Tue Apr 25 18:57:02 2023 +0300
+
 wb-zwave-msw (1.6) stable; urgency=medium
 
   * Add channel Sound Switch
