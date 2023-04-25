@@ -2,7 +2,7 @@ wb-zwave-msw (1.8) stable; urgency=medium
 
   * Change sending a test message
 
- -- amatilda <kpk@z-wave.me> Wed Apr 26 00:33:27 2023 +0300
+ -- amatilda <kpk@z-wave.me> Wed Apr 26 00:36:06 2023 +030
 
 
 wb-zwave-msw (1.7) stable; urgency=medium
