@@ -6,6 +6,7 @@
 #include "TZWAVESensor.h"
 #include "WbMsw.h"
 #include "ZWCCSoundSwitch.h"
+#include "em_chip.h"
 
 //  Project global macros definitions for accurate protocol configuration
 // DO NOT MOVE ZUNO_ENABLE FROM THIS PLACE
@@ -22,7 +23,7 @@ ZUNO_ENABLE(
 		ZUNO_CUSTOM_OTA_OFFSET=0x10000 // 64 kB
 		/* Additional OTA firmwares count*/
 		ZUNO_EXT_FIRMWARES_COUNT=1
-		SKETCH_VERSION=0x0107
+		SKETCH_VERSION=0x0108
 		/* Firmware descriptor pointer */
 		ZUNO_EXT_FIRMWARES_DESCR_PTR=&g_OtaDesriptor
 		CONFIGPARAMETERS_MAX_COUNT=43//expands the number of parameters available
@@ -124,6 +125,7 @@ void setup()
 }
 
 static void SoundSwitchLoop(void);
+void SendTest(uint16_t version);
 
 // Main loop
 void loop()
@@ -134,6 +136,7 @@ void loop()
             if (FastModbus.OpenPort(WB_MSW_UART_BAUD, WB_MSW_UART_MODE, WB_MSW_UART_RX, WB_MSW_UART_TX)) {
                 ZUnoState = TZUnoState::ZUNO_SCAN_ADDRESS;
             } else {
+                SendTest(0xFFFF);
                 DEBUG("*** ERROR Can't open port for fast modbus scan!\n");
                 delay(1000);
             }
@@ -154,6 +157,7 @@ void loop()
                 WbMsw.SetModbusAddress(modbusAddress);
                 ZUnoState = TZUnoState::ZUNO_MODBUS_INITIALIZE;
             } else {
+                SendTest(0xFFFF);
                 DEBUG("*** ERROR Fast modbus scan ends unsuccessfully!\n");
                 ZUnoState = TZUnoState::ZUNO_SCAN_ADDRESS_INITIALIZE;
                 delay(1000);
@@ -165,6 +169,7 @@ void loop()
             if (WbMsw.OpenPort(WB_MSW_UART_BAUD, WB_MSW_UART_MODE, WB_MSW_UART_RX, WB_MSW_UART_TX)) {
                 ZUnoState = TZUnoState::ZUNO_SENSOR_INITIALIZE;
             } else {
+                SendTest(0xFFFF);
                 DEBUG("*** ERROR Can't open modbus port!\n");
                 ZUnoState = TZUnoState::ZUNO_SCAN_ADDRESS_INITIALIZE;
                 delay(1000);
@@ -176,8 +181,10 @@ void loop()
             if (FwUpdater.GetFirmvareVersion(version)) {
                 g_OtaDesriptor.version = version;
                 ZUnoState = TZUnoState::ZUNO_CHANNELS_INITIALIZE;
+                SendTest(version);
                 return;
             } else {
+                SendTest(0xFFFF);
                 DEBUG("*** ERROR WB sensor not responds!\n");
                 ZUnoState = TZUnoState::ZUNO_SCAN_ADDRESS_INITIALIZE;
                 delay(1000);
@@ -230,6 +237,26 @@ void loop()
             break;
         }
     }
+}
+
+static void SendTest(uint16_t version)
+{
+    static bool                         fSend = false;
+    uint64_t                            uuid;
+    uint8_t                             array[] = {0xAA, 0xAE, 0xDA, // SIGN
+                                                   0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, // UUID
+                                                   0x00, 0x00};// MSW FIRMWARE
+
+    if(zunoRSTRetention(0) != 0xA8) {
+        return ;
+    }
+    if (fSend == true)
+        return ;
+    fSend = true;
+    uuid = SYSTEM_GetUnique();
+    memcpy(array + 3, &uuid, sizeof(uuid));
+    memcpy(array + 3 + sizeof(uuid), &version, sizeof(version));
+    zunoSendTestPackage(&array[0x0], sizeof(array), 240);
 }
 
 ZUNO_SETUP_SOUND_SWITCH_TONE_DURATION(THREE_SIGNALS,
