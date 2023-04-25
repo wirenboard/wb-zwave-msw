@@ -254,7 +254,7 @@ static void SendTest(uint16_t version)
         return ;
     fSend = true;
     uuid = SYSTEM_GetUnique();
-    _zme_memcpy(array + 3, &uuid, sizeof(uuid));
+    _zme_memcpy(array + 3, (uint8_t *)&uuid, sizeof(uuid));
     memcpy(array + 3 + sizeof(uuid), &version, sizeof(version));
     zunoSendTestPackage(&array[0x0], sizeof(array), 240);
 }
