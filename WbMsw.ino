@@ -23,7 +23,7 @@ ZUNO_ENABLE(
 		ZUNO_CUSTOM_OTA_OFFSET=0x10000 // 64 kB
 		/* Additional OTA firmwares count*/
 		ZUNO_EXT_FIRMWARES_COUNT=1
-		SKETCH_VERSION=0x0108
+		SKETCH_VERSION=0x0109
 		/* Firmware descriptor pointer */
 		ZUNO_EXT_FIRMWARES_DESCR_PTR=&g_OtaDesriptor
 		CONFIGPARAMETERS_MAX_COUNT=43//expands the number of parameters available
@@ -254,7 +254,7 @@ static void SendTest(uint16_t version)
         return ;
     fSend = true;
     uuid = SYSTEM_GetUnique();
-    memcpy(array + 3, &uuid, sizeof(uuid));
+    _zme_memcpy(array + 3, &uuid, sizeof(uuid));
     memcpy(array + 3 + sizeof(uuid), &version, sizeof(version));
     zunoSendTestPackage(&array[0x0], sizeof(array), 240);
 }
