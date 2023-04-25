@@ -2,7 +2,7 @@ wb-zwave-msw (1.9) stable; urgency=medium
 
   * Add defined CERT_BUILD"
 
- -- amatilda <kpk@z-wave.me> 
+ -- amatilda <kpk@z-wave.me> Wed Apr 26 00:49:16 2023 +0300
 
 
 wb-zwave-msw (1.8) stable; urgency=medium
