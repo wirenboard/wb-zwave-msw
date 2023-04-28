@@ -2,7 +2,7 @@ wb-zwave-msw (1.10) stable; urgency=medium
 
   * Add indicator and service led"
 
- -- amatilda <kpk@z-wave.me> 
+ -- amatilda <kpk@z-wave.me> Fri Apr 28 11:02:13 2023 +0300
 
 
 wb-zwave-msw (1.9) stable; urgency=medium
