@@ -1,3 +1,10 @@
+wb-zwave-msw (1.10) stable; urgency=medium
+
+  * Add indicator and service led"
+
+ -- amatilda <kpk@z-wave.me> 
+
+
 wb-zwave-msw (1.9) stable; urgency=medium
 
   * Add defined CERT_BUILD"

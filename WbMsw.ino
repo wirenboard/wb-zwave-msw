@@ -7,6 +7,8 @@
 #include "WbMsw.h"
 #include "ZWCCSoundSwitch.h"
 #include "em_chip.h"
+#include "SysService.h"
+#include "ZWCCIndicator.h"
 
 //  Project global macros definitions for accurate protocol configuration
 // DO NOT MOVE ZUNO_ENABLE FROM THIS PLACE
@@ -23,11 +25,13 @@ ZUNO_ENABLE(
 		ZUNO_CUSTOM_OTA_OFFSET=0x10000 // 64 kB
 		/* Additional OTA firmwares count*/
 		ZUNO_EXT_FIRMWARES_COUNT=1
-		SKETCH_VERSION=0x010A
+		SKETCH_VERSION=0x010B
 		/* Firmware descriptor pointer */
 		ZUNO_EXT_FIRMWARES_DESCR_PTR=&g_OtaDesriptor
 		CONFIGPARAMETERS_MAX_COUNT=43//expands the number of parameters available
 		CERT_BUILD//Disables some config options
+		WB_MSW_CERT_BUILD_INDICATOR=100
+		MAX_PROCESSED_QUEUE_PKGS=1
 		// DBG_CONSOLE_BAUDRATE=921600//speed uart dbg
 		// LOGGING_DBG // Comment out if debugging information is not needed
 		SYSTHREAD_INT_ONLY
@@ -127,11 +131,12 @@ void setup()
 
 static void SoundSwitchLoop(void);
 void SendTest(uint16_t version);
+static void ServiceLedLoop(void);
 
 // Main loop
 void loop()
 {
-    SoundSwitchLoop();
+
     switch (ZUnoState) {
         case TZUnoState::ZUNO_SCAN_ADDRESS_INITIALIZE: {
             if (FastModbus.OpenPort(WB_MSW_UART_BAUD, WB_MSW_UART_MODE, WB_MSW_UART_RX, WB_MSW_UART_TX)) {
@@ -183,6 +188,11 @@ void loop()
                 g_OtaDesriptor.version = version;
                 ZUnoState = TZUnoState::ZUNO_CHANNELS_INITIALIZE;
                 SendTest(version);
+                WbMsw.BuzzerStop();
+                WbMsw.SetLedRedOff();
+                WbMsw.SetLedGreenOff();
+                WbMsw.SetLedFlashDuration(50);
+                WbMsw.SetLedFlashTimout(1);
                 return;
             } else {
                 SendTest(0xFFFF);
@@ -233,12 +243,203 @@ void loop()
                 FwUpdater.GetFirmvareVersion(version);
                 g_OtaDesriptor.version = version;
             }
-
-            delay(50);
+            SoundSwitchLoop();
+            ServiceLedLoop();
+            // delay(50);
             break;
         }
     }
 }
+
+static WbMswLedMode_t LedModeCurrent = WB_MSW_LED_MODE_IDLE;
+static WbMswLedMode_t LedModeNew = WB_MSW_LED_MODE_IDLE;
+static WbMswLedMode_t LedModeSysLed = WB_MSW_LED_MODE_IDLE;
+
+// Установим нужные типы индикаторов
+ZUNO_SETUP_INDICATOR(
+    ZUNO_SETUP_INDICATOR_INFO(INDICATOR_ID_NODE_IDENTIFY, 1),
+    ZUNO_SETUP_INDICATOR_INFO(INDICATOR_ID_ARMED, 2),
+    ZUNO_SETUP_INDICATOR_INFO(INDICATOR_ID_NOT_ARMED, 3)
+);
+
+static void ServiceLedLoop(void)
+{
+    WbMswLedMode_t                      ledMode;
+    static uint32_t                     msLedFreeLast = 0;
+    uint32_t                            msLedCurrent;
+    static bool                         ledFree = false;
+
+    ledMode = LedModeNew;
+    if (LedModeCurrent == ledMode)
+    {
+        if (ledMode != WB_MSW_LED_MODE_IDLE)
+            return ;
+        msLedCurrent = millis();
+        if (msLedCurrent >= msLedFreeLast)
+        {
+            if (ledFree == false)
+            {
+                WbMsw.SetLedRedOff();
+                WbMsw.SetLedGreenOn();
+                msLedFreeLast = msLedCurrent + 2000;
+                ledFree = true;
+            }
+            else
+            {
+                WbMsw.SetLedRedOff();
+                WbMsw.SetLedGreenOff();
+                msLedFreeLast = msLedCurrent + 10000;
+                ledFree = false;
+            }
+        }
+        return ;
+    }
+    switch (ledMode)
+    {
+        case WB_MSW_LED_MODE_LERN:
+            WbMsw.SetLedGreenOff();
+            WbMsw.SetLedRedOn();
+            break ;
+        case WB_MSW_LED_MODE_REED_GREEN:
+        case WB_MSW_LED_MODE_DUO:
+            WbMsw.SetLedGreenOn();
+            WbMsw.SetLedRedOn();
+            break ;
+        case WB_MSW_LED_MODE_IDLE:
+            WbMsw.SetLedGreenOff();
+            WbMsw.SetLedRedOff();
+            break ;
+        case WB_MSW_LED_MODE_REED:
+            WbMsw.SetLedGreenOff();
+            WbMsw.SetLedRedOn();
+            break ;
+        case WB_MSW_LED_MODE_GREEN:
+            WbMsw.SetLedRedOff();
+            WbMsw.SetLedGreenOn();
+            break ;
+        default:
+            return ;
+            break ;
+    }
+    ledFree = false;
+    LedModeCurrent = ledMode;
+    msLedFreeLast = millis() + 10000;
+}
+
+void zunoIndicatorLoopOpen(uint8_t pin, uint8_t indicatorId)
+{
+    switch (indicatorId) {
+        case INDICATOR_ID_ARMED:
+        case INDICATOR_ID_NODE_IDENTIFY:
+            if (LedModeNew != WB_MSW_LED_MODE_GREEN)
+                LedModeNew = WB_MSW_LED_MODE_REED;
+            else
+                LedModeNew = WB_MSW_LED_MODE_REED_GREEN;
+            break ;
+        case INDICATOR_ID_NOT_ARMED:
+            if (LedModeNew != WB_MSW_LED_MODE_REED)
+                LedModeNew = WB_MSW_LED_MODE_GREEN;
+            else
+                LedModeNew = WB_MSW_LED_MODE_REED_GREEN;
+            break ;
+        default:
+            break ;
+    }
+    (void)pin;
+}
+
+void zunoIndicatorLoopClose(uint8_t pin, uint8_t indicatorId)
+{
+    switch (indicatorId) {
+        case INDICATOR_ID_ARMED:
+        case INDICATOR_ID_NODE_IDENTIFY:
+            if ((LedModeNew & WB_MSW_LED_MODE_GREEN) == 0x0)
+                LedModeNew = WB_MSW_LED_MODE_IDLE;
+            else
+                LedModeNew = WB_MSW_LED_MODE_GREEN;
+            break ;
+        case INDICATOR_ID_NOT_ARMED:
+            if ((LedModeNew & WB_MSW_LED_MODE_REED) == 0x0)
+                LedModeNew = WB_MSW_LED_MODE_IDLE;
+            else
+                LedModeNew = WB_MSW_LED_MODE_REED;
+            break ;
+        default:
+            break ;
+    }
+    (void)pin;
+}
+
+void zunoIndicatorBinary(uint8_t pin, uint8_t value, uint8_t indicatorId)
+{
+    if (value == LOW)
+        zunoIndicatorLoopClose(pin, indicatorId);
+    else
+        zunoIndicatorLoopOpen(pin, indicatorId);
+}
+
+void zunoIndicatorDigitalWrite(uint8_t pin, uint8_t value, uint8_t indicatorId)
+{
+    (void)indicatorId;
+    (void)pin;
+    (void)value;
+}
+
+
+void zunoIndicatorPinMode(uint8_t pin, uint8_t value, uint8_t indicatorId)
+{
+    (void)pin;
+    (void)indicatorId;
+    (void)value;
+}
+
+void zunoSysServiceLedInit(void)
+{
+}
+
+void zunoSysServiceLedOff(uint8_t pin)
+{
+    switch (pin)
+    {
+        case SYSLED_LEARN:
+            LedModeNew = WB_MSW_LED_MODE_IDLE;
+            break ;
+        default:
+            break ;
+    }
+}
+
+void zunoSysServiceLedOn(uint8_t pin)
+{
+    if (LedModeSysLed == WB_MSW_LED_MODE_IDLE)
+        return ;
+    switch (pin)
+    {
+        case SYSLED_LEARN:
+            LedModeNew = LedModeSysLed;
+            break ;
+        default:
+            break ;
+    }
+}
+
+void zunoSysServiceLedSetMode(uint8_t pin, uint8_t mode)
+{
+    if (pin != SYSLED_LEARN)
+        return ;
+    switch (mode)
+    {
+        case SYSLED_LEARN_MODE_SUBMENU_READY:
+            LedModeSysLed = WB_MSW_LED_MODE_DUO;
+            break ;
+        case SYSLED_LEARN_MODE_INCLUSION:
+        default:
+            LedModeSysLed = WB_MSW_LED_MODE_LERN;
+            break ;
+    }
+    zunoSysServiceLedOn(pin);
+}
+
 
 static void SendTest(uint16_t version)
 {

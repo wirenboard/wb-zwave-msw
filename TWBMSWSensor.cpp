@@ -30,11 +30,16 @@
 
 #define WBMSW_COIL_BUZZER 0x0000
 
+#define WBMSW_COLI_LED_RED 10
+#define WBMSW_COLI_LED_GREEN 11
+#define WBMSW_HOLDING_LED_FLASH_TIMOUT 97
+#define WBMSW_HOLDING_LED_FLASH_DURATION 98
+
 #define WBMSW_VERSION_NUMBER_LENGTH 16
 
 /* Public Constructors */
 TWBMSWSensor::TWBMSWSensor(HardwareSerial* hardwareSerial, uint16_t timeoutMs)
-    : ModBusRtuClass(hardwareSerial, timeoutMs)
+    : ModBusRtuClass(hardwareSerial, timeoutMs), LedStatusRed(LedStatus::LED_STATUS_UNKNOWN), LedStatusGreen(LedStatus::LED_STATUS_UNKNOWN)
 {}
 
 /* Public Methods */
@@ -308,4 +313,56 @@ bool TWBMSWSensor::BuzzerStart(void)
 bool TWBMSWSensor::BuzzerStop(void)
 {
     return writeSingleCoils(Address, WBMSW_COIL_BUZZER, 0x0);
+}
+
+bool TWBMSWSensor::SetLedFlashDuration(uint8_t ms)
+{
+    if (ms > 50 || ms == 0)
+        return (false);
+    return writeSingleRegisters(Address, WBMSW_HOLDING_LED_FLASH_DURATION, ms);
+}
+
+bool TWBMSWSensor::SetLedFlashTimout(uint8_t sec)
+{
+    if (sec > 10 || sec == 0)
+        return (false);
+    return writeSingleRegisters(Address, WBMSW_HOLDING_LED_FLASH_TIMOUT, sec);
+}
+
+bool TWBMSWSensor::SetLedRedOn(void)
+{
+    if (LedStatusRed == LedStatus::LED_STATUS_ON)
+        return (true);
+    return writeSingleCoils(Address, WBMSW_COLI_LED_RED, 1);
+}
+
+bool TWBMSWSensor::SetLedRedOff(void)
+{
+    if (LedStatusRed == LedStatus::LED_STATUS_OFF)
+        return (true);
+    return writeSingleCoils(Address, WBMSW_COLI_LED_RED, 0);
+}
+
+bool TWBMSWSensor::SetLedGreenOn(void)
+{
+    if (LedStatusGreen == LedStatus::LED_STATUS_ON)
+        return (true);
+    return writeSingleCoils(Address, WBMSW_COLI_LED_GREEN, 1);
+}
+
+bool TWBMSWSensor::SetLedGreenOff(void)
+{
+    if (LedStatusGreen == LedStatus::LED_STATUS_OFF)
+        return (true);
+    return writeSingleCoils(Address, WBMSW_COLI_LED_GREEN, 0);
+}
+
+TWBMSWSensor::LedStatus  TWBMSWSensor::GetLedRedStatus(void)
+{
+    return (LedStatusRed);
+}
+
+TWBMSWSensor::LedStatus  TWBMSWSensor::GetLedGreenStatus(void)
+{
+    return (LedStatusGreen);
 }
