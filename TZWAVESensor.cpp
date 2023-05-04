@@ -371,10 +371,11 @@ bool TZWAVESensor::ChannelsInitialize()
     size_t groupIndex = CTRL_GROUP_1;
     for (int i = 0; i < TZWAVEChannel::CHANNEL_TYPES_COUNT; i++) {
         if (Channels[i].GetEnabled()) {
-            if (Channels[i].GetType() == TZWAVEChannel::Type::INTRUSION || Channels[i].GetType() == TZWAVEChannel::Type::BUZZER) {
+            if (Channels[i].GetType() == TZWAVEChannel::Type::INTRUSION ||
+                Channels[i].GetType() == TZWAVEChannel::Type::BUZZER)
+            {
                 Channels[i].SetChannelNumbers(channelDeviceNumber, channelDeviceNumber + 1, 0xFF);
-            }
-            else {
+            } else {
                 Channels[i].SetChannelNumbers(channelDeviceNumber, channelDeviceNumber + 1, groupIndex);
                 groupIndex++;
             }
@@ -477,7 +478,7 @@ void TZWAVESensor::SetChannelHandlers()
 {
     for (size_t i = 0; i < TZWAVEChannel::CHANNEL_TYPES_COUNT; i++) {
         if (Channels[i].GetType() == TZWAVEChannel::Type::BUZZER)
-            continue ;
+            continue;
         if (Channels[i].GetEnabled()) {
             uint8_t dataSize;
             switch (Channels[i].GetType()) {
@@ -720,8 +721,7 @@ void TZWAVESensor::PublishAnalogSensorValue(TZWAVEChannel& channel,
                 zunoSendToGroupSetValueCommand(groupIndex, offCommands);
             }
         }
-    }
-    else {
+    } else {
         if (value >= (levelSendBasic + hysteresisBasic)) {
             channel.SetTriggered(true);
             if (onOffCommandsRule == 1 || onOffCommandsRule == 2) {
@@ -731,16 +731,14 @@ void TZWAVESensor::PublishAnalogSensorValue(TZWAVEChannel& channel,
     }
 }
 
-void TZWAVESensor::PublishIntrusionValue(TZWAVEChannel* channel,
-                                        int64_t value)
+void TZWAVESensor::PublishIntrusionValue(TZWAVEChannel* channel, int64_t value)
 {
     uint32_t intrusionPeriod;
     int64_t reportThresHold;
     uint32_t currentTime;
 
     reportThresHold = GetParameterValue(channel->GetReportThresHoldParameterNumber()) * channel->GetMultiplier();
-    if (channel->GetState() == TZWAVEChannel::State::UNINITIALIZED)
-    {
+    if (channel->GetState() == TZWAVEChannel::State::UNINITIALIZED) {
         channel->SetTriggered(false);
         channel->SetValue(false);
         channel->SetReportedValue(false); // Remember last sent value
@@ -753,8 +751,7 @@ void TZWAVESensor::PublishIntrusionValue(TZWAVEChannel* channel,
             IntrusionLastTime = currentTime;
             IntrusionLastTimeWaitOff = true;
         }
-    }
-    else {
+    } else {
         if (value > (reportThresHold)) {
             channel->SetTriggered(true);
             if (!channel->GetReportedValue()) {
@@ -776,8 +773,7 @@ void TZWAVESensor::PublishIntrusionValue(TZWAVEChannel* channel,
     }
 }
 
-void TZWAVESensor::PublishMotionValue(TZWAVEChannel* channel,
-                                        int64_t value)
+void TZWAVESensor::PublishMotionValue(TZWAVEChannel* channel, int64_t value)
 {
     int32_t onCommands;
     int32_t offCommands;
@@ -795,8 +791,7 @@ void TZWAVESensor::PublishMotionValue(TZWAVEChannel* channel,
             MotionLastTime = currentTime;
             MotionLastTimeWaitOff = true;
         }
-    }
-    else {
+    } else {
         if (value >= (WB_MSW_CONFIG_PARAMETER_MOTION_ON)) {
             channel->SetTriggered(true);
             if (!channel->GetReportedValue()) {
@@ -851,8 +846,7 @@ TZWAVESensor::Result TZWAVESensor::ProcessCommonChannel(TZWAVEChannel& channel)
         if (currentValue == channel.GetErrorValue()) {
             return TZWAVESensor::Result::ZWAVE_PROCESS_VALUE_ERROR;
         }
-    }
-    else {
+    } else {
         PublishIntrusionValue(IntrusionChannelPtr, currentValue);
     }
     DEBUG(channel.GetName());
@@ -887,8 +881,7 @@ TZWAVESensor::Result TZWAVESensor::ProcessMotionChannel(TZWAVEChannel& channel)
         return TZWAVESensor::Result::ZWAVE_PROCESS_VALUE_ERROR;
     }
     LOG_INT_VALUE("Motion:             ", (long)value);
-    if ((channel.GetState() == TZWAVEChannel::State::UNINITIALIZED))
-    {
+    if ((channel.GetState() == TZWAVEChannel::State::UNINITIALIZED)) {
         // DEBUG("Channel ");
         // DEBUG(channel.GetType());
         // DEBUG(" send report value ");
