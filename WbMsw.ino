@@ -1,14 +1,14 @@
 
 #include "DebugOutput.h"
+#include "SysService.h"
 #include "TFWUpdater.h"
 #include "TFastModbus.h"
 #include "TWBMSWSensor.h"
 #include "TZWAVESensor.h"
 #include "WbMsw.h"
+#include "ZWCCIndicator.h"
 #include "ZWCCSoundSwitch.h"
 #include "em_chip.h"
-#include "SysService.h"
-#include "ZWCCIndicator.h"
 
 //  Project global macros definitions for accurate protocol configuration
 // DO NOT MOVE ZUNO_ENABLE FROM THIS PLACE
@@ -86,7 +86,7 @@ static void SystemEvent(ZUNOSysEvent_t* ev)
     ssize_t value;
     ssize_t defaultValue;
     size_t paramNumber;
-    const ZunoCFGParameter_t *parameters;
+    const ZunoCFGParameter_t* parameters;
 
     switch (ev->event) {
         // A new firmware image for the second chip from the Z-Wave controller has arrived
@@ -99,7 +99,7 @@ static void SystemEvent(ZUNOSysEvent_t* ev)
             }
             break;
         case ZUNO_SYS_EVENT_LEARNSTATUS:
-            if((ev->params[0] == INCLUSION_STATUS_SUCESS) && (ev->params[1] == 0)) {
+            if ((ev->params[0] == INCLUSION_STATUS_SUCESS) && (ev->params[1] == 0)) {
                 i = 0x0;
                 while (i < WB_MSW_MAX_CONFIG_PARAM) {
                     value = zunoLoadCFGParam(i + WB_MSW_CONFIG_PARAMETER_FIRST);
@@ -111,7 +111,7 @@ static void SystemEvent(ZUNOSysEvent_t* ev)
                     }
                     i++;
                 }
-                }
+            }
             break;
     }
 }
@@ -256,70 +256,62 @@ static WbMswLedMode_t LedModeNew = WB_MSW_LED_MODE_IDLE;
 static WbMswLedMode_t LedModeSysLed = WB_MSW_LED_MODE_IDLE;
 
 // Установим нужные типы индикаторов
-ZUNO_SETUP_INDICATOR(
-    ZUNO_SETUP_INDICATOR_INFO(INDICATOR_ID_NODE_IDENTIFY, 1),
-    ZUNO_SETUP_INDICATOR_INFO(INDICATOR_ID_ARMED, 2),
-    ZUNO_SETUP_INDICATOR_INFO(INDICATOR_ID_NOT_ARMED, 3)
-);
+ZUNO_SETUP_INDICATOR(ZUNO_SETUP_INDICATOR_INFO(INDICATOR_ID_NODE_IDENTIFY, 1),
+                     ZUNO_SETUP_INDICATOR_INFO(INDICATOR_ID_ARMED, 2),
+                     ZUNO_SETUP_INDICATOR_INFO(INDICATOR_ID_NOT_ARMED, 3));
 
 static void ServiceLedLoop(void)
 {
-    WbMswLedMode_t                      ledMode;
-    static uint32_t                     msLedFreeLast = 0;
-    uint32_t                            msLedCurrent;
-    static bool                         ledFree = false;
+    WbMswLedMode_t ledMode;
+    static uint32_t msLedFreeLast = 0;
+    uint32_t msLedCurrent;
+    static bool ledFree = false;
 
     ledMode = LedModeNew;
-    if (LedModeCurrent == ledMode)
-    {
+    if (LedModeCurrent == ledMode) {
         if (ledMode != WB_MSW_LED_MODE_IDLE)
-            return ;
+            return;
         msLedCurrent = millis();
-        if (msLedCurrent >= msLedFreeLast)
-        {
-            if (ledFree == false)
-            {
+        if (msLedCurrent >= msLedFreeLast) {
+            if (ledFree == false) {
                 WbMsw.SetLedRedOff();
                 WbMsw.SetLedGreenOn();
                 msLedFreeLast = msLedCurrent + 2000;
                 ledFree = true;
-            }
-            else
-            {
+            } else {
                 WbMsw.SetLedRedOff();
                 WbMsw.SetLedGreenOff();
                 msLedFreeLast = msLedCurrent + 10000;
                 ledFree = false;
             }
         }
-        return ;
+        return;
     }
-    switch (ledMode)
-    {
+    switch (ledMode) {
         case WB_MSW_LED_MODE_LERN:
             WbMsw.SetLedGreenOff();
             WbMsw.SetLedRedOn();
-            break ;
+            break;
         case WB_MSW_LED_MODE_REED_GREEN:
         case WB_MSW_LED_MODE_DUO:
             WbMsw.SetLedGreenOn();
             WbMsw.SetLedRedOn();
-            break ;
+            break;
         case WB_MSW_LED_MODE_IDLE:
             WbMsw.SetLedGreenOff();
             WbMsw.SetLedRedOff();
-            break ;
+            break;
         case WB_MSW_LED_MODE_REED:
             WbMsw.SetLedGreenOff();
             WbMsw.SetLedRedOn();
-            break ;
+            break;
         case WB_MSW_LED_MODE_GREEN:
             WbMsw.SetLedRedOff();
             WbMsw.SetLedGreenOn();
-            break ;
+            break;
         default:
-            return ;
-            break ;
+            return;
+            break;
     }
     ledFree = false;
     LedModeCurrent = ledMode;
@@ -335,15 +327,15 @@ void zunoIndicatorLoopOpen(uint8_t pin, uint8_t indicatorId)
                 LedModeNew = WB_MSW_LED_MODE_REED;
             else
                 LedModeNew = WB_MSW_LED_MODE_REED_GREEN;
-            break ;
+            break;
         case INDICATOR_ID_NOT_ARMED:
             if (LedModeNew != WB_MSW_LED_MODE_REED)
                 LedModeNew = WB_MSW_LED_MODE_GREEN;
             else
                 LedModeNew = WB_MSW_LED_MODE_REED_GREEN;
-            break ;
+            break;
         default:
-            break ;
+            break;
     }
     (void)pin;
 }
@@ -357,15 +349,15 @@ void zunoIndicatorLoopClose(uint8_t pin, uint8_t indicatorId)
                 LedModeNew = WB_MSW_LED_MODE_IDLE;
             else
                 LedModeNew = WB_MSW_LED_MODE_GREEN;
-            break ;
+            break;
         case INDICATOR_ID_NOT_ARMED:
             if ((LedModeNew & WB_MSW_LED_MODE_REED) == 0x0)
                 LedModeNew = WB_MSW_LED_MODE_IDLE;
             else
                 LedModeNew = WB_MSW_LED_MODE_REED;
-            break ;
+            break;
         default:
-            break ;
+            break;
     }
     (void)pin;
 }
@@ -385,7 +377,6 @@ void zunoIndicatorDigitalWrite(uint8_t pin, uint8_t value, uint8_t indicatorId)
     (void)value;
 }
 
-
 void zunoIndicatorPinMode(uint8_t pin, uint8_t value, uint8_t indicatorId)
 {
     (void)pin;
@@ -394,106 +385,104 @@ void zunoIndicatorPinMode(uint8_t pin, uint8_t value, uint8_t indicatorId)
 }
 
 void zunoSysServiceLedInit(void)
-{
-}
+{}
 
 void zunoSysServiceLedOff(uint8_t pin)
 {
-    switch (pin)
-    {
+    switch (pin) {
         case SYSLED_LEARN:
             LedModeNew = WB_MSW_LED_MODE_IDLE;
-            break ;
+            break;
         default:
-            break ;
+            break;
     }
 }
 
 void zunoSysServiceLedOn(uint8_t pin)
 {
     if (LedModeSysLed == WB_MSW_LED_MODE_IDLE)
-        return ;
-    switch (pin)
-    {
+        return;
+    switch (pin) {
         case SYSLED_LEARN:
             LedModeNew = LedModeSysLed;
-            break ;
+            break;
         default:
-            break ;
+            break;
     }
 }
 
 void zunoSysServiceLedSetMode(uint8_t pin, uint8_t mode)
 {
     if (pin != SYSLED_LEARN)
-        return ;
-    switch (mode)
-    {
+        return;
+    switch (mode) {
         case SYSLED_LEARN_MODE_SUBMENU_READY:
             LedModeSysLed = WB_MSW_LED_MODE_DUO;
-            break ;
+            break;
         case SYSLED_LEARN_MODE_INCLUSION:
         default:
             LedModeSysLed = WB_MSW_LED_MODE_LERN;
-            break ;
+            break;
     }
     zunoSysServiceLedOn(pin);
 }
 
-
 static void SendTest(uint16_t version)
 {
-    static bool                         fSend = false;
-    uint64_t                            uuid;
-    uint8_t                             array[] = {0xAA, 0xAE, 0xDA, // SIGN
-                                                   0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, // UUID
-                                                   0x00, 0x00};// MSW FIRMWARE
+    static bool fSend = false;
+    uint64_t uuid;
+    uint8_t array[] = {0xAA,
+                       0xAE,
+                       0xDA, // SIGN
+                       0x00,
+                       0x00,
+                       0x00,
+                       0x00,
+                       0x00,
+                       0x00,
+                       0x00,
+                       0x00,  // UUID
+                       0x00,
+                       0x00}; // MSW FIRMWARE
 
-    if(zunoRSTRetention(0) != 0xA8) {
-        return ;
+    if (zunoRSTRetention(0) != 0xA8) {
+        return;
     }
     if (fSend == true)
-        return ;
+        return;
     fSend = true;
     uuid = SYSTEM_GetUnique();
-    _zme_memcpy(array + 3, (uint8_t *)&uuid, sizeof(uuid));
+    _zme_memcpy(array + 3, (uint8_t*)&uuid, sizeof(uuid));
     memcpy(array + 3 + sizeof(uuid), &version, sizeof(version));
     zunoSendTestPackage(&array[0x0], sizeof(array), 240);
 }
 
 ZUNO_SETUP_SOUND_SWITCH_TONE_DURATION(THREE_SIGNALS,
-    ZUNO_SETUP_SOUND_SWITCH_TONE_DURATION_SET(750, 400),
-    ZUNO_SETUP_SOUND_SWITCH_TONE_DURATION_SET(300, 300),
-    ZUNO_SETUP_SOUND_SWITCH_TONE_DURATION_SET(300, 1000)
-);
+                                      ZUNO_SETUP_SOUND_SWITCH_TONE_DURATION_SET(750, 400),
+                                      ZUNO_SETUP_SOUND_SWITCH_TONE_DURATION_SET(300, 300),
+                                      ZUNO_SETUP_SOUND_SWITCH_TONE_DURATION_SET(300, 1000));
 
 ZUNO_SETUP_SOUND_SWITCH_TONE_DURATION(TWO_SIGNALS,
-    ZUNO_SETUP_SOUND_SWITCH_TONE_DURATION_SET(500, 500),
-    ZUNO_SETUP_SOUND_SWITCH_TONE_DURATION_SET(500, 500)
-);
+                                      ZUNO_SETUP_SOUND_SWITCH_TONE_DURATION_SET(500, 500),
+                                      ZUNO_SETUP_SOUND_SWITCH_TONE_DURATION_SET(500, 500));
 
-ZUNO_SETUP_SOUND_SWITCH_TONE_DURATION(ONE_SIGNALS,
-    ZUNO_SETUP_SOUND_SWITCH_TONE_DURATION_SET(10000, 0)
-);
+ZUNO_SETUP_SOUND_SWITCH_TONE_DURATION(ONE_SIGNALS, ZUNO_SETUP_SOUND_SWITCH_TONE_DURATION_SET(10000, 0));
 
 ZUNO_SETUP_SOUND_SWITCH(255,
-    ZUNO_SETUP_SOUND_SWITCH_TONE("Three signals", THREE_SIGNALS),
-    ZUNO_SETUP_SOUND_SWITCH_TONE("Two signals", TWO_SIGNALS),
-    ZUNO_SETUP_SOUND_SWITCH_TONE("One signals", ONE_SIGNALS)
-);
+                        ZUNO_SETUP_SOUND_SWITCH_TONE("Three signals", THREE_SIGNALS),
+                        ZUNO_SETUP_SOUND_SWITCH_TONE("Two signals", TWO_SIGNALS),
+                        ZUNO_SETUP_SOUND_SWITCH_TONE("One signals", ONE_SIGNALS));
 
 static bool SoundSwitchStateOld = false;
 static bool SoundSwitchStateNew = false;
 
 static void SoundSwitchLoop(void)
 {
-    if (SoundSwitchStateNew != SoundSwitchStateOld)
-    {
+    if (SoundSwitchStateNew != SoundSwitchStateOld) {
         SoundSwitchStateOld = SoundSwitchStateNew;
         if (SoundSwitchStateOld == true) {
             WbMsw.BuzzerStart();
-        }
-        else{
+        } else {
             WbMsw.BuzzerStop();
         }
     }
@@ -513,7 +502,7 @@ void zunoSoundSwitchPlay(uint8_t channel, uint8_t volume, size_t freq)
     (void)freq;
 }
 
-const ZunoSoundSwitchParameterArray_t *zunoSoundSwitchGetParameterArrayUser(size_t channel)
+const ZunoSoundSwitchParameterArray_t* zunoSoundSwitchGetParameterArrayUser(size_t channel)
 {
     return &_switch_cc_parameter_array_255;
     (void)channel;

@@ -39,7 +39,9 @@
 
 /* Public Constructors */
 TWBMSWSensor::TWBMSWSensor(HardwareSerial* hardwareSerial, uint16_t timeoutMs)
-    : ModBusRtuClass(hardwareSerial, timeoutMs), LedStatusRed(LedStatus::LED_STATUS_UNKNOWN), LedStatusGreen(LedStatus::LED_STATUS_UNKNOWN)
+    : ModBusRtuClass(hardwareSerial, timeoutMs),
+      LedStatusRed(LedStatus::LED_STATUS_UNKNOWN),
+      LedStatusGreen(LedStatus::LED_STATUS_UNKNOWN)
 {}
 
 /* Public Methods */
@@ -357,12 +359,12 @@ bool TWBMSWSensor::SetLedGreenOff(void)
     return writeSingleCoils(Address, WBMSW_COLI_LED_GREEN, 0);
 }
 
-TWBMSWSensor::LedStatus  TWBMSWSensor::GetLedRedStatus(void)
+TWBMSWSensor::LedStatus TWBMSWSensor::GetLedRedStatus(void)
 {
     return (LedStatusRed);
 }
 
-TWBMSWSensor::LedStatus  TWBMSWSensor::GetLedGreenStatus(void)
+TWBMSWSensor::LedStatus TWBMSWSensor::GetLedGreenStatus(void)
 {
     return (LedStatusGreen);
 }
