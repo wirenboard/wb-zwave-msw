@@ -25,7 +25,7 @@ pipeline {
                                                   passwordVariable: 'GITHUB_TOKEN',
                                                   usernameVariable: 'DUMMY')]) {
                     unstash 'fw'
-                    sh 'wbci-git -v -t $GITHUB_TOKEN publish-release build/WbMsw/*.bin'
+                    sh 'wbdev user wbci-git -v -t $GITHUB_TOKEN publish-release build/WbMsw/*.bin'
                 }
             }
         }
