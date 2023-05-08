@@ -1,13 +1,86 @@
 # Сборка и прошивка проекта для модуля ZWAVE-MSW
 ## Инструментарий
 Основным инструментом для сборки и настройки является утилита **zme_make**, доступная в [архиве с инструментами](https://github.com/Z-Wave-Me/Z-Uno-G2-Core/tree/master/toolchain/linux64), а также в каталоге `/Z-Uno2 (Beta)/tools/zme_make` в папке с ZUNO-компонентами при установке расширения ZUNO в VSCode.
-Для автоматической сборки проекта потребуется скачать [Z-Uno-G2-Core](https://github.com/Z-Wave-Me/Z-Uno-G2-Core), [GCC](http://rus.z-wave.me/files/z-uno/g2/tc/arm-none-eabi-gcc-7_2_4-linux64.tar.gz) и [Clang](http://rus.z-wave.me/files/z-uno/g2/tc/libclang_11_0_1-linux64.tar.gz).
+
+Для автоматической сборки проекта необходимо скачать: ZUNO-ядро (файлы SDK), утилиту **zme-make**, компилятор **arm-none-eabi-gcc** и библиотеку **libClang**, причем версии этих инстументов должны соответствовать той версии SDK, для которой производится сборка.  Для поиска файлов нужно воспользоваться этим [индексом](http://z-uno.z-wave.me/files/z-uno2/package_z-wave2.me_index.json) в случае сборки для стабильных версий SDK, а для Beta-версий SDK [этим](https://z-uno.z-wave.me/files/z-uno2/package_z-wave2.me_beta_index.json). 
+
+Для начала, нужно найти в каждом файле индекса список **platforms**, в котором приводятся доступные версии SDK, и в нем раздел, интересующий нас. Например:
+
+```json
+{
+    "architecture": "zw_cm4f",
+    "archiveFileName": "z-uno2_core_03_00_12_beta05.zip",
+    "boards": [
+        {
+            "name": "Z-Uno2"
+        }
+    ],
+    "category": "ZWave>Me",
+    "checksum": "SHA-256:880868e243199de4d17ddf414804c238b962f04adcf70930daf3eb26e986c9c8",
+    "help": {
+        "online": "http://z-uno.z-wave.me/Reference/"
+    },
+    "name": "Z-Uno2 (Beta)",
+    "size": "13836634",
+    "toolsDependencies": [
+        {
+            "name": "libClang",
+            "packager": "Z-Uno2 (Beta)",
+            "version": "11.0.1"
+        },
+        {
+            "name": "zme_make",
+            "packager": "Z-Uno2 (Beta)",
+            "version": "0.4.2"
+        },
+        {
+            "name": "arm-none-eabi-gcc",
+            "packager": "Z-Uno2 (Beta)",
+            "version": "10.3.1"
+        }
+    ],
+    "url": "http://z-uno.z-wave.me/files/z-uno2/cores/z-uno2_core_03_00_12_beta05.zip",
+    "version": "3.0.12"
+}
+```
+В разделе **toolsDependencies** находится список инструменов, необходимый для сборки, и версии. Ниже, после раздела **platforms**, находится раздел **tools**, в котором нам нужно найти подразделы с соответствующими инструментами и версиями. Например:
+
+```json
+{
+    "name": "zme_make",
+    "systems": [
+        {
+            "archiveFileName": "zme_make_00_04_02_beta03-linux64.tar.gz",
+            "checksum": "SHA-256:b140b4497d4959ce7e3c1421380b037610db518405732435922ff602f288f77c",
+            "host": "x86_64-pc-linux-gnu",
+            "size": 15033895,
+            "url": "http://z-uno.z-wave.me/files/z-uno2/tc//zme_make_00_04_02_beta03-linux64.tar.gz"
+        },
+        {
+            "archiveFileName": "zme_make_00_04_02_beta03-osx.tar.gz",
+            "checksum": "SHA-256:203c46170d7a327d0267d27d74d4a5ba7f9bf57e45436dc23eb68628f5046e8b",
+            "host": "x86_64-apple-darwin",
+            "size": 17086876,
+            "url": "http://z-uno.z-wave.me/files/z-uno2/tc//zme_make_00_04_02_beta03-osx.tar.gz"
+        },
+        {
+            "archiveFileName": "zme_make_00_04_02_beta03-win32.zip",
+            "checksum": "SHA-256:68affef73cc89dd791786158a2509d7f725473da2910094c023f0bdc2dd51a40",
+            "host": "i686-mingw32",
+            "size": 18692991,
+            "url": "http://z-uno.z-wave.me/files/z-uno2/tc//zme_make_00_04_02_beta03-win32.zip"
+        }
+    ],
+    "version": "0.4.2"
+}
+```
+Для каждого из инструментов сборки приведена ссылка для доступа.
 
 ## Инструкция по сборке
 ### Настройка сборки в VSCode
-Проект для модуля ZUNO выполнен на базе фреймворка Arduino и собственных библиотек Z-Wave. Для ознакомления на сайте ZUNO доступен набор [инструкций](https://z-uno.z-wave.me/getting-started/), в том числе инструкция по [настройке сборки в VS Code](https://z-uno.z-wave.me/vs-code-install/). Текущая версия проекта рассчитана на ZUNO-компоненты версии **Z-Uno2(Beta)(3.0.9)**. 
+Проект для модуля ZUNO выполнен на базе фреймворка Arduino и собственных библиотек Z-Wave. Для ознакомления на сайте ZUNO доступен набор [инструкций](https://z-uno.z-wave.me/getting-started/), в том числе инструкция по [настройке сборки в VS Code](https://z-uno.z-wave.me/vs-code-install/). Текущая версия проекта рассчитана на ZUNO-компоненты версии **Z-Uno2(Beta)(3.0.12)**. 
 
-:warning: **Версия SDK**:иногда при обновлении SDK из его старых версий могут уехать нужные библиотеки. Поэтому, если вы вдруг установили 3.0.9, но нужных библиотек нет, проверьте, не была ли выпущена новая версия.
+:warning: **Версия SDK**:иногда при обновлении SDK из его старых версий могут уехать нужные библиотеки. Поэтому, если вы вдруг установили 3.0.12, но нужных библиотек нет, проверьте, не была ли выпущена новая версия.
 После установки расширения ZUNO, в статус-баре VSCode появится доступ к дополнительным настройкам и функциям, в которых нужно установить следующие параметры:
 1. режим шифрования **S2**
 2. частота **RU**
@@ -59,16 +132,16 @@ docker run -v $PWD:/wb-zwave-msw -w /wb-zwave-msw --rm zwave-tools make
 ```
 
 Также возможно загрузить бутлодер, указав конкретный файл:
-```
+```sh
 ./zme_make boot -f zuno_bootloader_HW0704.bin -d /dev/ttyUSB0
 ```
 Файл **zuno_bootloader_HW0704.bin** соответствует плате модуля (малая ZUNO), остальные файлы соответствуют другим аппаратным платформам. 
 Для просмотра информации об устройстве (PIN-кода, настроек мощности, частоты) воспользуйтесь командой 
-```
+```sh
 ./zme_make boardInfo -d /dev/ttyUSB0 
 ```
 Пример вывода:
-```
+```sh
 BOARD INFO
 Openning port                            ..............................                            OK
 Syncing with Z-Uno                       ..............................                            OK
@@ -138,7 +211,7 @@ DONE
 Для дальнейшей работы с модулем потребуется запомнить **S2 PIN**, так как он нужен для добавления устройства на сервер. В разделе **DEVICE CFG** можно увидеть текущий режим защиты, частоту, мощность радиосигнала (выводится в hex). 
 Если модуль прошивается через расширение VSCode, то дополнительно настраивать модуль не требуется.
 Если прошивка осуществляется в автоматическом режиме, то необходимо задать режим шифрования (включено), частоту (7 - RU, 0 - EU) и мощность радиосигнала в dBm *10(последний разряд - десяые доли):
-```
+```sh
 ./zme_make boardInfo -d /dev/ttyUSB0 -p freq=7 -p main_pow=20 -p sec=2
 ```
 Установка данной мощности радиосигнала рекомендована производителем модуля.
@@ -146,7 +219,7 @@ DONE
 ### Загрузка прошивки
 Для прошивки из VSCode нужно открыть основной файл ***.ino** и в верхней панели нажать кнопку **"Загрузить"**.
 Для прошивки модуля в автоматическом режиме нужно вызвать команду
-```
+```sh
 ./zme_make bin_upload ./WbMsw.bin -d /dev/ttyUSB0
 ```
 

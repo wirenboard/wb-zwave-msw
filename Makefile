@@ -1,7 +1,7 @@
 BUILD_DIR = build
-CORE_PATH = /Z-Uno-G2-Core
+CORE_PATH = /z-uno2_core_03_00_12_beta05
 ARM_GCC_PATH = /gcc
-ARM_GCC_VERSION = 7.2.1
+ARM_GCC_VERSION = 10.3.1
 LIBCLANG_PATH = /libclang
 
 DEB_VERSION := $(shell head -1 debian/changelog | awk '{print $$2}' | sed 's/[\(\)]//g')
@@ -13,8 +13,8 @@ all:
 	mkdir -p $(BUILD_DIR)
 	# zme_make creates ~/ZMEStorage folder with ZUNOToolchain-*.log
 	HOME=$(BUILD_DIR) zme_make build WbMsw.ino \
-		-S $(CORE_PATH)/hardware/arduino/zunoG2/cores \
-		-S $(CORE_PATH)/hardware/arduino/zunoG2/libraries \
+		-S $(CORE_PATH)/cores \
+		-S $(CORE_PATH)/libraries \
 		-S $(ARM_GCC_PATH)/lib/gcc/arm-none-eabi/$(ARM_GCC_VERSION)/include \
 		-B $(BUILD_DIR) \
 		-T $(ARM_GCC_PATH)/bin \
