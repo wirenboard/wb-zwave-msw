@@ -292,7 +292,7 @@ static void ServiceLedLoop(void)
             WbMsw.SetLedGreenOff();
             WbMsw.SetLedRedOn();
             break;
-        case WB_MSW_LED_MODE_REED_GREEN:
+        case WB_MSW_LED_MODE_RED_GREEN:
         case WB_MSW_LED_MODE_DUO:
             WbMsw.SetLedGreenOn();
             WbMsw.SetLedRedOn();
@@ -301,7 +301,7 @@ static void ServiceLedLoop(void)
             WbMsw.SetLedGreenOff();
             WbMsw.SetLedRedOff();
             break;
-        case WB_MSW_LED_MODE_REED:
+        case WB_MSW_LED_MODE_RED:
             WbMsw.SetLedGreenOff();
             WbMsw.SetLedRedOn();
             break;
@@ -324,15 +324,15 @@ void zunoIndicatorLoopOpen(uint8_t pin, uint8_t indicatorId)
         case INDICATOR_ID_ARMED:
         case INDICATOR_ID_NODE_IDENTIFY:
             if (LedModeNew != WB_MSW_LED_MODE_GREEN)
-                LedModeNew = WB_MSW_LED_MODE_REED;
+                LedModeNew = WB_MSW_LED_MODE_RED;
             else
-                LedModeNew = WB_MSW_LED_MODE_REED_GREEN;
+                LedModeNew = WB_MSW_LED_MODE_RED_GREEN;
             break;
         case INDICATOR_ID_NOT_ARMED:
-            if (LedModeNew != WB_MSW_LED_MODE_REED)
+            if (LedModeNew != WB_MSW_LED_MODE_RED)
                 LedModeNew = WB_MSW_LED_MODE_GREEN;
             else
-                LedModeNew = WB_MSW_LED_MODE_REED_GREEN;
+                LedModeNew = WB_MSW_LED_MODE_RED_GREEN;
             break;
         default:
             break;
@@ -351,10 +351,10 @@ void zunoIndicatorLoopClose(uint8_t pin, uint8_t indicatorId)
                 LedModeNew = WB_MSW_LED_MODE_GREEN;
             break;
         case INDICATOR_ID_NOT_ARMED:
-            if ((LedModeNew & WB_MSW_LED_MODE_REED) == 0x0)
+            if ((LedModeNew & WB_MSW_LED_MODE_RED) == 0x0)
                 LedModeNew = WB_MSW_LED_MODE_IDLE;
             else
-                LedModeNew = WB_MSW_LED_MODE_REED;
+                LedModeNew = WB_MSW_LED_MODE_RED;
             break;
         default:
             break;
