@@ -9,6 +9,7 @@ pipeline {
                 dockerfile true
             }
             steps {
+                sh 'make clean'
                 sh 'make'
                 stash includes: '**/build/WbMsw/*.bin', name: 'fw'
             }
