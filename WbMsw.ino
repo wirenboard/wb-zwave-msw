@@ -456,15 +456,20 @@ static void SendTest(uint16_t version)
     zunoSendTestPackage(&array[0x0], sizeof(array), 240);
 }
 
+// 750 + 400 + 300 + 300 + 300 + 1000 = 3050 mc - bad
 ZUNO_SETUP_SOUND_SWITCH_TONE_DURATION(THREE_SIGNALS,
                                       ZUNO_SETUP_SOUND_SWITCH_TONE_DURATION_SET(750, 400),
                                       ZUNO_SETUP_SOUND_SWITCH_TONE_DURATION_SET(300, 300),
                                       ZUNO_SETUP_SOUND_SWITCH_TONE_DURATION_SET(300, 1000));
 
+// 2 sec - good
 ZUNO_SETUP_SOUND_SWITCH_TONE_DURATION(TWO_SIGNALS,
                                       ZUNO_SETUP_SOUND_SWITCH_TONE_DURATION_SET(500, 500),
                                       ZUNO_SETUP_SOUND_SWITCH_TONE_DURATION_SET(500, 500));
 
+// 10000 - play on
+// 0 - play off
+// 10000 + 0 = 10 sec - good
 ZUNO_SETUP_SOUND_SWITCH_TONE_DURATION(ONE_SIGNALS, ZUNO_SETUP_SOUND_SWITCH_TONE_DURATION_SET(10000, 0));
 
 ZUNO_SETUP_SOUND_SWITCH(255,
