@@ -255,7 +255,6 @@ static WbMswLedMode_t LedModeCurrent = WB_MSW_LED_MODE_IDLE;
 static WbMswLedMode_t LedModeNew = WB_MSW_LED_MODE_IDLE;
 static WbMswLedMode_t LedModeSysLed = WB_MSW_LED_MODE_IDLE;
 
-// Установим нужные типы индикаторов
 ZUNO_SETUP_INDICATOR(ZUNO_SETUP_INDICATOR_INFO(INDICATOR_ID_NODE_IDENTIFY, 1),
                      ZUNO_SETUP_INDICATOR_INFO(INDICATOR_ID_ARMED, 2),
                      ZUNO_SETUP_INDICATOR_INFO(INDICATOR_ID_NOT_ARMED, 3));
