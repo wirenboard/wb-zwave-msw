@@ -303,7 +303,7 @@ bool TWBMSWSensor::GetMotionAvailability(TWBMSWSensor::Availability& availabilit
 {
     return ReadAvailabilityRegister(availability, WBMSW_REG_MOTION_AVAIL);
 }
-bool TWBMSWSensor::BuzzerAviable(TWBMSWSensor::Availability& availability)
+bool TWBMSWSensor::BuzzerAvailable(TWBMSWSensor::Availability& availability)
 {
     availability = TWBMSWSensor::Availability::AVAILABLE;
     return true;
