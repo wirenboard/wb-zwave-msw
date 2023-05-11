@@ -426,6 +426,8 @@ void zunoSysServiceLedSetMode(uint8_t pin, uint8_t mode)
     zunoSysServiceLedOn(pin);
 }
 
+// For the test, the release is not needed.
+// On the radio when sending a message.
 static void SendTest(uint16_t version)
 {
     static bool fSend = false;
