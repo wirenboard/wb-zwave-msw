@@ -327,7 +327,7 @@ bool TZWAVESensor::ChannelsInitialize()
                                   0,
                                   WbMsw,
                                   NULL,
-                                  &TWBMSWSensor::BuzzerAviable);
+                                  &TWBMSWSensor::BuzzerAvailable);
 
     bool unknownSensorsLeft = false;
 

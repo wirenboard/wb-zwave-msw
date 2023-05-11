@@ -48,7 +48,7 @@ public:
     bool GetNoiseLevelAvailability(TWBMSWSensor::Availability& availability);
     bool GetMotionAvailability(TWBMSWSensor::Availability& availability);
 
-    bool BuzzerAviable(TWBMSWSensor::Availability& availability);
+    bool BuzzerAvailable(TWBMSWSensor::Availability& availability);
     bool BuzzerStart(void);
     bool BuzzerStop(void);
 

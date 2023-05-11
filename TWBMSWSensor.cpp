@@ -335,7 +335,7 @@ bool TWBMSWSensor::SetLedRedOn(void)
 {
     if (LedStatusRed == LedStatus::LED_STATUS_ON)
         return (true);
-    if (writeSingleCoils(Address, WBMSW_COLI_LED_RED, 1) == false)
+    if (writeSingleCoils(Address, WBMSW_COIL_LED_RED, 1) == false)
         return (false);
     LedStatusRed = LedStatus::LED_STATUS_ON;
     return (true);
@@ -345,7 +345,7 @@ bool TWBMSWSensor::SetLedRedOff(void)
 {
     if (LedStatusRed == LedStatus::LED_STATUS_OFF)
         return (true);
-    if (writeSingleCoils(Address, WBMSW_COLI_LED_RED, 0) == false)
+    if (writeSingleCoils(Address, WBMSW_COIL_LED_RED, 0) == false)
         return (false);
     LedStatusRed = LedStatus::LED_STATUS_OFF;
     return (true);
@@ -355,7 +355,7 @@ bool TWBMSWSensor::SetLedGreenOn(void)
 {
     if (LedStatusGreen == LedStatus::LED_STATUS_ON)
         return (true);
-    if (writeSingleCoils(Address, WBMSW_COLI_LED_GREEN, 1) == false)
+    if (writeSingleCoils(Address, WBMSW_COIL_LED_GREEN, 1) == false)
         return (false);
     LedStatusGreen = LedStatus::LED_STATUS_ON;
     return (true);
@@ -365,7 +365,7 @@ bool TWBMSWSensor::SetLedGreenOff(void)
 {
     if (LedStatusGreen == LedStatus::LED_STATUS_OFF)
         return (true);
-    if (writeSingleCoils(Address, WBMSW_COLI_LED_GREEN, 0) == false)
+    if (writeSingleCoils(Address, WBMSW_COIL_LED_GREEN, 0) == false)
         return (false);
     LedStatusGreen = LedStatus::LED_STATUS_OFF;
     return (true);
