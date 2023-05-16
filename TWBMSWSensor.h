@@ -13,6 +13,13 @@ public:
         UNKNOWN
     };
 
+    enum class LedStatus
+    {
+        LED_STATUS_ON,
+        LED_STATUS_OFF,
+        LED_STATUS_UNKNOWN
+    };
+
     typedef bool (TWBMSWSensor::*GetAvailabilityCallback)(TWBMSWSensor::Availability& availability);
     typedef bool (TWBMSWSensor::*GetValueCallback)(int64_t& value);
 
@@ -41,6 +48,19 @@ public:
     bool GetNoiseLevelAvailability(TWBMSWSensor::Availability& availability);
     bool GetMotionAvailability(TWBMSWSensor::Availability& availability);
 
+    bool BuzzerAvailable(TWBMSWSensor::Availability& availability);
+    bool BuzzerStart(void);
+    bool BuzzerStop(void);
+
+    bool SetLedFlashDuration(uint8_t ms);
+    bool SetLedFlashTimout(uint8_t sec);
+    bool SetLedRedOn(void);
+    bool SetLedRedOff(void);
+    bool SetLedGreenOn(void);
+    bool SetLedGreenOff(void);
+    LedStatus GetLedRedStatus(void);
+    LedStatus GetLedGreenStatus(void);
+
 private:
     bool SetFwMode(void);
     bool FwWriteInfo(uint16_t* info);
@@ -48,5 +68,7 @@ private:
     TWBMSWSensor::Availability ConvertAvailability(uint16_t availability) const;
     bool ReadAvailabilityRegister(TWBMSWSensor::Availability& availability, uint16_t registerAddress);
     uint8_t Address;
+    LedStatus LedStatusRed;
+    LedStatus LedStatusGreen;
 };
 #endif // WB_MSW_SENSOR_H

@@ -28,11 +28,20 @@
 #define WBMSW_REG_NOISE_AVAIL 0x0176
 #define WBMSW_REG_MOTION_AVAIL 0x0175
 
+#define WBMSW_COIL_BUZZER 0x0000
+
+#define WBMSW_COIL_LED_RED 10
+#define WBMSW_COIL_LED_GREEN 11
+#define WBMSW_HOLDING_LED_FLASH_TIMOUT 97
+#define WBMSW_HOLDING_LED_FLASH_DURATION 98
+
 #define WBMSW_VERSION_NUMBER_LENGTH 16
 
 /* Public Constructors */
 TWBMSWSensor::TWBMSWSensor(HardwareSerial* hardwareSerial, uint16_t timeoutMs)
-    : ModBusRtuClass(hardwareSerial, timeoutMs)
+    : ModBusRtuClass(hardwareSerial, timeoutMs),
+      LedStatusRed(LedStatus::LED_STATUS_UNKNOWN),
+      LedStatusGreen(LedStatus::LED_STATUS_UNKNOWN)
 {}
 
 /* Public Methods */
@@ -293,4 +302,81 @@ bool TWBMSWSensor::GetNoiseLevelAvailability(TWBMSWSensor::Availability& availab
 bool TWBMSWSensor::GetMotionAvailability(TWBMSWSensor::Availability& availability)
 {
     return ReadAvailabilityRegister(availability, WBMSW_REG_MOTION_AVAIL);
+}
+bool TWBMSWSensor::BuzzerAvailable(TWBMSWSensor::Availability& availability)
+{
+    availability = TWBMSWSensor::Availability::AVAILABLE;
+    return true;
+}
+bool TWBMSWSensor::BuzzerStart(void)
+{
+    return writeSingleCoils(Address, WBMSW_COIL_BUZZER, 0x1);
+}
+bool TWBMSWSensor::BuzzerStop(void)
+{
+    return writeSingleCoils(Address, WBMSW_COIL_BUZZER, 0x0);
+}
+
+bool TWBMSWSensor::SetLedFlashDuration(uint8_t ms)
+{
+    if (ms > 50 || ms == 0)
+        return (false);
+    return writeSingleRegisters(Address, WBMSW_HOLDING_LED_FLASH_DURATION, ms);
+}
+
+bool TWBMSWSensor::SetLedFlashTimout(uint8_t sec)
+{
+    if (sec > 10 || sec == 0)
+        return (false);
+    return writeSingleRegisters(Address, WBMSW_HOLDING_LED_FLASH_TIMOUT, sec);
+}
+
+bool TWBMSWSensor::SetLedRedOn(void)
+{
+    if (LedStatusRed == LedStatus::LED_STATUS_ON)
+        return (true);
+    if (writeSingleCoils(Address, WBMSW_COIL_LED_RED, 1) == false)
+        return (false);
+    LedStatusRed = LedStatus::LED_STATUS_ON;
+    return (true);
+}
+
+bool TWBMSWSensor::SetLedRedOff(void)
+{
+    if (LedStatusRed == LedStatus::LED_STATUS_OFF)
+        return (true);
+    if (writeSingleCoils(Address, WBMSW_COIL_LED_RED, 0) == false)
+        return (false);
+    LedStatusRed = LedStatus::LED_STATUS_OFF;
+    return (true);
+}
+
+bool TWBMSWSensor::SetLedGreenOn(void)
+{
+    if (LedStatusGreen == LedStatus::LED_STATUS_ON)
+        return (true);
+    if (writeSingleCoils(Address, WBMSW_COIL_LED_GREEN, 1) == false)
+        return (false);
+    LedStatusGreen = LedStatus::LED_STATUS_ON;
+    return (true);
+}
+
+bool TWBMSWSensor::SetLedGreenOff(void)
+{
+    if (LedStatusGreen == LedStatus::LED_STATUS_OFF)
+        return (true);
+    if (writeSingleCoils(Address, WBMSW_COIL_LED_GREEN, 0) == false)
+        return (false);
+    LedStatusGreen = LedStatus::LED_STATUS_OFF;
+    return (true);
+}
+
+TWBMSWSensor::LedStatus TWBMSWSensor::GetLedRedStatus(void)
+{
+    return (LedStatusRed);
+}
+
+TWBMSWSensor::LedStatus TWBMSWSensor::GetLedGreenStatus(void)
+{
+    return (LedStatusGreen);
 }

@@ -1,3 +1,36 @@
+wb-zwave-msw (1.10) stable; urgency=medium
+
+  * Add indicator and service led"
+
+ -- amatilda <kpk@z-wave.me> Fri Apr 28 11:02:13 2023 +0300
+
+
+wb-zwave-msw (1.9) stable; urgency=medium
+
+  * Add defined CERT_BUILD"
+
+ -- amatilda <kpk@z-wave.me> Wed Apr 26 00:49:16 2023 +0300
+
+
+wb-zwave-msw (1.8) stable; urgency=medium
+
+  * Change sending a test message
+
+ -- amatilda <kpk@z-wave.me> Wed Apr 26 00:36:06 2023 +030
+
+
+wb-zwave-msw (1.7) stable; urgency=medium
+
+  * Add sending a test message
+
+ -- amatilda <kpk@z-wave.me> Tue Apr 25 18:57:02 2023 +0300
+
+wb-zwave-msw (1.6) stable; urgency=medium
+
+  * Add channel Sound Switch
+
+ -- amatilda <kpk@z-wave.me> Thu Apr 20 10:02:40 2023 +0300
+
 wb-zwave-msw (1.5) stable; urgency=medium
 
   * Add channel Intrusion

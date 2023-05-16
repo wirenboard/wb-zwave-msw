@@ -183,7 +183,7 @@ TZWAVESensor::TZWAVESensor(TWBMSWSensor* wbMsw): WbMsw(wbMsw)
 
         // Intrusion sensor settings
         ZUNO_CONFIG_PARAMETER_INFO("Intrusion Noise Level",
-                                   " Send Alarm if the noise more level. Value in dB.",
+                                   "Send Alarm if the noise more level. Value in dB.",
                                    38,
                                    105,
                                    80),
@@ -315,6 +315,20 @@ bool TZWAVESensor::ChannelsInitialize()
                                   &TWBMSWSensor::GetNoiseLevel,
                                   &TWBMSWSensor::GetNoiseLevelAvailability);
 
+    Channels[8].ChannelInitialize("Buzzer",
+                                  TZWAVEChannel::Type::BUZZER,
+                                  0,
+                                  0,
+                                  0,
+                                  0,
+                                  0,
+                                  0,
+                                  0,
+                                  0,
+                                  WbMsw,
+                                  NULL,
+                                  &TWBMSWSensor::BuzzerAvailable);
+
     bool unknownSensorsLeft = false;
 
     do {
@@ -357,7 +371,9 @@ bool TZWAVESensor::ChannelsInitialize()
     size_t groupIndex = CTRL_GROUP_1;
     for (int i = 0; i < TZWAVEChannel::CHANNEL_TYPES_COUNT; i++) {
         if (Channels[i].GetEnabled()) {
-            if (Channels[i].GetType() == TZWAVEChannel::Type::INTRUSION) {
+            if (Channels[i].GetType() == TZWAVEChannel::Type::INTRUSION ||
+                Channels[i].GetType() == TZWAVEChannel::Type::BUZZER)
+            {
                 Channels[i].SetChannelNumbers(channelDeviceNumber, channelDeviceNumber + 1, 0xFF);
             } else {
                 Channels[i].SetChannelNumbers(channelDeviceNumber, channelDeviceNumber + 1, groupIndex);
@@ -442,6 +458,10 @@ void TZWAVESensor::ChannelsSetup()
                     zunoAddChannel(ZUNO_SENSOR_BINARY_CHANNEL_NUMBER, ZUNO_SENSOR_BINARY_TYPE_GENERAL_PURPOSE, 0);
                     zunoSetZWChannel(Channels[i].GetDeviceChannelNumber(), Channels[i].GetServerChannelNumber());
                     break;
+                case TZWAVEChannel::Type::BUZZER:
+                    zunoAddChannel(ZUNO_SOUND_SWITCH_CHANNEL_NUMBER, 50, 0);
+                    zunoSetZWChannel(Channels[i].GetDeviceChannelNumber(), Channels[i].GetServerChannelNumber());
+                    break;
                 default:
                     break;
             }
@@ -457,6 +477,8 @@ void TZWAVESensor::ChannelsSetup()
 void TZWAVESensor::SetChannelHandlers()
 {
     for (size_t i = 0; i < TZWAVEChannel::CHANNEL_TYPES_COUNT; i++) {
+        if (Channels[i].GetType() == TZWAVEChannel::Type::BUZZER)
+            continue;
         if (Channels[i].GetEnabled()) {
             uint8_t dataSize;
             switch (Channels[i].GetType()) {
@@ -891,6 +913,7 @@ TZWAVESensor::Result TZWAVESensor::ProcessChannels()
         if (Channels[i].GetEnabled()) {
             switch (Channels[i].GetType()) {
                 case TZWAVEChannel::Type::INTRUSION:
+                case TZWAVEChannel::Type::BUZZER:
                     result = TZWAVESensor::Result::ZWAVE_PROCESS_OK;
                     break;
                 case TZWAVEChannel::Type::MOTION:
