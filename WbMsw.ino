@@ -32,13 +32,13 @@ ZUNO_ENABLE(
 		CERT_BUILD//Disables some config options
 		WB_MSW_CERT_BUILD_INDICATOR=100
 		MAX_PROCESSED_QUEUE_PKGS=1
-		DBG_CONSOLE_BAUDRATE=921600//speed uart dbg
+		// DBG_CONSOLE_BAUDRATE=921600//speed uart dbg
 		LOGGING_DBG // Comment out if debugging information is not needed
 		SYSTHREAD_INT_ONLY
 					// Debugging information being printed with RTOS system console output to UART0 (TX0) by default
         DBG_CONSOLE_PIN=0xFF
-        DBG_CONSOLE_BAUDRATE=115200
-		LOGGING_UART=Serial
+        // DBG_CONSOLE_BAUDRATE=115200
+		// LOGGING_UART=Serial
 
 	);
 // clang-format on
