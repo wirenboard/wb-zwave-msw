@@ -1,7 +1,7 @@
 #ifndef WB_MSW_H
 #define WB_MSW_H
 
-#define WB_MSW_TIMEOUT 2000
+#define WB_MSW_TIMEOUT 5000
 #define WB_MSW_ON 255
 #define WB_MSW_OFF 0
 
