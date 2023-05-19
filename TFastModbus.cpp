@@ -5,7 +5,7 @@
 #include "Status.h"
 
 #define TIMEOUT_COUNTING_DELTA 1
-#define FAST_MODBUS_DATA_BUFFER_SIZE 32
+#define FAST_MODBUS_DATA_BUFFER_SIZE 42
 
 // Fast modbus packet structure
 #define FAST_MODBUS_SCAN_ADDRESS 0xFD
