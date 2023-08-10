@@ -402,7 +402,7 @@ void TZWAVESensor::ChannelsSetup()
                                                                WB_MSW_INPUT_REG_TEMPERATURE_VALUE_SIZE,
                                                                WB_MSW_INPUT_REG_TEMPERATURE_VALUE_PRECISION)));
                     zunoSetZWChannel(Channels[i].GetDeviceChannelNumber(), Channels[i].GetServerChannelNumber());
-                    zunoAddAssociation(ZUNO_ASSOC_BASIC_SET_NUMBER, 0);
+                    zunoAddAssociation(ZUNO_ASSOC_BASIC_SET_NUMBER, Channels[i].GetDeviceChannelNumber() + 1);
                     break;
                 case TZWAVEChannel::Type::HUMIDITY:
                     zunoAddChannel(ZUNO_SENSOR_MULTILEVEL_CHANNEL_NUMBER,
@@ -411,7 +411,7 @@ void TZWAVESensor::ChannelsSetup()
                                                                           WB_MSW_INPUT_REG_HUMIDITY_VALUE_SIZE,
                                                                           WB_MSW_INPUT_REG_HUMIDITY_VALUE_PRECISION)));
                     zunoSetZWChannel(Channels[i].GetDeviceChannelNumber(), Channels[i].GetServerChannelNumber());
-                    zunoAddAssociation(ZUNO_ASSOC_BASIC_SET_NUMBER, 0);
+                    zunoAddAssociation(ZUNO_ASSOC_BASIC_SET_NUMBER, Channels[i].GetDeviceChannelNumber() + 1);
                     break;
                 case TZWAVEChannel::Type::LUMEN:
                     zunoAddChannel(ZUNO_SENSOR_MULTILEVEL_CHANNEL_NUMBER,
@@ -420,7 +420,7 @@ void TZWAVESensor::ChannelsSetup()
                                                                           WB_MSW_INPUT_REG_LUMEN_VALUE_SIZE,
                                                                           WB_MSW_INPUT_REG_LUMEN_VALUE_PRECISION)));
                     zunoSetZWChannel(Channels[i].GetDeviceChannelNumber(), Channels[i].GetServerChannelNumber());
-                    zunoAddAssociation(ZUNO_ASSOC_BASIC_SET_NUMBER, 0);
+                    zunoAddAssociation(ZUNO_ASSOC_BASIC_SET_NUMBER, Channels[i].GetDeviceChannelNumber() + 1);
                     break;
                 case TZWAVEChannel::Type::CO2:
                     zunoAddChannel(ZUNO_SENSOR_MULTILEVEL_CHANNEL_NUMBER,
@@ -429,7 +429,7 @@ void TZWAVESensor::ChannelsSetup()
                                                                           WB_MSW_INPUT_REG_CO2_VALUE_SIZE,
                                                                           WB_MSW_INPUT_REG_CO2_VALUE_PRECISION)));
                     zunoSetZWChannel(Channels[i].GetDeviceChannelNumber(), Channels[i].GetServerChannelNumber());
-                    zunoAddAssociation(ZUNO_ASSOC_BASIC_SET_NUMBER, 0);
+                    zunoAddAssociation(ZUNO_ASSOC_BASIC_SET_NUMBER, Channels[i].GetDeviceChannelNumber() + 1);
                     break;
                 case TZWAVEChannel::Type::VOC:
                     zunoAddChannel(ZUNO_SENSOR_MULTILEVEL_CHANNEL_NUMBER,
@@ -438,7 +438,7 @@ void TZWAVESensor::ChannelsSetup()
                                                                           WB_MSW_INPUT_REG_VOC_VALUE_SIZE,
                                                                           WB_MSW_INPUT_REG_VOC_VALUE_PRECISION)));
                     zunoSetZWChannel(Channels[i].GetDeviceChannelNumber(), Channels[i].GetServerChannelNumber());
-                    zunoAddAssociation(ZUNO_ASSOC_BASIC_SET_NUMBER, 0);
+                    zunoAddAssociation(ZUNO_ASSOC_BASIC_SET_NUMBER, Channels[i].GetDeviceChannelNumber() + 1);
                     break;
                 case TZWAVEChannel::Type::NOISE_LEVEL:
                     zunoAddChannel(ZUNO_SENSOR_MULTILEVEL_CHANNEL_NUMBER,
@@ -447,12 +447,12 @@ void TZWAVESensor::ChannelsSetup()
                                                                           WB_MSW_INPUT_REG_NOISE_LEVEL_VALUE_SIZE,
                                                                           WB_MSW_INPUT_REG_NOISE_LEVEL_PRECISION)));
                     zunoSetZWChannel(Channels[i].GetDeviceChannelNumber(), Channels[i].GetServerChannelNumber());
-                    zunoAddAssociation(ZUNO_ASSOC_BASIC_SET_NUMBER, 0);
+                    zunoAddAssociation(ZUNO_ASSOC_BASIC_SET_NUMBER, Channels[i].GetDeviceChannelNumber() + 1);
                     break;
                 case TZWAVEChannel::Type::MOTION:
                     zunoAddChannel(ZUNO_SENSOR_BINARY_CHANNEL_NUMBER, ZUNO_SENSOR_BINARY_TYPE_MOTION, 0);
                     zunoSetZWChannel(Channels[i].GetDeviceChannelNumber(), Channels[i].GetServerChannelNumber());
-                    zunoAddAssociation(ZUNO_ASSOC_BASIC_SET_NUMBER, 0);
+                    zunoAddAssociation(ZUNO_ASSOC_BASIC_SET_NUMBER, Channels[i].GetDeviceChannelNumber() + 1);
                     break;
                 case TZWAVEChannel::Type::INTRUSION:
                     zunoAddChannel(ZUNO_SENSOR_BINARY_CHANNEL_NUMBER, ZUNO_SENSOR_BINARY_TYPE_GENERAL_PURPOSE, 0);
