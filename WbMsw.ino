@@ -458,26 +458,47 @@ static void SendTest(uint16_t version)
     zunoSendTestPackage(&array[0x0], sizeof(array), 240);
 }
 
-// 750 + 400 + 300 + 300 + 300 + 1000 = 3050 mc - bad
-ZUNO_SETUP_SOUND_SWITCH_TONE_DURATION(THREE_SIGNALS,
-                                      ZUNO_SETUP_SOUND_SWITCH_TONE_DURATION_SET(750, 400),
-                                      ZUNO_SETUP_SOUND_SWITCH_TONE_DURATION_SET(300, 300),
-                                      ZUNO_SETUP_SOUND_SWITCH_TONE_DURATION_SET(300, 1000));
+// Fail signal
+// Fail signal
+ZUNO_SETUP_SOUND_SWITCH_TONE_DURATION(FAIL_SIGNAL,
+                                      ZUNO_SETUP_SOUND_SWITCH_TONE_DURATION_SET(100, 500),
+                                      ZUNO_SETUP_SOUND_SWITCH_TONE_DURATION_SET(100, 300),
+                                      ZUNO_SETUP_SOUND_SWITCH_TONE_DURATION_SET(100, 300),
+                                      ZUNO_SETUP_SOUND_SWITCH_TONE_DURATION_SET(400, 800));
 
-// 2 sec - good
-ZUNO_SETUP_SOUND_SWITCH_TONE_DURATION(TWO_SIGNALS,
-                                      ZUNO_SETUP_SOUND_SWITCH_TONE_DURATION_SET(500, 500),
-                                      ZUNO_SETUP_SOUND_SWITCH_TONE_DURATION_SET(500, 500));
+// Alarm signal
+ZUNO_SETUP_SOUND_SWITCH_TONE_DURATION(ALARM_SIGNAL,
+                                      ZUNO_SETUP_SOUND_SWITCH_TONE_DURATION_SET(100, 200),
+                                      ZUNO_SETUP_SOUND_SWITCH_TONE_DURATION_SET(100, 200),
+                                      ZUNO_SETUP_SOUND_SWITCH_TONE_DURATION_SET(100, 200),
+                                      ZUNO_SETUP_SOUND_SWITCH_TONE_DURATION_SET(100, 200),
+                                      ZUNO_SETUP_SOUND_SWITCH_TONE_DURATION_SET(100, 200),
+                                      ZUNO_SETUP_SOUND_SWITCH_TONE_DURATION_SET(100, 200),
+                                      ZUNO_SETUP_SOUND_SWITCH_TONE_DURATION_SET(100, 200),
+                                      ZUNO_SETUP_SOUND_SWITCH_TONE_DURATION_SET(100, 400));
 
-// 10000 - play on
-// 0 - play off
-// 10000 + 0 = 10 sec - good
-ZUNO_SETUP_SOUND_SWITCH_TONE_DURATION(ONE_SIGNALS, ZUNO_SETUP_SOUND_SWITCH_TONE_DURATION_SET(10000, 0));
+ZUNO_SETUP_SOUND_SWITCH_TONE_DURATION(ACCEPT_SIGNAL,
+                                      ZUNO_SETUP_SOUND_SWITCH_TONE_DURATION_SET(100, 200),
+                                      ZUNO_SETUP_SOUND_SWITCH_TONE_DURATION_SET(400, 300));
+
+ZUNO_SETUP_SOUND_SWITCH_TONE_DURATION(HORSE_SIGNAL,
+                                      ZUNO_SETUP_SOUND_SWITCH_TONE_DURATION_SET(100, 200),
+                                      ZUNO_SETUP_SOUND_SWITCH_TONE_DURATION_SET(100, 200),
+                                      ZUNO_SETUP_SOUND_SWITCH_TONE_DURATION_SET(100, 500),
+                                      ZUNO_SETUP_SOUND_SWITCH_TONE_DURATION_SET(100, 200),
+                                      ZUNO_SETUP_SOUND_SWITCH_TONE_DURATION_SET(100, 200),
+                                      ZUNO_SETUP_SOUND_SWITCH_TONE_DURATION_SET(100, 500),
+                                      ZUNO_SETUP_SOUND_SWITCH_TONE_DURATION_SET(100, 200),
+                                      ZUNO_SETUP_SOUND_SWITCH_TONE_DURATION_SET(100, 200),
+                                      ZUNO_SETUP_SOUND_SWITCH_TONE_DURATION_SET(100, 500),
+                                      ZUNO_SETUP_SOUND_SWITCH_TONE_DURATION_SET(100, 500),
+                                      ZUNO_SETUP_SOUND_SWITCH_TONE_DURATION_SET(100, 500));
 
 ZUNO_SETUP_SOUND_SWITCH(255,
-                        ZUNO_SETUP_SOUND_SWITCH_TONE("Three signals", THREE_SIGNALS),
-                        ZUNO_SETUP_SOUND_SWITCH_TONE("Two signals", TWO_SIGNALS),
-                        ZUNO_SETUP_SOUND_SWITCH_TONE("One signals", ONE_SIGNALS));
+                        ZUNO_SETUP_SOUND_SWITCH_TONE("Fail Signal", FAIL_SIGNAL),
+                        ZUNO_SETUP_SOUND_SWITCH_TONE("Alarm Signal", ALARM_SIGNAL),
+                        ZUNO_SETUP_SOUND_SWITCH_TONE("Accept Signal", ACCEPT_SIGNAL),
+                        ZUNO_SETUP_SOUND_SWITCH_TONE("Horse Signal", HORSE_SIGNAL));
 
 static bool SoundSwitchStateOld = false;
 static bool SoundSwitchStateNew = false;
