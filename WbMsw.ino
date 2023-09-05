@@ -32,6 +32,7 @@ ZUNO_ENABLE(
 		CERT_BUILD//Disables some config options
 		WB_MSW_CERT_BUILD_INDICATOR=100
 		MAX_PROCESSED_QUEUE_PKGS=1
+		SKETCH_FLAGS_LOOP_DELAY=0x2
 		// DBG_CONSOLE_BAUDRATE=921600//speed uart dbg
 		// LOGGING_DBG // Comment out if debugging information is not needed
 		SYSTHREAD_INT_ONLY
