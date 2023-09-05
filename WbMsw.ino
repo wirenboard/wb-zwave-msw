@@ -35,7 +35,6 @@ ZUNO_ENABLE(
 		SKETCH_FLAGS_LOOP_DELAY=0x2
 		// DBG_CONSOLE_BAUDRATE=921600//speed uart dbg
 		// LOGGING_DBG // Comment out if debugging information is not needed
-		SYSTHREAD_INT_ONLY
 					// Debugging information being printed with RTOS system console output to UART0 (TX0) by default
         DBG_CONSOLE_PIN=0xFF
         //DBG_CONSOLE_BAUDRATE=115200
