@@ -15,6 +15,15 @@
 #define WB_MSW_CONFIG_PARAMETER_MOTION_OFF 250
 #define WB_MSW_CONFIG_PARAMETER_CO2_AUTO_VALUE true
 
+#define WB_MSW_MOTION_TIMOUT_POLLING_SENSOR 350
+#define WB_MSW_INTRUSION_TIMOUT_POLLING_SENSOR 350
+#define WB_MSW_TEMPERATURE_TIMOUT_POLLING_SENSOR 1260
+#define WB_MSW_HUMIDITY_TIMOUT_POLLING_SENSOR 1211
+#define WB_MSW_LUMEN_TIMOUT_POLLING_SENSOR 633
+#define WB_MSW_CO2_TIMOUT_POLLING_SENSOR 665
+#define WB_MSW_VOC_TIMOUT_POLLING_SENSOR 693
+#define WB_MSW_NOISE_LEVEL_TIMOUT_POLLING_SENSOR 350
+
 TZWAVESensor::TZWAVESensor(TWBMSWSensor* wbMsw): WbMsw(wbMsw)
 {
     // Available device parameters description
@@ -215,7 +224,8 @@ bool TZWAVESensor::ChannelsInitialize()
                                   WB_MSW_CONFIG_PARAMETER_MOTION_MULTIPLIER,
                                   WbMsw,
                                   &TWBMSWSensor::GetMotion,
-                                  &TWBMSWSensor::GetMotionAvailability);
+                                  &TWBMSWSensor::GetMotionAvailability,
+                                  WB_MSW_MOTION_TIMOUT_POLLING_SENSOR);
 
     Channels[1].ChannelInitialize("Intrusion",
                                   TZWAVEChannel::Type::INTRUSION,
@@ -229,7 +239,8 @@ bool TZWAVESensor::ChannelsInitialize()
                                   WB_MSW_CONFIG_PARAMETER_NOISE_LEVEL_MULTIPLIER,
                                   WbMsw,
                                   &TWBMSWSensor::GetNoiseLevel,
-                                  &TWBMSWSensor::GetNoiseLevelAvailability);
+                                  &TWBMSWSensor::GetNoiseLevelAvailability,
+                                  WB_MSW_INTRUSION_TIMOUT_POLLING_SENSOR);
 
     Channels[2].ChannelInitialize("Temperature",
                                   TZWAVEChannel::Type::TEMPERATURE,
@@ -243,7 +254,8 @@ bool TZWAVESensor::ChannelsInitialize()
                                   WB_MSW_CONFIG_PARAMETER_TEMPERATURE_MULTIPLIER,
                                   WbMsw,
                                   &TWBMSWSensor::GetTemperature,
-                                  &TWBMSWSensor::GetTemperatureAvailability);
+                                  &TWBMSWSensor::GetTemperatureAvailability,
+                                  WB_MSW_TEMPERATURE_TIMOUT_POLLING_SENSOR);
 
     Channels[3].ChannelInitialize("Humidity",
                                   TZWAVEChannel::Type::HUMIDITY,
@@ -257,7 +269,8 @@ bool TZWAVESensor::ChannelsInitialize()
                                   WB_MSW_CONFIG_PARAMETER_HUMIDITY_MULTIPLIER,
                                   WbMsw,
                                   &TWBMSWSensor::GetHumidity,
-                                  &TWBMSWSensor::GetHumidityAvailability);
+                                  &TWBMSWSensor::GetHumidityAvailability,
+                                  WB_MSW_HUMIDITY_TIMOUT_POLLING_SENSOR);
 
     Channels[4].ChannelInitialize("Luminance",
                                   TZWAVEChannel::Type::LUMEN,
@@ -271,7 +284,8 @@ bool TZWAVESensor::ChannelsInitialize()
                                   WB_MSW_CONFIG_PARAMETER_LUMEN_MULTIPLIER,
                                   WbMsw,
                                   &TWBMSWSensor::GetLuminance,
-                                  &TWBMSWSensor::GetLuminanceAvailability);
+                                  &TWBMSWSensor::GetLuminanceAvailability,
+                                  WB_MSW_LUMEN_TIMOUT_POLLING_SENSOR);
 
     Channels[5].ChannelInitialize("CO2",
                                   TZWAVEChannel::Type::CO2,
@@ -285,7 +299,8 @@ bool TZWAVESensor::ChannelsInitialize()
                                   WB_MSW_CONFIG_PARAMETER_CO2_MULTIPLIER,
                                   WbMsw,
                                   &TWBMSWSensor::GetCO2,
-                                  &TWBMSWSensor::GetCO2Availability);
+                                  &TWBMSWSensor::GetCO2Availability,
+                                  WB_MSW_CO2_TIMOUT_POLLING_SENSOR);
 
     Channels[6].ChannelInitialize("VOC",
                                   TZWAVEChannel::Type::VOC,
@@ -299,7 +314,8 @@ bool TZWAVESensor::ChannelsInitialize()
                                   WB_MSW_CONFIG_PARAMETER_VOC_MULTIPLIER,
                                   WbMsw,
                                   &TWBMSWSensor::GetVoc,
-                                  &TWBMSWSensor::GetVocAvailability);
+                                  &TWBMSWSensor::GetVocAvailability,
+                                  WB_MSW_VOC_TIMOUT_POLLING_SENSOR);
 
     Channels[7].ChannelInitialize("NoiseLevel",
                                   TZWAVEChannel::Type::NOISE_LEVEL,
@@ -313,7 +329,8 @@ bool TZWAVESensor::ChannelsInitialize()
                                   WB_MSW_CONFIG_PARAMETER_NOISE_LEVEL_MULTIPLIER,
                                   WbMsw,
                                   &TWBMSWSensor::GetNoiseLevel,
-                                  &TWBMSWSensor::GetNoiseLevelAvailability);
+                                  &TWBMSWSensor::GetNoiseLevelAvailability,
+                                  WB_MSW_NOISE_LEVEL_TIMOUT_POLLING_SENSOR);
 
     Channels[8].ChannelInitialize("Buzzer",
                                   TZWAVEChannel::Type::BUZZER,
@@ -327,7 +344,8 @@ bool TZWAVESensor::ChannelsInitialize()
                                   0,
                                   WbMsw,
                                   NULL,
-                                  &TWBMSWSensor::BuzzerAvailable);
+                                  &TWBMSWSensor::BuzzerAvailable,
+                                  0);
 
     bool unknownSensorsLeft = false;
 
@@ -906,11 +924,11 @@ void TZWAVESensor::MotionChannelReset(TZWAVEChannel* channel)
 // Device channel management and firmware data transfer
 TZWAVESensor::Result TZWAVESensor::ProcessChannels()
 {
-    DEBUG("--------------------Measurements-----------------------\n");
+    // DEBUG("--------------------Measurements-----------------------\n");
     // Check all channels of available sensors
     TZWAVESensor::Result result;
     for (size_t i = 0; i < TZWAVEChannel::CHANNEL_TYPES_COUNT; i++) {
-        if (Channels[i].GetEnabled()) {
+        if (Channels[i].GetEnabled() && Channels[i].GetPollingSensor()) {
             switch (Channels[i].GetType()) {
                 case TZWAVEChannel::Type::INTRUSION:
                 case TZWAVEChannel::Type::BUZZER:

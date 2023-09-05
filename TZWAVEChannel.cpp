@@ -22,7 +22,8 @@ void TZWAVEChannel::ChannelInitialize(String name,
                                       uint16_t multiplier,
                                       TWBMSWSensor* wbMsw,
                                       TWBMSWSensor::GetValueCallback readValueCallback,
-                                      TWBMSWSensor::GetAvailabilityCallback readAvailabilityCallback)
+                                      TWBMSWSensor::GetAvailabilityCallback readAvailabilityCallback,
+                                      uint16_t timeoutPollingSensor)
 {
     Name = name;
     ChannelType = type;
@@ -37,6 +38,15 @@ void TZWAVEChannel::ChannelInitialize(String name,
     WbMsw = wbMsw;
     ReadValueCallback = readValueCallback;
     ReadAvailabilityCallback = readAvailabilityCallback;
+    TimeoutPollingSensor = timeoutPollingSensor;
+    LastMsPollingSensor = 0;
+}
+
+bool TZWAVEChannel::GetPollingSensor(void)
+{
+    if (abs(millis() - LastMsPollingSensor) >= TimeoutPollingSensor)
+        return (true);
+    return (false);
 }
 
 void TZWAVEChannel::SetChannelNumbers(uint8_t channelDeviceNumber, uint8_t channelServerNumber, uint8_t groupIndex)
@@ -63,7 +73,10 @@ void* TZWAVEChannel::GetValuePointer()
 
 bool TZWAVEChannel::ReadValueFromSensor(int64_t& value)
 {
-    return (WbMsw->*ReadValueCallback)(value);
+    if ((WbMsw->*ReadValueCallback)(value) == false)
+        return (false);
+    LastMsPollingSensor = millis();
+    return (true);
 }
 
 int32_t TZWAVEChannel::GetErrorValue() const
