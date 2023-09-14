@@ -1,3 +1,13 @@
+wb-zwave-msw (1.13) stable; urgency=medium
+
+  * Fix agi
+  * Removed redundant definition
+  * Added delay for polling sensors
+  * Updated melodies by number and duration
+  * Speed up the loop function
+
+ -- amatilda <kpk@z-wave.me> 
+
 wb-zwave-msw (1.11) stable; urgency=medium
 
   * Fix fast modbus maximum buffer length
