@@ -196,9 +196,10 @@ TZWAVESensor::TZWAVESensor(TWBMSWSensor* wbMsw): WbMsw(wbMsw)
                                    38,
                                    105,
                                    80),
-        ZUNO_CONFIG_PARAMETER_INFO("Intrusion delay to send OFF command", "Value in seconds.", 0, 100000, 5)
+        ZUNO_CONFIG_PARAMETER_INFO("Intrusion delay to send OFF command", "Value in seconds.", 0, 100000, 5),
 
-    };
+        ZUNO_CONFIG_PARAMETER_INFO("Motion LED", "The LED flashes red when motion is detected.", 0, 255, 255),
+        ZUNO_CONFIG_PARAMETER_INFO("Operation mode LED", "The LED flashes green in operating mode", 0, 255, 255)};
     memcpy(Parameters, parameters, sizeof(parameters));
     MotionLastTimeWaitOff = false;
     IntrusionLastTimeWaitOff = false;
@@ -693,6 +694,9 @@ const ZunoCFGParameter_t* TZWAVESensor::GetParameterIfChannelExists(size_t param
             if (!GetChannelByType(TZWAVEChannel::Type::INTRUSION)) {
                 return (ZUNO_CFG_PARAMETER_UNKNOWN);
             }
+            break;
+        case WB_MSW_CONFIG_PARAMETER_MOTION_LED:
+        case WB_MSW_CONFIG_PARAMETER_OPERATION_LED:
             break;
         default:
             return (ZUNO_CFG_PARAMETER_UNKNOWN);
