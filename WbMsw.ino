@@ -251,6 +251,10 @@ void loop()
     }
 }
 
+#define MS_LED_OPERATION_TIMEOUT_PERIOD_ON 1000
+#define MS_LED_OPERATION_TIMEOUT_PERIOD_OFF_NETWORK_NOT 5000
+#define MS_LED_OPERATION_TIMEOUT_PERIOD_OFF_NETWORK 10000
+
 static WbMswLedMode_t LedModeCurrent = WB_MSW_LED_MODE_IDLE;
 static WbMswLedMode_t LedModeNew = WB_MSW_LED_MODE_IDLE;
 static WbMswLedMode_t LedModeSysLed = WB_MSW_LED_MODE_IDLE;
@@ -262,29 +266,44 @@ ZUNO_SETUP_INDICATOR(ZUNO_SETUP_INDICATOR_INFO(INDICATOR_ID_NODE_IDENTIFY, 1),
 static void ServiceLedLoop(void)
 {
     WbMswLedMode_t ledMode;
-    static uint32_t msLedFreeLast = 0;
+    static uint32_t msLedLastOperationNetwork = 0;
+    static uint32_t msLedLastOperationNetworkPeriodOFF = 0;
     uint32_t msLedCurrent;
-    static bool ledFree = false;
 
+    msLedCurrent = millis();
     ledMode = LedModeNew;
+    switch ((int)LedModeCurrent) {
+        case WB_MSW_LED_MODE_NETWORK:
+        case WB_MSW_LED_MODE_NETWORK_NOT:
+            if (ledMode != WB_MSW_LED_MODE_IDLE) {
+                msLedLastOperationNetwork = msLedLastOperationNetwork + msLedLastOperationNetworkPeriodOFF;
+            } else {
+                if (msLedCurrent >= msLedLastOperationNetwork) {
+                    msLedLastOperationNetwork = msLedLastOperationNetwork + msLedLastOperationNetworkPeriodOFF;
+                    ledMode = WB_MSW_LED_MODE_IDLE;
+                } else
+                    return;
+            }
+            break;
+    }
     if (LedModeCurrent == ledMode) {
         if (ledMode != WB_MSW_LED_MODE_IDLE)
             return;
-        msLedCurrent = millis();
-        if (msLedCurrent >= msLedFreeLast) {
-            if (ledFree == false) {
-                WbMsw.SetLedRedOff();
-                WbMsw.SetLedGreenOn();
-                msLedFreeLast = msLedCurrent + 2000;
-                ledFree = true;
-            } else {
-                WbMsw.SetLedRedOff();
-                WbMsw.SetLedGreenOff();
-                msLedFreeLast = msLedCurrent + 10000;
-                ledFree = false;
+        if (zunoInNetwork() == false) {
+            msLedLastOperationNetworkPeriodOFF = MS_LED_OPERATION_TIMEOUT_PERIOD_OFF_NETWORK_NOT;
+            if (msLedCurrent >= msLedLastOperationNetwork) {
+                msLedLastOperationNetwork = msLedLastOperationNetwork + MS_LED_OPERATION_TIMEOUT_PERIOD_ON;
+                ledMode = WB_MSW_LED_MODE_NETWORK_NOT;
+            }
+        } else {
+            if (ZwaveSensor.GetParameterByNumber(WB_MSW_CONFIG_PARAMETER_OPERATION_LED) != 0) {
+                msLedLastOperationNetworkPeriodOFF = MS_LED_OPERATION_TIMEOUT_PERIOD_OFF_NETWORK;
+                if (msLedCurrent >= msLedLastOperationNetwork) {
+                    msLedLastOperationNetwork = msLedLastOperationNetwork + MS_LED_OPERATION_TIMEOUT_PERIOD_ON;
+                    ledMode = WB_MSW_LED_MODE_NETWORK;
+                }
             }
         }
-        return;
     }
     switch (ledMode) {
         case WB_MSW_LED_MODE_LERN:
@@ -300,10 +319,12 @@ static void ServiceLedLoop(void)
             WbMsw.SetLedGreenOff();
             WbMsw.SetLedRedOff();
             break;
+        case WB_MSW_LED_MODE_NETWORK_NOT:
         case WB_MSW_LED_MODE_RED:
             WbMsw.SetLedGreenOff();
             WbMsw.SetLedRedOn();
             break;
+        case WB_MSW_LED_MODE_NETWORK:
         case WB_MSW_LED_MODE_GREEN:
             WbMsw.SetLedRedOff();
             WbMsw.SetLedGreenOn();
@@ -312,9 +333,7 @@ static void ServiceLedLoop(void)
             return;
             break;
     }
-    ledFree = false;
     LedModeCurrent = ledMode;
-    msLedFreeLast = millis() + 10000;
 }
 
 void zunoIndicatorLoopOpen(uint8_t pin, uint8_t indicatorId)
