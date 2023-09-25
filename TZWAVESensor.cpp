@@ -795,6 +795,8 @@ void TZWAVESensor::PublishIntrusionValue(TZWAVEChannel* channel, int64_t value)
     }
 }
 
+extern volatile bool gMotionLed;
+
 void TZWAVESensor::PublishMotionValue(TZWAVEChannel* channel, int64_t value)
 {
     int32_t onCommands;
@@ -818,6 +820,7 @@ void TZWAVESensor::PublishMotionValue(TZWAVEChannel* channel, int64_t value)
             channel->SetTriggered(true);
             if (!channel->GetReportedValue()) {
                 channel->SetValue(true);
+                gMotionLed = true;
                 channel->SetReportedValue(true); // Remember last sent value
                 zunoSendReport(channel->GetServerChannelNumber());
                 MotionLastTimeWaitOff = false;
@@ -833,6 +836,7 @@ void TZWAVESensor::PublishMotionValue(TZWAVEChannel* channel, int64_t value)
         if ((MotionLastTime + motionPeriod) <= currentTime) {
             MotionLastTimeWaitOff = false;
             channel->SetValue(false);
+            gMotionLed = false;
             channel->SetReportedValue(false); // Remember last sent value
             zunoSendReport(channel->GetServerChannelNumber());
             if (onOffCommandsRule == 1 || onOffCommandsRule == 3) {

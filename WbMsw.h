@@ -126,6 +126,7 @@ typedef enum WbMswLedMode_s
     WB_MSW_LED_MODE_DUO = 0x10,
     WB_MSW_LED_MODE_NETWORK = 0x20,
     WB_MSW_LED_MODE_NETWORK_NOT = 0x40,
+    WB_MSW_LED_MODE_MOTION = 0x80,
 } WbMswLedMode_t;
 
 #endif // WB_MSW_H

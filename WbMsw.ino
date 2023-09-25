@@ -258,6 +258,7 @@ void loop()
 static WbMswLedMode_t LedModeCurrent = WB_MSW_LED_MODE_IDLE;
 static WbMswLedMode_t LedModeNew = WB_MSW_LED_MODE_IDLE;
 static WbMswLedMode_t LedModeSysLed = WB_MSW_LED_MODE_IDLE;
+volatile bool gMotionLed = false;
 
 ZUNO_SETUP_INDICATOR(ZUNO_SETUP_INDICATOR_INFO(INDICATOR_ID_NODE_IDENTIFY, 1),
                      ZUNO_SETUP_INDICATOR_INFO(INDICATOR_ID_ARMED, 2),
@@ -267,6 +268,7 @@ static void ServiceLedLoop(void)
 {
     WbMswLedMode_t ledMode;
     static uint32_t msLedLastOperationNetwork = 0;
+    static uint32_t msLedLastMotion = 0;
     static uint32_t msLedLastOperationNetworkPeriodOFF = 0;
     uint32_t msLedCurrent;
 
@@ -285,10 +287,25 @@ static void ServiceLedLoop(void)
                     return;
             }
             break;
+        case WB_MSW_LED_MODE_MOTION:
+            if (ledMode == WB_MSW_LED_MODE_IDLE) {
+                if (msLedCurrent >= msLedLastMotion) {
+                    ledMode = WB_MSW_LED_MODE_IDLE;
+                } else
+                    return;
+                break;
+            }
     }
     if (LedModeCurrent == ledMode) {
         if (ledMode != WB_MSW_LED_MODE_IDLE)
             return;
+        if (gMotionLed == true) {
+            gMotionLed = false;
+            if (ZwaveSensor.GetParameterByNumber(WB_MSW_CONFIG_PARAMETER_MOTION_LED) != 0) {
+                msLedLastMotion = msLedLastMotion + MS_LED_OPERATION_TIMEOUT_PERIOD_ON;
+                ledMode = WB_MSW_LED_MODE_MOTION;
+            }
+        }
         if (zunoInNetwork() == false) {
             msLedLastOperationNetworkPeriodOFF = MS_LED_OPERATION_TIMEOUT_PERIOD_OFF_NETWORK_NOT;
             if (msLedCurrent >= msLedLastOperationNetwork) {
@@ -320,6 +337,7 @@ static void ServiceLedLoop(void)
             WbMsw.SetLedRedOff();
             break;
         case WB_MSW_LED_MODE_NETWORK_NOT:
+        case WB_MSW_LED_MODE_MOTION:
         case WB_MSW_LED_MODE_RED:
             WbMsw.SetLedGreenOff();
             WbMsw.SetLedRedOn();
