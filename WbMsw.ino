@@ -278,10 +278,10 @@ static void ServiceLedLoop(void)
         case WB_MSW_LED_MODE_NETWORK:
         case WB_MSW_LED_MODE_NETWORK_NOT:
             if (ledMode != WB_MSW_LED_MODE_IDLE) {
-                msLedLastOperationNetwork = msLedLastOperationNetwork + msLedLastOperationNetworkPeriodOFF;
+                msLedLastOperationNetwork = msLedCurrent + msLedLastOperationNetworkPeriodOFF;
             } else {
                 if (msLedCurrent >= msLedLastOperationNetwork) {
-                    msLedLastOperationNetwork = msLedLastOperationNetwork + msLedLastOperationNetworkPeriodOFF;
+                    msLedLastOperationNetwork = msLedCurrent + msLedLastOperationNetworkPeriodOFF;
                     ledMode = WB_MSW_LED_MODE_IDLE;
                 } else
                     return;
@@ -302,22 +302,23 @@ static void ServiceLedLoop(void)
         if (gMotionLed == true) {
             gMotionLed = false;
             if (ZwaveSensor.GetParameterValue(WB_MSW_CONFIG_PARAMETER_MOTION_LED) != 0) {
-                msLedLastMotion = msLedLastMotion + MS_LED_OPERATION_TIMEOUT_PERIOD_ON;
+                msLedLastMotion = msLedCurrent + MS_LED_OPERATION_TIMEOUT_PERIOD_ON;
                 ledMode = WB_MSW_LED_MODE_MOTION;
             }
-        }
-        if (zunoInNetwork() == false) {
-            msLedLastOperationNetworkPeriodOFF = MS_LED_OPERATION_TIMEOUT_PERIOD_OFF_NETWORK_NOT;
-            if (msLedCurrent >= msLedLastOperationNetwork) {
-                msLedLastOperationNetwork = msLedLastOperationNetwork + MS_LED_OPERATION_TIMEOUT_PERIOD_ON;
-                ledMode = WB_MSW_LED_MODE_NETWORK_NOT;
-            }
         } else {
-            if (ZwaveSensor.GetParameterValue(WB_MSW_CONFIG_PARAMETER_OPERATION_LED) != 0) {
-                msLedLastOperationNetworkPeriodOFF = MS_LED_OPERATION_TIMEOUT_PERIOD_OFF_NETWORK;
+            if (zunoInNetwork() == false) {
+                msLedLastOperationNetworkPeriodOFF = MS_LED_OPERATION_TIMEOUT_PERIOD_OFF_NETWORK_NOT;
                 if (msLedCurrent >= msLedLastOperationNetwork) {
-                    msLedLastOperationNetwork = msLedLastOperationNetwork + MS_LED_OPERATION_TIMEOUT_PERIOD_ON;
-                    ledMode = WB_MSW_LED_MODE_NETWORK;
+                    msLedLastOperationNetwork = msLedCurrent + MS_LED_OPERATION_TIMEOUT_PERIOD_ON;
+                    ledMode = WB_MSW_LED_MODE_NETWORK_NOT;
+                }
+            } else {
+                if (ZwaveSensor.GetParameterValue(WB_MSW_CONFIG_PARAMETER_OPERATION_LED) != 0) {
+                    msLedLastOperationNetworkPeriodOFF = MS_LED_OPERATION_TIMEOUT_PERIOD_OFF_NETWORK;
+                    if (msLedCurrent >= msLedLastOperationNetwork) {
+                        msLedLastOperationNetwork = msLedCurrent + MS_LED_OPERATION_TIMEOUT_PERIOD_ON;
+                        ledMode = WB_MSW_LED_MODE_NETWORK;
+                    }
                 }
             }
         }
