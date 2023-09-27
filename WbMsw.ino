@@ -301,7 +301,7 @@ static void ServiceLedLoop(void)
             return;
         if (gMotionLed == true) {
             gMotionLed = false;
-            if (ZwaveSensor.GetParameterByNumber(WB_MSW_CONFIG_PARAMETER_MOTION_LED) != 0) {
+            if (ZwaveSensor.GetParameterValue(WB_MSW_CONFIG_PARAMETER_MOTION_LED) != 0) {
                 msLedLastMotion = msLedLastMotion + MS_LED_OPERATION_TIMEOUT_PERIOD_ON;
                 ledMode = WB_MSW_LED_MODE_MOTION;
             }
@@ -313,7 +313,7 @@ static void ServiceLedLoop(void)
                 ledMode = WB_MSW_LED_MODE_NETWORK_NOT;
             }
         } else {
-            if (ZwaveSensor.GetParameterByNumber(WB_MSW_CONFIG_PARAMETER_OPERATION_LED) != 0) {
+            if (ZwaveSensor.GetParameterValue(WB_MSW_CONFIG_PARAMETER_OPERATION_LED) != 0) {
                 msLedLastOperationNetworkPeriodOFF = MS_LED_OPERATION_TIMEOUT_PERIOD_OFF_NETWORK;
                 if (msLedCurrent >= msLedLastOperationNetwork) {
                     msLedLastOperationNetwork = msLedLastOperationNetwork + MS_LED_OPERATION_TIMEOUT_PERIOD_ON;
