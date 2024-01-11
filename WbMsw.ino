@@ -130,7 +130,7 @@ void setup()
 }
 
 static void SoundSwitchLoop(void);
-void SendTest(uint16_t version);
+static void SendTest(uint16_t version);
 static void ServiceLedLoop(void);
 
 // Main loop
