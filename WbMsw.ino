@@ -496,79 +496,167 @@ static void SendTest(uint16_t version)
     zunoSendTestPackage(&array[0x0], sizeof(array), 240);
 }
 
-// Fail signal
-// Fail signal
-ZUNO_SETUP_SOUND_SWITCH_TONE_DURATION(FAIL_SIGNAL,
-                                      ZUNO_SETUP_SOUND_SWITCH_TONE_DURATION_SET(100, 500),
-                                      ZUNO_SETUP_SOUND_SWITCH_TONE_DURATION_SET(100, 300),
-                                      ZUNO_SETUP_SOUND_SWITCH_TONE_DURATION_SET(100, 300),
-                                      ZUNO_SETUP_SOUND_SWITCH_TONE_DURATION_SET(400, 800));
+// // Fail signal
+// // Fail signal
+// ZUNO_SETUP_SOUND_SWITCH_TONE_DURATION(FAIL_SIGNAL,
+//                                       ZUNO_SETUP_SOUND_SWITCH_TONE_DURATION_SET(100, 500),
+//                                       ZUNO_SETUP_SOUND_SWITCH_TONE_DURATION_SET(100, 300),
+//                                       ZUNO_SETUP_SOUND_SWITCH_TONE_DURATION_SET(100, 300),
+//                                       ZUNO_SETUP_SOUND_SWITCH_TONE_DURATION_SET(400, 1200));
 
-// Alarm signal
-ZUNO_SETUP_SOUND_SWITCH_TONE_DURATION(ALARM_SIGNAL,
-                                      ZUNO_SETUP_SOUND_SWITCH_TONE_DURATION_SET(100, 200),
-                                      ZUNO_SETUP_SOUND_SWITCH_TONE_DURATION_SET(100, 200),
-                                      ZUNO_SETUP_SOUND_SWITCH_TONE_DURATION_SET(100, 200),
-                                      ZUNO_SETUP_SOUND_SWITCH_TONE_DURATION_SET(100, 200),
-                                      ZUNO_SETUP_SOUND_SWITCH_TONE_DURATION_SET(100, 200),
-                                      ZUNO_SETUP_SOUND_SWITCH_TONE_DURATION_SET(100, 200),
-                                      ZUNO_SETUP_SOUND_SWITCH_TONE_DURATION_SET(100, 200),
-                                      ZUNO_SETUP_SOUND_SWITCH_TONE_DURATION_SET(100, 400));
+// // Alarm signal
+// ZUNO_SETUP_SOUND_SWITCH_TONE_DURATION(ALARM_SIGNAL,
+//                                       ZUNO_SETUP_SOUND_SWITCH_TONE_DURATION_SET(100, 200),
+//                                       ZUNO_SETUP_SOUND_SWITCH_TONE_DURATION_SET(100, 200),
+//                                       ZUNO_SETUP_SOUND_SWITCH_TONE_DURATION_SET(100, 200),
+//                                       ZUNO_SETUP_SOUND_SWITCH_TONE_DURATION_SET(100, 200),
+//                                       ZUNO_SETUP_SOUND_SWITCH_TONE_DURATION_SET(100, 200),
+//                                       ZUNO_SETUP_SOUND_SWITCH_TONE_DURATION_SET(100, 200),
+//                                       ZUNO_SETUP_SOUND_SWITCH_TONE_DURATION_SET(100, 200),
+//                                       ZUNO_SETUP_SOUND_SWITCH_TONE_DURATION_SET(100, 800));
 
-ZUNO_SETUP_SOUND_SWITCH_TONE_DURATION(ACCEPT_SIGNAL,
-                                      ZUNO_SETUP_SOUND_SWITCH_TONE_DURATION_SET(100, 200),
-                                      ZUNO_SETUP_SOUND_SWITCH_TONE_DURATION_SET(400, 300));
+// ZUNO_SETUP_SOUND_SWITCH_TONE_DURATION(ACCEPT_SIGNAL,
+//                                       ZUNO_SETUP_SOUND_SWITCH_TONE_DURATION_SET(100, 200),
+//                                       ZUNO_SETUP_SOUND_SWITCH_TONE_DURATION_SET(400, 300));
 
-ZUNO_SETUP_SOUND_SWITCH_TONE_DURATION(HORSE_SIGNAL,
-                                      ZUNO_SETUP_SOUND_SWITCH_TONE_DURATION_SET(100, 200),
-                                      ZUNO_SETUP_SOUND_SWITCH_TONE_DURATION_SET(100, 200),
-                                      ZUNO_SETUP_SOUND_SWITCH_TONE_DURATION_SET(100, 500),
-                                      ZUNO_SETUP_SOUND_SWITCH_TONE_DURATION_SET(100, 200),
-                                      ZUNO_SETUP_SOUND_SWITCH_TONE_DURATION_SET(100, 200),
-                                      ZUNO_SETUP_SOUND_SWITCH_TONE_DURATION_SET(100, 500),
-                                      ZUNO_SETUP_SOUND_SWITCH_TONE_DURATION_SET(100, 200),
-                                      ZUNO_SETUP_SOUND_SWITCH_TONE_DURATION_SET(100, 200),
-                                      ZUNO_SETUP_SOUND_SWITCH_TONE_DURATION_SET(100, 500),
-                                      ZUNO_SETUP_SOUND_SWITCH_TONE_DURATION_SET(100, 500),
-                                      ZUNO_SETUP_SOUND_SWITCH_TONE_DURATION_SET(100, 500));
+// ZUNO_SETUP_SOUND_SWITCH_TONE_DURATION(HORSE_SIGNAL,
+//                                       ZUNO_SETUP_SOUND_SWITCH_TONE_DURATION_SET(100, 200),
+//                                       ZUNO_SETUP_SOUND_SWITCH_TONE_DURATION_SET(100, 200),
+//                                       ZUNO_SETUP_SOUND_SWITCH_TONE_DURATION_SET(100, 500),
+//                                       ZUNO_SETUP_SOUND_SWITCH_TONE_DURATION_SET(100, 200),
+//                                       ZUNO_SETUP_SOUND_SWITCH_TONE_DURATION_SET(100, 200),
+//                                       ZUNO_SETUP_SOUND_SWITCH_TONE_DURATION_SET(100, 500),
+//                                       ZUNO_SETUP_SOUND_SWITCH_TONE_DURATION_SET(100, 200),
+//                                       ZUNO_SETUP_SOUND_SWITCH_TONE_DURATION_SET(100, 200),
+//                                       ZUNO_SETUP_SOUND_SWITCH_TONE_DURATION_SET(100, 500),
+//                                       ZUNO_SETUP_SOUND_SWITCH_TONE_DURATION_SET(100, 500),
+//                                       ZUNO_SETUP_SOUND_SWITCH_TONE_DURATION_SET(100, 700));
 
-ZUNO_SETUP_SOUND_SWITCH(255,
-                        ZUNO_SETUP_SOUND_SWITCH_TONE("Fail Signal", FAIL_SIGNAL),
-                        ZUNO_SETUP_SOUND_SWITCH_TONE("Alarm Signal", ALARM_SIGNAL),
-                        ZUNO_SETUP_SOUND_SWITCH_TONE("Accept Signal", ACCEPT_SIGNAL),
-                        ZUNO_SETUP_SOUND_SWITCH_TONE("Horse Signal", HORSE_SIGNAL));
-
-static bool SoundSwitchStateOld = false;
-static bool SoundSwitchStateNew = false;
-
-static void SoundSwitchLoop(void)
+typedef enum SoundSwitchMelody_e
 {
-    if (SoundSwitchStateNew != SoundSwitchStateOld) {
-        SoundSwitchStateOld = SoundSwitchStateNew;
-        if (SoundSwitchStateOld == true) {
-            WbMsw.BuzzerStart();
-        } else {
+    SoundSwitchMelodyFailSignal = 1,
+    SoundSwitchMelodyAlarmSignal,
+    SoundSwitchMelodyAcceptSignal,
+    SoundSwitchMelodyHorseSignal,
+    SoundSwitchMelodyOff,
+    SoundSwitchMelodyIdle,
+} SoundSwitchMelody_t;
+
+typedef enum SoundSwitchState_e
+{
+    SoundSwitchStateInit,
+    SoundSwitchStatePlay,
+    SoundSwitchStatePlayOff,
+} SoundSwitchState_t;
+
+// Play melody 300 seconds
+ZUNO_SETUP_SOUND_SWITCH(melody_set1,
+                        ZUNO_SETUP_SOUND_SWITCH_TONE("Fail Signal", 3),
+                        ZUNO_SETUP_SOUND_SWITCH_TONE("Alarm Signal", 3),
+                        ZUNO_SETUP_SOUND_SWITCH_TONE("Accept Signal", 1),
+                        ZUNO_SETUP_SOUND_SWITCH_TONE("Horse Signal", 5));
+
+static SoundSwitchMelody_t SoundSwitchCurrent = SoundSwitchMelodyIdle;
+static SoundSwitchMelody_t SoundSwitchNew = SoundSwitchMelodyIdle;
+static bool SoundSwitchUpdate = false;
+static const uint16_t* SoundSwitchArray = NULL;
+static size_t SoundSwitchSize = 0;
+static size_t SoundSwitchIndex = 0;
+static uint32_t SoundSwitchMilis = 0;
+
+static void SoundSwitchLoop_init_add(const uint16_t* array, size_t size)
+{
+    SoundSwitchArray = array;
+    SoundSwitchSize = size;
+    SoundSwitchIndex = 0;
+    SoundSwitchMilis = millis();
+}
+
+static void SoundSwitchLoop_init(void)
+{
+    static const uint16_t FailSignal[] = {100, 500, 100, 300, 100, 300, 400, 1200};
+    static const uint16_t AlarmSignal[] =
+        {100, 200, 100, 200, 100, 200, 100, 200, 100, 200, 100, 200, 100, 200, 100, 800};
+    static const uint16_t AcceptSignal[] = {100, 200, 400, 300};
+    static const uint16_t HorsetSignal[] = {100, 200, 100, 200, 100, 500, 100, 200, 100, 200, 100,
+                                            500, 100, 200, 100, 200, 100, 500, 100, 500, 100, 700};
+
+    zunoEnterCritical();
+    if (SoundSwitchUpdate == false) {
+        zunoExitCritical();
+        return;
+    }
+    SoundSwitchCurrent = SoundSwitchNew;
+    SoundSwitchUpdate = false;
+    zunoExitCritical();
+    switch (SoundSwitchCurrent) {
+        case SoundSwitchMelodyIdle:
+            break;
+        case SoundSwitchMelodyFailSignal:
+            SoundSwitchLoop_init_add(&FailSignal[0], (sizeof(FailSignal) / sizeof(FailSignal[0])));
+            break;
+        case SoundSwitchMelodyAlarmSignal:
+            SoundSwitchLoop_init_add(&AlarmSignal[0], (sizeof(AlarmSignal) / sizeof(AlarmSignal[0])));
+            break;
+        case SoundSwitchMelodyAcceptSignal:
+            SoundSwitchLoop_init_add(&AcceptSignal[0], (sizeof(AcceptSignal) / sizeof(AcceptSignal[0])));
+            break;
+        case SoundSwitchMelodyHorseSignal:
+            SoundSwitchLoop_init_add(&HorsetSignal[0], (sizeof(HorsetSignal) / sizeof(HorsetSignal[0])));
+            break;
+        case SoundSwitchMelodyOff:
             WbMsw.BuzzerStop();
-        }
+            SoundSwitchCurrent = SoundSwitchMelodyIdle;
+            break;
     }
 }
 
-void zunoSoundSwitchStop(uint8_t channel)
+static void SoundSwitchLoop_play(void)
 {
-    SoundSwitchStateNew = false;
-    (void)channel;
+    uint32_t ms;
+
+    ms = millis();
+    if (SoundSwitchMilis > ms)
+        return;
+    SoundSwitchMilis = ms + SoundSwitchArray[SoundSwitchIndex];
+    Serial0.print(SoundSwitchArray[SoundSwitchIndex]);
+    if ((SoundSwitchIndex & 1) == 0) {
+        WbMsw.BuzzerStart();
+    } else {
+        WbMsw.BuzzerStop();
+    }
+    SoundSwitchIndex++;
+    if (SoundSwitchIndex >= SoundSwitchSize)
+        SoundSwitchCurrent = SoundSwitchMelodyIdle;
 }
 
-void zunoSoundSwitchPlay(uint8_t channel, uint8_t volume, size_t freq)
+static void SoundSwitchLoop(void)
 {
-    SoundSwitchStateNew = true;
-    (void)channel;
+    SoundSwitchLoop_init();
+    switch (SoundSwitchCurrent) {
+        case SoundSwitchMelodyIdle:
+        case SoundSwitchMelodyOff:
+            break;
+        case SoundSwitchMelodyAlarmSignal:
+        case SoundSwitchMelodyAcceptSignal:
+        case SoundSwitchMelodyHorseSignal:
+        case SoundSwitchMelodyFailSignal:
+            SoundSwitchLoop_play();
+            break;
+    }
+}
+
+void playMelody1(uint8_t melody_id, uint8_t volume)
+{
+    SoundSwitchNew = (SoundSwitchMelody_t)melody_id;
+    SoundSwitchUpdate = true;
     (void)volume;
-    (void)freq;
+}
+void stopMelody1(uint8_t melody_id)
+{
+    SoundSwitchNew = SoundSwitchMelodyOff;
+    SoundSwitchUpdate = true;
+    (void)melody_id;
 }
 
-const ZunoSoundSwitchParameterArray_t* zunoSoundSwitchGetParameterArrayUser(size_t channel)
-{
-    return &_switch_cc_parameter_array_255;
-    (void)channel;
-}
+zuno_handler_soundswitch_t __hdata_playMelody1 = {(void*)&melody_set1, (void*)&playMelody1, (void*)&stopMelody1};

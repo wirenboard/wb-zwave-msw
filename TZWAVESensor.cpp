@@ -490,15 +490,20 @@ void TZWAVESensor::ChannelsSetup()
         zunoSetZWChannel(0, 1 | ZWAVE_CHANNEL_MAPPED_BIT);
     }
 }
-
+extern zuno_handler_soundswitch_t __hdata_playMelody1;
 // Setting up handlers for all sensor cannels. Handler is used when requesting channel data from controller
 // Function binds i-channel directly to value
 void TZWAVESensor::SetChannelHandlers()
 {
     for (size_t i = 0; i < TZWAVEChannel::CHANNEL_TYPES_COUNT; i++) {
-        if (Channels[i].GetType() == TZWAVEChannel::Type::BUZZER)
-            continue;
         if (Channels[i].GetEnabled()) {
+            if (Channels[i].GetType() == TZWAVEChannel::Type::BUZZER) {
+                zunoAppendChannelHandler(Channels[i].GetDeviceChannelNumber(),
+                                         0,
+                                         CHANNEL_HANDLER_SOUNDSWITCH,
+                                         (void*)&__hdata_playMelody1);
+                continue;
+            }
             uint8_t dataSize;
             switch (Channels[i].GetType()) {
                 case TZWAVEChannel::Type::LUMEN:
