@@ -132,6 +132,7 @@ void setup()
 static void SoundSwitchLoop(void);
 static void SendTest(uint16_t version);
 static void ServiceLedLoop(void);
+static void ServiceLedInit(void);
 
 // Main loop
 void loop()
@@ -189,10 +190,7 @@ void loop()
                 ZUnoState = TZUnoState::ZUNO_CHANNELS_INITIALIZE;
                 SendTest(version);
                 WbMsw.BuzzerStop();
-                WbMsw.SetLedRedOff();
-                WbMsw.SetLedGreenOff();
-                WbMsw.SetLedFlashDuration(50);
-                WbMsw.SetLedFlashTimout(1);
+                ServiceLedInit();
                 return;
             } else {
                 SendTest(0xFFFF);
@@ -259,10 +257,44 @@ static WbMswLedMode_t LedModeCurrent = WB_MSW_LED_MODE_IDLE;
 static WbMswLedMode_t LedModeNew = WB_MSW_LED_MODE_IDLE;
 static WbMswLedMode_t LedModeSysLed = WB_MSW_LED_MODE_IDLE;
 volatile bool gMotionLed = false;
+static bool ServiceLedInitPower = false;
+static uint32_t ServiceLedInitPowerMilis = 0;
 
 ZUNO_SETUP_INDICATOR(ZUNO_SETUP_INDICATOR_INFO(INDICATOR_ID_NODE_IDENTIFY, 1),
                      ZUNO_SETUP_INDICATOR_INFO(INDICATOR_ID_ARMED, 2),
                      ZUNO_SETUP_INDICATOR_INFO(INDICATOR_ID_NOT_ARMED, 3));
+
+static void ServiceLedInit(void)
+{
+    static bool ServiceLedInitPowerRepeat = false;
+
+    WbMsw.SetLedRedOff();
+    WbMsw.SetLedGreenOff();
+    WbMsw.SetLedFlashDuration(50);
+    WbMsw.SetLedFlashTimout(1);
+    if (ServiceLedInitPowerRepeat == true)
+        return;
+    if (zunoGetWakeReason() != ZUNO_WAKEUP_REASON_POR)
+        return;
+    ServiceLedInitPowerRepeat = true;
+    ServiceLedInitPower = true;
+    ServiceLedInitPowerMilis = millis() + 1000;
+    WbMsw.SetLedGreenOn();
+}
+
+static void ServiceLedLoopPower(WbMswLedMode_t ledMode, uint32_t msLedCurrent)
+{
+    if (ServiceLedInitPower == false)
+        return;
+    if (ledMode != WB_MSW_LED_MODE_IDLE) {
+        ServiceLedInitPower = false;
+        return;
+    }
+    if (msLedCurrent < ServiceLedInitPowerMilis)
+        return;
+    ServiceLedInitPower = false;
+    WbMsw.SetLedGreenOff();
+}
 
 static void ServiceLedLoop(void)
 {
@@ -274,6 +306,7 @@ static void ServiceLedLoop(void)
 
     msLedCurrent = millis();
     ledMode = LedModeNew;
+    ServiceLedLoopPower(ledMode, msLedCurrent);
     switch ((int)LedModeCurrent) {
         case WB_MSW_LED_MODE_NETWORK:
         case WB_MSW_LED_MODE_NETWORK_NOT:
