@@ -28,6 +28,9 @@ TZWAVESensor::TZWAVESensor(TWBMSWSensor* wbMsw): WbMsw(wbMsw)
     // Channels in the device are created dynamically, so parameters are described in "dynamic" style
     ZunoCFGParameter_t parameters[WB_MSW_MAX_CONFIG_PARAM] = {
 
+        //
+        ZUNO_CONFIG_PARAMETER_INFO("Motion sensor sensitivity", "Motion sensor sensitivity", 10, 1000, 100),
+
         // Motion sensor settings
         ZUNO_CONFIG_PARAMETER_INFO("Motion delay to send OFF command", "Value in seconds.", 0, 100000, 60),
         ZUNO_CONFIG_PARAMETER_INFO("Motion ON command", "Send Basic Set command.", 0, 255, 255),
@@ -197,10 +200,7 @@ TZWAVESensor::TZWAVESensor(TWBMSWSensor* wbMsw): WbMsw(wbMsw)
         ZUNO_CONFIG_PARAMETER_INFO("Intrusion delay to send OFF command", "Value in seconds.", 0, 100000, 5),
 
         ZUNO_CONFIG_PARAMETER_INFO("Motion LED", "The LED flashes red when motion is detected.", 0, 255, 255),
-        ZUNO_CONFIG_PARAMETER_INFO("Operation mode LED", "The LED flashes green in operating mode", 0, 255, 255),
-
-        //
-        ZUNO_CONFIG_PARAMETER_INFO("Motion sensor sensitivity", "Motion sensor sensitivity", 10, 1000, 100)};
+        ZUNO_CONFIG_PARAMETER_INFO("Operation mode LED", "The LED flashes green in operating mode", 0, 255, 255)};
     memcpy(Parameters, parameters, sizeof(parameters));
     MotionLastTimeWaitOff = false;
     IntrusionLastTimeWaitOff = false;
