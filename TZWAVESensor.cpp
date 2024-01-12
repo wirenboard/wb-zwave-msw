@@ -11,15 +11,25 @@
 #define WB_MSW_CONFIG_PARAMETER_VOC_MULTIPLIER 1
 #define WB_MSW_CONFIG_PARAMETER_NOISE_LEVEL_MULTIPLIER 100
 #define WB_MSW_CONFIG_PARAMETER_MOTION_MULTIPLIER 1
-#define WB_MSW_CONFIG_PARAMETER_MOTION_ON 300
-#define WB_MSW_CONFIG_PARAMETER_MOTION_OFF 250
 #define WB_MSW_CONFIG_PARAMETER_CO2_AUTO_VALUE true
+
+#define WB_MSW_MOTION_TIMOUT_POLLING_SENSOR 350
+#define WB_MSW_INTRUSION_TIMOUT_POLLING_SENSOR 350
+#define WB_MSW_TEMPERATURE_TIMOUT_POLLING_SENSOR 1260
+#define WB_MSW_HUMIDITY_TIMOUT_POLLING_SENSOR 1211
+#define WB_MSW_LUMEN_TIMOUT_POLLING_SENSOR 633
+#define WB_MSW_CO2_TIMOUT_POLLING_SENSOR 665
+#define WB_MSW_VOC_TIMOUT_POLLING_SENSOR 693
+#define WB_MSW_NOISE_LEVEL_TIMOUT_POLLING_SENSOR 350
 
 TZWAVESensor::TZWAVESensor(TWBMSWSensor* wbMsw): WbMsw(wbMsw)
 {
     // Available device parameters description
     // Channels in the device are created dynamically, so parameters are described in "dynamic" style
     ZunoCFGParameter_t parameters[WB_MSW_MAX_CONFIG_PARAM] = {
+
+        //
+        ZUNO_CONFIG_PARAMETER_INFO("Motion sensor sensitivity", "Motion sensor sensitivity", 10, 1000, 100),
 
         // Motion sensor settings
         ZUNO_CONFIG_PARAMETER_INFO("Motion delay to send OFF command", "Value in seconds.", 0, 100000, 60),
@@ -187,9 +197,10 @@ TZWAVESensor::TZWAVESensor(TWBMSWSensor* wbMsw): WbMsw(wbMsw)
                                    38,
                                    105,
                                    80),
-        ZUNO_CONFIG_PARAMETER_INFO("Intrusion delay to send OFF command", "Value in seconds.", 0, 100000, 5)
+        ZUNO_CONFIG_PARAMETER_INFO("Intrusion delay to send OFF command", "Value in seconds.", 0, 100000, 5),
 
-    };
+        ZUNO_CONFIG_PARAMETER_INFO("Motion LED", "The LED flashes red when motion is detected.", 0, 255, 255),
+        ZUNO_CONFIG_PARAMETER_INFO("Operation mode LED", "The LED flashes green in operating mode", 0, 255, 255)};
     memcpy(Parameters, parameters, sizeof(parameters));
     MotionLastTimeWaitOff = false;
     IntrusionLastTimeWaitOff = false;
@@ -215,7 +226,8 @@ bool TZWAVESensor::ChannelsInitialize()
                                   WB_MSW_CONFIG_PARAMETER_MOTION_MULTIPLIER,
                                   WbMsw,
                                   &TWBMSWSensor::GetMotion,
-                                  &TWBMSWSensor::GetMotionAvailability);
+                                  &TWBMSWSensor::GetMotionAvailability,
+                                  WB_MSW_MOTION_TIMOUT_POLLING_SENSOR);
 
     Channels[1].ChannelInitialize("Intrusion",
                                   TZWAVEChannel::Type::INTRUSION,
@@ -229,7 +241,8 @@ bool TZWAVESensor::ChannelsInitialize()
                                   WB_MSW_CONFIG_PARAMETER_NOISE_LEVEL_MULTIPLIER,
                                   WbMsw,
                                   &TWBMSWSensor::GetNoiseLevel,
-                                  &TWBMSWSensor::GetNoiseLevelAvailability);
+                                  &TWBMSWSensor::GetNoiseLevelAvailability,
+                                  WB_MSW_INTRUSION_TIMOUT_POLLING_SENSOR);
 
     Channels[2].ChannelInitialize("Temperature",
                                   TZWAVEChannel::Type::TEMPERATURE,
@@ -243,7 +256,8 @@ bool TZWAVESensor::ChannelsInitialize()
                                   WB_MSW_CONFIG_PARAMETER_TEMPERATURE_MULTIPLIER,
                                   WbMsw,
                                   &TWBMSWSensor::GetTemperature,
-                                  &TWBMSWSensor::GetTemperatureAvailability);
+                                  &TWBMSWSensor::GetTemperatureAvailability,
+                                  WB_MSW_TEMPERATURE_TIMOUT_POLLING_SENSOR);
 
     Channels[3].ChannelInitialize("Humidity",
                                   TZWAVEChannel::Type::HUMIDITY,
@@ -257,7 +271,8 @@ bool TZWAVESensor::ChannelsInitialize()
                                   WB_MSW_CONFIG_PARAMETER_HUMIDITY_MULTIPLIER,
                                   WbMsw,
                                   &TWBMSWSensor::GetHumidity,
-                                  &TWBMSWSensor::GetHumidityAvailability);
+                                  &TWBMSWSensor::GetHumidityAvailability,
+                                  WB_MSW_HUMIDITY_TIMOUT_POLLING_SENSOR);
 
     Channels[4].ChannelInitialize("Luminance",
                                   TZWAVEChannel::Type::LUMEN,
@@ -271,7 +286,8 @@ bool TZWAVESensor::ChannelsInitialize()
                                   WB_MSW_CONFIG_PARAMETER_LUMEN_MULTIPLIER,
                                   WbMsw,
                                   &TWBMSWSensor::GetLuminance,
-                                  &TWBMSWSensor::GetLuminanceAvailability);
+                                  &TWBMSWSensor::GetLuminanceAvailability,
+                                  WB_MSW_LUMEN_TIMOUT_POLLING_SENSOR);
 
     Channels[5].ChannelInitialize("CO2",
                                   TZWAVEChannel::Type::CO2,
@@ -285,7 +301,8 @@ bool TZWAVESensor::ChannelsInitialize()
                                   WB_MSW_CONFIG_PARAMETER_CO2_MULTIPLIER,
                                   WbMsw,
                                   &TWBMSWSensor::GetCO2,
-                                  &TWBMSWSensor::GetCO2Availability);
+                                  &TWBMSWSensor::GetCO2Availability,
+                                  WB_MSW_CO2_TIMOUT_POLLING_SENSOR);
 
     Channels[6].ChannelInitialize("VOC",
                                   TZWAVEChannel::Type::VOC,
@@ -299,7 +316,8 @@ bool TZWAVESensor::ChannelsInitialize()
                                   WB_MSW_CONFIG_PARAMETER_VOC_MULTIPLIER,
                                   WbMsw,
                                   &TWBMSWSensor::GetVoc,
-                                  &TWBMSWSensor::GetVocAvailability);
+                                  &TWBMSWSensor::GetVocAvailability,
+                                  WB_MSW_VOC_TIMOUT_POLLING_SENSOR);
 
     Channels[7].ChannelInitialize("NoiseLevel",
                                   TZWAVEChannel::Type::NOISE_LEVEL,
@@ -313,7 +331,8 @@ bool TZWAVESensor::ChannelsInitialize()
                                   WB_MSW_CONFIG_PARAMETER_NOISE_LEVEL_MULTIPLIER,
                                   WbMsw,
                                   &TWBMSWSensor::GetNoiseLevel,
-                                  &TWBMSWSensor::GetNoiseLevelAvailability);
+                                  &TWBMSWSensor::GetNoiseLevelAvailability,
+                                  WB_MSW_NOISE_LEVEL_TIMOUT_POLLING_SENSOR);
 
     Channels[8].ChannelInitialize("Buzzer",
                                   TZWAVEChannel::Type::BUZZER,
@@ -327,7 +346,8 @@ bool TZWAVESensor::ChannelsInitialize()
                                   0,
                                   WbMsw,
                                   NULL,
-                                  &TWBMSWSensor::BuzzerAvailable);
+                                  &TWBMSWSensor::BuzzerAvailable,
+                                  0);
 
     bool unknownSensorsLeft = false;
 
@@ -402,7 +422,7 @@ void TZWAVESensor::ChannelsSetup()
                                                                WB_MSW_INPUT_REG_TEMPERATURE_VALUE_SIZE,
                                                                WB_MSW_INPUT_REG_TEMPERATURE_VALUE_PRECISION)));
                     zunoSetZWChannel(Channels[i].GetDeviceChannelNumber(), Channels[i].GetServerChannelNumber());
-                    zunoAddAssociation(ZUNO_ASSOC_BASIC_SET_NUMBER, 0);
+                    zunoAddAssociation(ZUNO_ASSOC_BASIC_SET_NUMBER, Channels[i].GetDeviceChannelNumber() + 1);
                     break;
                 case TZWAVEChannel::Type::HUMIDITY:
                     zunoAddChannel(ZUNO_SENSOR_MULTILEVEL_CHANNEL_NUMBER,
@@ -411,7 +431,7 @@ void TZWAVESensor::ChannelsSetup()
                                                                           WB_MSW_INPUT_REG_HUMIDITY_VALUE_SIZE,
                                                                           WB_MSW_INPUT_REG_HUMIDITY_VALUE_PRECISION)));
                     zunoSetZWChannel(Channels[i].GetDeviceChannelNumber(), Channels[i].GetServerChannelNumber());
-                    zunoAddAssociation(ZUNO_ASSOC_BASIC_SET_NUMBER, 0);
+                    zunoAddAssociation(ZUNO_ASSOC_BASIC_SET_NUMBER, Channels[i].GetDeviceChannelNumber() + 1);
                     break;
                 case TZWAVEChannel::Type::LUMEN:
                     zunoAddChannel(ZUNO_SENSOR_MULTILEVEL_CHANNEL_NUMBER,
@@ -420,7 +440,7 @@ void TZWAVESensor::ChannelsSetup()
                                                                           WB_MSW_INPUT_REG_LUMEN_VALUE_SIZE,
                                                                           WB_MSW_INPUT_REG_LUMEN_VALUE_PRECISION)));
                     zunoSetZWChannel(Channels[i].GetDeviceChannelNumber(), Channels[i].GetServerChannelNumber());
-                    zunoAddAssociation(ZUNO_ASSOC_BASIC_SET_NUMBER, 0);
+                    zunoAddAssociation(ZUNO_ASSOC_BASIC_SET_NUMBER, Channels[i].GetDeviceChannelNumber() + 1);
                     break;
                 case TZWAVEChannel::Type::CO2:
                     zunoAddChannel(ZUNO_SENSOR_MULTILEVEL_CHANNEL_NUMBER,
@@ -429,7 +449,7 @@ void TZWAVESensor::ChannelsSetup()
                                                                           WB_MSW_INPUT_REG_CO2_VALUE_SIZE,
                                                                           WB_MSW_INPUT_REG_CO2_VALUE_PRECISION)));
                     zunoSetZWChannel(Channels[i].GetDeviceChannelNumber(), Channels[i].GetServerChannelNumber());
-                    zunoAddAssociation(ZUNO_ASSOC_BASIC_SET_NUMBER, 0);
+                    zunoAddAssociation(ZUNO_ASSOC_BASIC_SET_NUMBER, Channels[i].GetDeviceChannelNumber() + 1);
                     break;
                 case TZWAVEChannel::Type::VOC:
                     zunoAddChannel(ZUNO_SENSOR_MULTILEVEL_CHANNEL_NUMBER,
@@ -438,7 +458,7 @@ void TZWAVESensor::ChannelsSetup()
                                                                           WB_MSW_INPUT_REG_VOC_VALUE_SIZE,
                                                                           WB_MSW_INPUT_REG_VOC_VALUE_PRECISION)));
                     zunoSetZWChannel(Channels[i].GetDeviceChannelNumber(), Channels[i].GetServerChannelNumber());
-                    zunoAddAssociation(ZUNO_ASSOC_BASIC_SET_NUMBER, 0);
+                    zunoAddAssociation(ZUNO_ASSOC_BASIC_SET_NUMBER, Channels[i].GetDeviceChannelNumber() + 1);
                     break;
                 case TZWAVEChannel::Type::NOISE_LEVEL:
                     zunoAddChannel(ZUNO_SENSOR_MULTILEVEL_CHANNEL_NUMBER,
@@ -447,12 +467,12 @@ void TZWAVESensor::ChannelsSetup()
                                                                           WB_MSW_INPUT_REG_NOISE_LEVEL_VALUE_SIZE,
                                                                           WB_MSW_INPUT_REG_NOISE_LEVEL_PRECISION)));
                     zunoSetZWChannel(Channels[i].GetDeviceChannelNumber(), Channels[i].GetServerChannelNumber());
-                    zunoAddAssociation(ZUNO_ASSOC_BASIC_SET_NUMBER, 0);
+                    zunoAddAssociation(ZUNO_ASSOC_BASIC_SET_NUMBER, Channels[i].GetDeviceChannelNumber() + 1);
                     break;
                 case TZWAVEChannel::Type::MOTION:
                     zunoAddChannel(ZUNO_SENSOR_BINARY_CHANNEL_NUMBER, ZUNO_SENSOR_BINARY_TYPE_MOTION, 0);
                     zunoSetZWChannel(Channels[i].GetDeviceChannelNumber(), Channels[i].GetServerChannelNumber());
-                    zunoAddAssociation(ZUNO_ASSOC_BASIC_SET_NUMBER, 0);
+                    zunoAddAssociation(ZUNO_ASSOC_BASIC_SET_NUMBER, Channels[i].GetDeviceChannelNumber() + 1);
                     break;
                 case TZWAVEChannel::Type::INTRUSION:
                     zunoAddChannel(ZUNO_SENSOR_BINARY_CHANNEL_NUMBER, ZUNO_SENSOR_BINARY_TYPE_GENERAL_PURPOSE, 0);
@@ -471,15 +491,20 @@ void TZWAVESensor::ChannelsSetup()
         zunoSetZWChannel(0, 1 | ZWAVE_CHANNEL_MAPPED_BIT);
     }
 }
-
+extern zuno_handler_soundswitch_t __hdata_playMelody1;
 // Setting up handlers for all sensor cannels. Handler is used when requesting channel data from controller
 // Function binds i-channel directly to value
 void TZWAVESensor::SetChannelHandlers()
 {
     for (size_t i = 0; i < TZWAVEChannel::CHANNEL_TYPES_COUNT; i++) {
-        if (Channels[i].GetType() == TZWAVEChannel::Type::BUZZER)
-            continue;
         if (Channels[i].GetEnabled()) {
+            if (Channels[i].GetType() == TZWAVEChannel::Type::BUZZER) {
+                zunoAppendChannelHandler(Channels[i].GetDeviceChannelNumber(),
+                                         0,
+                                         CHANNEL_HANDLER_SOUNDSWITCH,
+                                         (void*)&__hdata_playMelody1);
+                continue;
+            }
             uint8_t dataSize;
             switch (Channels[i].GetType()) {
                 case TZWAVEChannel::Type::LUMEN:
@@ -676,6 +701,10 @@ const ZunoCFGParameter_t* TZWAVESensor::GetParameterIfChannelExists(size_t param
                 return (ZUNO_CFG_PARAMETER_UNKNOWN);
             }
             break;
+        case WB_MSW_CONFIG_PARAMETER_MOTION_LED:
+        case WB_MSW_CONFIG_PARAMETER_OPERATION_LED:
+        case WB_MSW_CONFIG_PARAMETER_MOTION_SENSITIVITY:
+            break;
         default:
             return (ZUNO_CFG_PARAMETER_UNKNOWN);
             break;
@@ -773,6 +802,8 @@ void TZWAVESensor::PublishIntrusionValue(TZWAVEChannel* channel, int64_t value)
     }
 }
 
+extern volatile bool gMotionLed;
+
 void TZWAVESensor::PublishMotionValue(TZWAVEChannel* channel, int64_t value)
 {
     int32_t onCommands;
@@ -781,21 +812,33 @@ void TZWAVESensor::PublishMotionValue(TZWAVEChannel* channel, int64_t value)
     uint8_t groupIndex;
     uint32_t motionPeriod;
     uint32_t currentTime;
+    uint32_t MotionSensitivityOn;
+    uint32_t MotionSensitivityOff;
 
+    MotionSensitivityOn = (uint32_t)GetParameterValue(WB_MSW_CONFIG_PARAMETER_MOTION_SENSITIVITY);
+    if (MotionSensitivityOn >= 100)
+        MotionSensitivityOff = MotionSensitivityOn - 50;
+    else if (MotionSensitivityOn >= 50)
+        MotionSensitivityOff = MotionSensitivityOn - 20;
+    else if (MotionSensitivityOn >= 10)
+        MotionSensitivityOff = MotionSensitivityOn - 10;
+    else
+        MotionSensitivityOff = 0;
     onOffCommandsRule = GetParameterValue(channel->GetOnOffCommandsRuleParameterNumber());
     groupIndex = channel->GetGroupIndex();
     currentTime = millis();
     if (channel->GetTriggered()) {
-        if (value <= (WB_MSW_CONFIG_PARAMETER_MOTION_OFF)) {
+        if (value <= (MotionSensitivityOff)) {
             channel->SetTriggered(false);
             MotionLastTime = currentTime;
             MotionLastTimeWaitOff = true;
         }
     } else {
-        if (value >= (WB_MSW_CONFIG_PARAMETER_MOTION_ON)) {
+        if (value >= (MotionSensitivityOn)) {
             channel->SetTriggered(true);
             if (!channel->GetReportedValue()) {
                 channel->SetValue(true);
+                gMotionLed = true;
                 channel->SetReportedValue(true); // Remember last sent value
                 zunoSendReport(channel->GetServerChannelNumber());
                 MotionLastTimeWaitOff = false;
@@ -811,6 +854,7 @@ void TZWAVESensor::PublishMotionValue(TZWAVEChannel* channel, int64_t value)
         if ((MotionLastTime + motionPeriod) <= currentTime) {
             MotionLastTimeWaitOff = false;
             channel->SetValue(false);
+            gMotionLed = false;
             channel->SetReportedValue(false); // Remember last sent value
             zunoSendReport(channel->GetServerChannelNumber());
             if (onOffCommandsRule == 1 || onOffCommandsRule == 3) {
@@ -906,11 +950,11 @@ void TZWAVESensor::MotionChannelReset(TZWAVEChannel* channel)
 // Device channel management and firmware data transfer
 TZWAVESensor::Result TZWAVESensor::ProcessChannels()
 {
-    DEBUG("--------------------Measurements-----------------------\n");
+    // DEBUG("--------------------Measurements-----------------------\n");
     // Check all channels of available sensors
     TZWAVESensor::Result result;
     for (size_t i = 0; i < TZWAVEChannel::CHANNEL_TYPES_COUNT; i++) {
-        if (Channels[i].GetEnabled()) {
+        if (Channels[i].GetEnabled() && Channels[i].GetPollingSensor()) {
             switch (Channels[i].GetType()) {
                 case TZWAVEChannel::Type::INTRUSION:
                 case TZWAVEChannel::Type::BUZZER:

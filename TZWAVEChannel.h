@@ -37,7 +37,10 @@ public:
                            uint16_t multiplier,
                            TWBMSWSensor* wbMsw,
                            TWBMSWSensor::GetValueCallback readValueCallback,
-                           TWBMSWSensor::GetAvailabilityCallback readAvailabilityCallback);
+                           TWBMSWSensor::GetAvailabilityCallback readAvailabilityCallback,
+                           uint16_t timeoutPollingSensor);
+
+    bool GetPollingSensor(void);
 
     void SetChannelNumbers(uint8_t channelDeviceNumber, uint8_t channelServerNumber, uint8_t groupIndex);
 
@@ -124,4 +127,6 @@ private:
     uint8_t OffCommandsParameterNumber;
     uint8_t OnOffCommandsRuleParameterNumber;
     uint16_t Multiplier;
+    uint16_t TimeoutPollingSensor;
+    uint32_t LastMsPollingSensor;
 };

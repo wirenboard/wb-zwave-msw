@@ -25,16 +25,16 @@ ZUNO_ENABLE(
 		ZUNO_CUSTOM_OTA_OFFSET=0x10000 // 64 kB
 		/* Additional OTA firmwares count*/
 		ZUNO_EXT_FIRMWARES_COUNT=1
-		SKETCH_VERSION=0x010C
+		SKETCH_VERSION=0x010D
 		/* Firmware descriptor pointer */
 		ZUNO_EXT_FIRMWARES_DESCR_PTR=&g_OtaDesriptor
-		CONFIGPARAMETERS_MAX_COUNT=43//expands the number of parameters available
+		CONFIGPARAMETERS_MAX_COUNT=46//expands the number of parameters available
 		CERT_BUILD//Disables some config options
 		WB_MSW_CERT_BUILD_INDICATOR=100
 		MAX_PROCESSED_QUEUE_PKGS=1
+		SKETCH_FLAGS_LOOP_DELAY=0x2
 		// DBG_CONSOLE_BAUDRATE=921600//speed uart dbg
 		// LOGGING_DBG // Comment out if debugging information is not needed
-		SYSTHREAD_INT_ONLY
 					// Debugging information being printed with RTOS system console output to UART0 (TX0) by default
         DBG_CONSOLE_PIN=0xFF
         //DBG_CONSOLE_BAUDRATE=115200
@@ -130,8 +130,9 @@ void setup()
 }
 
 static void SoundSwitchLoop(void);
-void SendTest(uint16_t version);
+static void SendTest(uint16_t version);
 static void ServiceLedLoop(void);
+static void ServiceLedInit(void);
 
 // Main loop
 void loop()
@@ -189,10 +190,7 @@ void loop()
                 ZUnoState = TZUnoState::ZUNO_CHANNELS_INITIALIZE;
                 SendTest(version);
                 WbMsw.BuzzerStop();
-                WbMsw.SetLedRedOff();
-                WbMsw.SetLedGreenOff();
-                WbMsw.SetLedFlashDuration(50);
-                WbMsw.SetLedFlashTimout(1);
+                ServiceLedInit();
                 return;
             } else {
                 SendTest(0xFFFF);
@@ -251,40 +249,112 @@ void loop()
     }
 }
 
+#define MS_LED_OPERATION_TIMEOUT_PERIOD_ON 1000
+#define MS_LED_OPERATION_TIMEOUT_PERIOD_OFF_NETWORK_NOT 5000
+#define MS_LED_OPERATION_TIMEOUT_PERIOD_OFF_NETWORK 10000
+
 static WbMswLedMode_t LedModeCurrent = WB_MSW_LED_MODE_IDLE;
 static WbMswLedMode_t LedModeNew = WB_MSW_LED_MODE_IDLE;
 static WbMswLedMode_t LedModeSysLed = WB_MSW_LED_MODE_IDLE;
+volatile bool gMotionLed = false;
+static bool ServiceLedInitPower = false;
+static uint32_t ServiceLedInitPowerMilis = 0;
 
 ZUNO_SETUP_INDICATOR(ZUNO_SETUP_INDICATOR_INFO(INDICATOR_ID_NODE_IDENTIFY, 1),
                      ZUNO_SETUP_INDICATOR_INFO(INDICATOR_ID_ARMED, 2),
                      ZUNO_SETUP_INDICATOR_INFO(INDICATOR_ID_NOT_ARMED, 3));
 
+static void ServiceLedInit(void)
+{
+    static bool ServiceLedInitPowerRepeat = false;
+
+    WbMsw.SetLedRedOff();
+    WbMsw.SetLedGreenOff();
+    WbMsw.SetLedFlashDuration(50);
+    WbMsw.SetLedFlashTimout(1);
+    if (ServiceLedInitPowerRepeat == true)
+        return;
+    if (zunoGetWakeReason() != ZUNO_WAKEUP_REASON_POR)
+        return;
+    ServiceLedInitPowerRepeat = true;
+    ServiceLedInitPower = true;
+    ServiceLedInitPowerMilis = millis() + 1000;
+    WbMsw.SetLedGreenOn();
+}
+
+static void ServiceLedLoopPower(WbMswLedMode_t ledMode, uint32_t msLedCurrent)
+{
+    if (ServiceLedInitPower == false)
+        return;
+    if (ledMode != WB_MSW_LED_MODE_IDLE) {
+        ServiceLedInitPower = false;
+        return;
+    }
+    if (msLedCurrent < ServiceLedInitPowerMilis)
+        return;
+    ServiceLedInitPower = false;
+    WbMsw.SetLedGreenOff();
+}
+
 static void ServiceLedLoop(void)
 {
     WbMswLedMode_t ledMode;
-    static uint32_t msLedFreeLast = 0;
+    static uint32_t msLedLastOperationNetwork = 0;
+    static uint32_t msLedLastMotion = 0;
+    static uint32_t msLedLastOperationNetworkPeriodOFF = 0;
     uint32_t msLedCurrent;
-    static bool ledFree = false;
 
+    msLedCurrent = millis();
     ledMode = LedModeNew;
+    ServiceLedLoopPower(ledMode, msLedCurrent);
+    switch ((int)LedModeCurrent) {
+        case WB_MSW_LED_MODE_NETWORK:
+        case WB_MSW_LED_MODE_NETWORK_NOT:
+            if (ledMode != WB_MSW_LED_MODE_IDLE) {
+                msLedLastOperationNetwork = msLedCurrent + msLedLastOperationNetworkPeriodOFF;
+            } else {
+                if (msLedCurrent >= msLedLastOperationNetwork) {
+                    msLedLastOperationNetwork = msLedCurrent + msLedLastOperationNetworkPeriodOFF;
+                    ledMode = WB_MSW_LED_MODE_IDLE;
+                } else
+                    return;
+            }
+            break;
+        case WB_MSW_LED_MODE_MOTION:
+            if (ledMode == WB_MSW_LED_MODE_IDLE) {
+                if (msLedCurrent >= msLedLastMotion) {
+                    ledMode = WB_MSW_LED_MODE_IDLE;
+                } else
+                    return;
+                break;
+            }
+    }
     if (LedModeCurrent == ledMode) {
         if (ledMode != WB_MSW_LED_MODE_IDLE)
             return;
-        msLedCurrent = millis();
-        if (msLedCurrent >= msLedFreeLast) {
-            if (ledFree == false) {
-                WbMsw.SetLedRedOff();
-                WbMsw.SetLedGreenOn();
-                msLedFreeLast = msLedCurrent + 2000;
-                ledFree = true;
+        if (gMotionLed == true) {
+            gMotionLed = false;
+            if (ZwaveSensor.GetParameterValue(WB_MSW_CONFIG_PARAMETER_MOTION_LED) != 0) {
+                msLedLastMotion = msLedCurrent + MS_LED_OPERATION_TIMEOUT_PERIOD_ON;
+                ledMode = WB_MSW_LED_MODE_MOTION;
+            }
+        } else {
+            if (zunoInNetwork() == false) {
+                msLedLastOperationNetworkPeriodOFF = MS_LED_OPERATION_TIMEOUT_PERIOD_OFF_NETWORK_NOT;
+                if (msLedCurrent >= msLedLastOperationNetwork) {
+                    msLedLastOperationNetwork = msLedCurrent + MS_LED_OPERATION_TIMEOUT_PERIOD_ON;
+                    ledMode = WB_MSW_LED_MODE_NETWORK_NOT;
+                }
             } else {
-                WbMsw.SetLedRedOff();
-                WbMsw.SetLedGreenOff();
-                msLedFreeLast = msLedCurrent + 10000;
-                ledFree = false;
+                if (ZwaveSensor.GetParameterValue(WB_MSW_CONFIG_PARAMETER_OPERATION_LED) != 0) {
+                    msLedLastOperationNetworkPeriodOFF = MS_LED_OPERATION_TIMEOUT_PERIOD_OFF_NETWORK;
+                    if (msLedCurrent >= msLedLastOperationNetwork) {
+                        msLedLastOperationNetwork = msLedCurrent + MS_LED_OPERATION_TIMEOUT_PERIOD_ON;
+                        ledMode = WB_MSW_LED_MODE_NETWORK;
+                    }
+                }
             }
         }
-        return;
     }
     switch (ledMode) {
         case WB_MSW_LED_MODE_LERN:
@@ -300,10 +370,13 @@ static void ServiceLedLoop(void)
             WbMsw.SetLedGreenOff();
             WbMsw.SetLedRedOff();
             break;
+        case WB_MSW_LED_MODE_NETWORK_NOT:
+        case WB_MSW_LED_MODE_MOTION:
         case WB_MSW_LED_MODE_RED:
             WbMsw.SetLedGreenOff();
             WbMsw.SetLedRedOn();
             break;
+        case WB_MSW_LED_MODE_NETWORK:
         case WB_MSW_LED_MODE_GREEN:
             WbMsw.SetLedRedOff();
             WbMsw.SetLedGreenOn();
@@ -312,9 +385,7 @@ static void ServiceLedLoop(void)
             return;
             break;
     }
-    ledFree = false;
     LedModeCurrent = ledMode;
-    msLedFreeLast = millis() + 10000;
 }
 
 void zunoIndicatorLoopOpen(uint8_t pin, uint8_t indicatorId)
@@ -442,7 +513,7 @@ static void SendTest(uint16_t version)
                        0x00,
                        0x00,
                        0x00,
-                       0x00,  // UUID
+                       0x00, // UUID
                        0x00,
                        0x00}; // MSW FIRMWARE
 
@@ -458,58 +529,167 @@ static void SendTest(uint16_t version)
     zunoSendTestPackage(&array[0x0], sizeof(array), 240);
 }
 
-// 750 + 400 + 300 + 300 + 300 + 1000 = 3050 mc - bad
-ZUNO_SETUP_SOUND_SWITCH_TONE_DURATION(THREE_SIGNALS,
-                                      ZUNO_SETUP_SOUND_SWITCH_TONE_DURATION_SET(750, 400),
-                                      ZUNO_SETUP_SOUND_SWITCH_TONE_DURATION_SET(300, 300),
-                                      ZUNO_SETUP_SOUND_SWITCH_TONE_DURATION_SET(300, 1000));
+// // Fail signal
+// // Fail signal
+// ZUNO_SETUP_SOUND_SWITCH_TONE_DURATION(FAIL_SIGNAL,
+//                                       ZUNO_SETUP_SOUND_SWITCH_TONE_DURATION_SET(100, 500),
+//                                       ZUNO_SETUP_SOUND_SWITCH_TONE_DURATION_SET(100, 300),
+//                                       ZUNO_SETUP_SOUND_SWITCH_TONE_DURATION_SET(100, 300),
+//                                       ZUNO_SETUP_SOUND_SWITCH_TONE_DURATION_SET(400, 1200));
 
-// 2 sec - good
-ZUNO_SETUP_SOUND_SWITCH_TONE_DURATION(TWO_SIGNALS,
-                                      ZUNO_SETUP_SOUND_SWITCH_TONE_DURATION_SET(500, 500),
-                                      ZUNO_SETUP_SOUND_SWITCH_TONE_DURATION_SET(500, 500));
+// // Alarm signal
+// ZUNO_SETUP_SOUND_SWITCH_TONE_DURATION(ALARM_SIGNAL,
+//                                       ZUNO_SETUP_SOUND_SWITCH_TONE_DURATION_SET(100, 200),
+//                                       ZUNO_SETUP_SOUND_SWITCH_TONE_DURATION_SET(100, 200),
+//                                       ZUNO_SETUP_SOUND_SWITCH_TONE_DURATION_SET(100, 200),
+//                                       ZUNO_SETUP_SOUND_SWITCH_TONE_DURATION_SET(100, 200),
+//                                       ZUNO_SETUP_SOUND_SWITCH_TONE_DURATION_SET(100, 200),
+//                                       ZUNO_SETUP_SOUND_SWITCH_TONE_DURATION_SET(100, 200),
+//                                       ZUNO_SETUP_SOUND_SWITCH_TONE_DURATION_SET(100, 200),
+//                                       ZUNO_SETUP_SOUND_SWITCH_TONE_DURATION_SET(100, 800));
 
-// 10000 - play on
-// 0 - play off
-// 10000 + 0 = 10 sec - good
-ZUNO_SETUP_SOUND_SWITCH_TONE_DURATION(ONE_SIGNALS, ZUNO_SETUP_SOUND_SWITCH_TONE_DURATION_SET(10000, 0));
+// ZUNO_SETUP_SOUND_SWITCH_TONE_DURATION(ACCEPT_SIGNAL,
+//                                       ZUNO_SETUP_SOUND_SWITCH_TONE_DURATION_SET(100, 200),
+//                                       ZUNO_SETUP_SOUND_SWITCH_TONE_DURATION_SET(400, 300));
 
-ZUNO_SETUP_SOUND_SWITCH(255,
-                        ZUNO_SETUP_SOUND_SWITCH_TONE("Three signals", THREE_SIGNALS),
-                        ZUNO_SETUP_SOUND_SWITCH_TONE("Two signals", TWO_SIGNALS),
-                        ZUNO_SETUP_SOUND_SWITCH_TONE("One signals", ONE_SIGNALS));
+// ZUNO_SETUP_SOUND_SWITCH_TONE_DURATION(HORSE_SIGNAL,
+//                                       ZUNO_SETUP_SOUND_SWITCH_TONE_DURATION_SET(100, 200),
+//                                       ZUNO_SETUP_SOUND_SWITCH_TONE_DURATION_SET(100, 200),
+//                                       ZUNO_SETUP_SOUND_SWITCH_TONE_DURATION_SET(100, 500),
+//                                       ZUNO_SETUP_SOUND_SWITCH_TONE_DURATION_SET(100, 200),
+//                                       ZUNO_SETUP_SOUND_SWITCH_TONE_DURATION_SET(100, 200),
+//                                       ZUNO_SETUP_SOUND_SWITCH_TONE_DURATION_SET(100, 500),
+//                                       ZUNO_SETUP_SOUND_SWITCH_TONE_DURATION_SET(100, 200),
+//                                       ZUNO_SETUP_SOUND_SWITCH_TONE_DURATION_SET(100, 200),
+//                                       ZUNO_SETUP_SOUND_SWITCH_TONE_DURATION_SET(100, 500),
+//                                       ZUNO_SETUP_SOUND_SWITCH_TONE_DURATION_SET(100, 500),
+//                                       ZUNO_SETUP_SOUND_SWITCH_TONE_DURATION_SET(100, 700));
 
-static bool SoundSwitchStateOld = false;
-static bool SoundSwitchStateNew = false;
-
-static void SoundSwitchLoop(void)
+typedef enum SoundSwitchMelody_e
 {
-    if (SoundSwitchStateNew != SoundSwitchStateOld) {
-        SoundSwitchStateOld = SoundSwitchStateNew;
-        if (SoundSwitchStateOld == true) {
-            WbMsw.BuzzerStart();
-        } else {
+    SoundSwitchMelodyFailSignal = 1,
+    SoundSwitchMelodyAlarmSignal,
+    SoundSwitchMelodyAcceptSignal,
+    SoundSwitchMelodyHorseSignal,
+    SoundSwitchMelodyOff,
+    SoundSwitchMelodyIdle,
+} SoundSwitchMelody_t;
+
+typedef enum SoundSwitchState_e
+{
+    SoundSwitchStateInit,
+    SoundSwitchStatePlay,
+    SoundSwitchStatePlayOff,
+} SoundSwitchState_t;
+
+// Play melody 300 seconds
+ZUNO_SETUP_SOUND_SWITCH(melody_set1,
+                        ZUNO_SETUP_SOUND_SWITCH_TONE("Fail Signal", 3),
+                        ZUNO_SETUP_SOUND_SWITCH_TONE("Alarm Signal", 3),
+                        ZUNO_SETUP_SOUND_SWITCH_TONE("Accept Signal", 1),
+                        ZUNO_SETUP_SOUND_SWITCH_TONE("Horse Signal", 5));
+
+static SoundSwitchMelody_t SoundSwitchCurrent = SoundSwitchMelodyIdle;
+static SoundSwitchMelody_t SoundSwitchNew = SoundSwitchMelodyIdle;
+static bool SoundSwitchUpdate = false;
+static const uint16_t* SoundSwitchArray = NULL;
+static size_t SoundSwitchSize = 0;
+static size_t SoundSwitchIndex = 0;
+static uint32_t SoundSwitchMilis = 0;
+
+static void SoundSwitchLoop_init_add(const uint16_t* array, size_t size)
+{
+    SoundSwitchArray = array;
+    SoundSwitchSize = size;
+    SoundSwitchIndex = 0;
+    SoundSwitchMilis = millis();
+}
+
+static void SoundSwitchLoop_init(void)
+{
+    static const uint16_t FailSignal[] = {100, 500, 100, 300, 100, 300, 400, 1200};
+    static const uint16_t AlarmSignal[] =
+        {100, 200, 100, 200, 100, 200, 100, 200, 100, 200, 100, 200, 100, 200, 100, 800};
+    static const uint16_t AcceptSignal[] = {100, 200, 400, 300};
+    static const uint16_t HorsetSignal[] = {100, 200, 100, 200, 100, 500, 100, 200, 100, 200, 100,
+                                            500, 100, 200, 100, 200, 100, 500, 100, 500, 100, 700};
+
+    zunoEnterCritical();
+    if (SoundSwitchUpdate == false) {
+        zunoExitCritical();
+        return;
+    }
+    SoundSwitchCurrent = SoundSwitchNew;
+    SoundSwitchUpdate = false;
+    zunoExitCritical();
+    switch (SoundSwitchCurrent) {
+        case SoundSwitchMelodyIdle:
+            break;
+        case SoundSwitchMelodyFailSignal:
+            SoundSwitchLoop_init_add(&FailSignal[0], (sizeof(FailSignal) / sizeof(FailSignal[0])));
+            break;
+        case SoundSwitchMelodyAlarmSignal:
+            SoundSwitchLoop_init_add(&AlarmSignal[0], (sizeof(AlarmSignal) / sizeof(AlarmSignal[0])));
+            break;
+        case SoundSwitchMelodyAcceptSignal:
+            SoundSwitchLoop_init_add(&AcceptSignal[0], (sizeof(AcceptSignal) / sizeof(AcceptSignal[0])));
+            break;
+        case SoundSwitchMelodyHorseSignal:
+            SoundSwitchLoop_init_add(&HorsetSignal[0], (sizeof(HorsetSignal) / sizeof(HorsetSignal[0])));
+            break;
+        case SoundSwitchMelodyOff:
             WbMsw.BuzzerStop();
-        }
+            SoundSwitchCurrent = SoundSwitchMelodyIdle;
+            break;
     }
 }
 
-void zunoSoundSwitchStop(uint8_t channel)
+static void SoundSwitchLoop_play(void)
 {
-    SoundSwitchStateNew = false;
-    (void)channel;
+    uint32_t ms;
+
+    ms = millis();
+    if (SoundSwitchMilis > ms)
+        return;
+    SoundSwitchMilis = ms + SoundSwitchArray[SoundSwitchIndex];
+    Serial0.print(SoundSwitchArray[SoundSwitchIndex]);
+    if ((SoundSwitchIndex & 1) == 0) {
+        WbMsw.BuzzerStart();
+    } else {
+        WbMsw.BuzzerStop();
+    }
+    SoundSwitchIndex++;
+    if (SoundSwitchIndex >= SoundSwitchSize)
+        SoundSwitchCurrent = SoundSwitchMelodyIdle;
 }
 
-void zunoSoundSwitchPlay(uint8_t channel, uint8_t volume, size_t freq)
+static void SoundSwitchLoop(void)
 {
-    SoundSwitchStateNew = true;
-    (void)channel;
+    SoundSwitchLoop_init();
+    switch (SoundSwitchCurrent) {
+        case SoundSwitchMelodyIdle:
+        case SoundSwitchMelodyOff:
+            break;
+        case SoundSwitchMelodyAlarmSignal:
+        case SoundSwitchMelodyAcceptSignal:
+        case SoundSwitchMelodyHorseSignal:
+        case SoundSwitchMelodyFailSignal:
+            SoundSwitchLoop_play();
+            break;
+    }
+}
+
+void playMelody1(uint8_t melody_id, uint8_t volume)
+{
+    SoundSwitchNew = (SoundSwitchMelody_t)melody_id;
+    SoundSwitchUpdate = true;
     (void)volume;
-    (void)freq;
+}
+void stopMelody1(uint8_t melody_id)
+{
+    SoundSwitchNew = SoundSwitchMelodyOff;
+    SoundSwitchUpdate = true;
+    (void)melody_id;
 }
 
-const ZunoSoundSwitchParameterArray_t* zunoSoundSwitchGetParameterArrayUser(size_t channel)
-{
-    return &_switch_cc_parameter_array_255;
-    (void)channel;
-}
+zuno_handler_soundswitch_t __hdata_playMelody1 = {(void*)&melody_set1, (void*)&playMelody1, (void*)&stopMelody1};
