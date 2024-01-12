@@ -28,7 +28,7 @@ ZUNO_ENABLE(
 		SKETCH_VERSION=0x010D
 		/* Firmware descriptor pointer */
 		ZUNO_EXT_FIRMWARES_DESCR_PTR=&g_OtaDesriptor
-		CONFIGPARAMETERS_MAX_COUNT=45//expands the number of parameters available
+		CONFIGPARAMETERS_MAX_COUNT=46//expands the number of parameters available
 		CERT_BUILD//Disables some config options
 		WB_MSW_CERT_BUILD_INDICATOR=100
 		MAX_PROCESSED_QUEUE_PKGS=1

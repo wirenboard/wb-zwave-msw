@@ -11,8 +11,6 @@
 #define WB_MSW_CONFIG_PARAMETER_VOC_MULTIPLIER 1
 #define WB_MSW_CONFIG_PARAMETER_NOISE_LEVEL_MULTIPLIER 100
 #define WB_MSW_CONFIG_PARAMETER_MOTION_MULTIPLIER 1
-#define WB_MSW_CONFIG_PARAMETER_MOTION_ON 300
-#define WB_MSW_CONFIG_PARAMETER_MOTION_OFF 250
 #define WB_MSW_CONFIG_PARAMETER_CO2_AUTO_VALUE true
 
 #define WB_MSW_MOTION_TIMOUT_POLLING_SENSOR 350
@@ -199,7 +197,10 @@ TZWAVESensor::TZWAVESensor(TWBMSWSensor* wbMsw): WbMsw(wbMsw)
         ZUNO_CONFIG_PARAMETER_INFO("Intrusion delay to send OFF command", "Value in seconds.", 0, 100000, 5),
 
         ZUNO_CONFIG_PARAMETER_INFO("Motion LED", "The LED flashes red when motion is detected.", 0, 255, 255),
-        ZUNO_CONFIG_PARAMETER_INFO("Operation mode LED", "The LED flashes green in operating mode", 0, 255, 255)};
+        ZUNO_CONFIG_PARAMETER_INFO("Operation mode LED", "The LED flashes green in operating mode", 0, 255, 255),
+
+        //
+        ZUNO_CONFIG_PARAMETER_INFO("Motion sensor sensitivity", "Motion sensor sensitivity", 10, 1000, 100)};
     memcpy(Parameters, parameters, sizeof(parameters));
     MotionLastTimeWaitOff = false;
     IntrusionLastTimeWaitOff = false;
@@ -702,6 +703,7 @@ const ZunoCFGParameter_t* TZWAVESensor::GetParameterIfChannelExists(size_t param
             break;
         case WB_MSW_CONFIG_PARAMETER_MOTION_LED:
         case WB_MSW_CONFIG_PARAMETER_OPERATION_LED:
+        case WB_MSW_CONFIG_PARAMETER_MOTION_SENSITIVITY:
             break;
         default:
             return (ZUNO_CFG_PARAMETER_UNKNOWN);
@@ -810,18 +812,29 @@ void TZWAVESensor::PublishMotionValue(TZWAVEChannel* channel, int64_t value)
     uint8_t groupIndex;
     uint32_t motionPeriod;
     uint32_t currentTime;
+    uint32_t MotionSensitivityOn;
+    uint32_t MotionSensitivityOff;
 
+    MotionSensitivityOn = (uint32_t)GetParameterValue(WB_MSW_CONFIG_PARAMETER_MOTION_SENSITIVITY);
+    if (MotionSensitivityOn >= 100)
+        MotionSensitivityOff = MotionSensitivityOn - 50;
+    else if (MotionSensitivityOn >= 50)
+        MotionSensitivityOff = MotionSensitivityOn - 20;
+    else if (MotionSensitivityOn >= 10)
+        MotionSensitivityOff = MotionSensitivityOn - 10;
+    else
+        MotionSensitivityOff = 0;
     onOffCommandsRule = GetParameterValue(channel->GetOnOffCommandsRuleParameterNumber());
     groupIndex = channel->GetGroupIndex();
     currentTime = millis();
     if (channel->GetTriggered()) {
-        if (value <= (WB_MSW_CONFIG_PARAMETER_MOTION_OFF)) {
+        if (value <= (MotionSensitivityOff)) {
             channel->SetTriggered(false);
             MotionLastTime = currentTime;
             MotionLastTimeWaitOff = true;
         }
     } else {
-        if (value >= (WB_MSW_CONFIG_PARAMETER_MOTION_ON)) {
+        if (value >= (MotionSensitivityOn)) {
             channel->SetTriggered(true);
             if (!channel->GetReportedValue()) {
                 channel->SetValue(true);
