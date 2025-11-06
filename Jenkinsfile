@@ -7,7 +7,7 @@ pipeline {
         stage('Build') {
             agent {
                 dockerfile {
-                    label 'devenv'
+                    reuseNode true
                 }
             }
             steps {
