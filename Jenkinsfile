@@ -42,4 +42,16 @@ pipeline {
             }
         }
     }
+    post {
+        always { script {
+            if (wb.isBranchRelease(env.BRANCH_NAME)) {
+                wb.notifyMaybeBuildRestored()
+            }
+        }}
+        failure { script {
+            if (wb.isBranchRelease(env.BRANCH_NAME)) {
+                wb.notifyBuildFailed()
+            }
+        }}
+    }
 }
