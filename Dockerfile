@@ -1,4 +1,4 @@
-FROM debian:bullseye
+FROM debian:trixie
 MAINTAINER Nikolay Korotkiy <nikolay.korotkiy@wirenboard.com>
 
 ENV CORE_PATH=/z-uno2_core_03_00_12_beta05
